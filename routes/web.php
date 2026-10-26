@@ -7,6 +7,7 @@ use App\Modules\Catalog\Http\Controllers\CategoryController;
 use App\Modules\Catalog\Http\Controllers\ModifierGroupController;
 use App\Modules\Catalog\Http\Controllers\ProductController;
 use App\Modules\Identity\Enums\Role;
+use App\Modules\Ordering\Http\Controllers\PosController;
 use Illuminate\Support\Facades\Route;
 
 Route::get('/health', fn () => response()->json(['status' => 'ok']));
@@ -33,6 +34,11 @@ Route::middleware('guest')->group(function () {
 Route::post('/logout', [LoginController::class, 'destroy'])
     ->middleware('auth')
     ->name('logout');
+
+Route::middleware(['auth', 'role:cashier,owner'])->group(function () {
+    Route::get('/pos', [PosController::class, 'index'])->name('pos.index');
+    Route::post('/pos/orders', [PosController::class, 'store'])->name('pos.orders.store');
+});
 
 Route::middleware(['auth', 'role:owner'])->prefix('admin')->group(function () {
     Route::inertia('/', 'admin/Dashboard')->name('admin.dashboard');
