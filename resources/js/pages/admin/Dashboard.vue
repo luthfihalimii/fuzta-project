@@ -15,7 +15,17 @@ import StaffLayout from '@/layouts/StaffLayout.vue';
                 </p>
             </div>
 
-            <div class="grid gap-4 sm:grid-cols-2">
+            <div class="grid gap-4 sm:grid-cols-3">
+                <Link
+                    href="/admin/catalog/products"
+                    class="rounded-2xl border border-line bg-white p-5 transition hover:border-brand/40 hover:shadow-sm"
+                >
+                    <h2 class="font-semibold text-ink">Katalog</h2>
+                    <p class="mt-1 text-sm text-muted">
+                        Kelola kategori, produk, varian, dan modifier.
+                    </p>
+                </Link>
+
                 <Link
                     href="/admin/staff"
                     class="rounded-2xl border border-line bg-white p-5 transition hover:border-brand/40 hover:shadow-sm"

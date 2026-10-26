@@ -16,6 +16,7 @@ const nav = computed(() => {
     if (current.role === 'owner') {
         return [
             { label: 'Dashboard', href: '/admin' },
+            { label: 'Katalog', href: '/admin/catalog/products' },
             { label: 'Staf', href: '/admin/staff' },
             { label: 'Cabang', href: '/admin/branches' },
         ];
