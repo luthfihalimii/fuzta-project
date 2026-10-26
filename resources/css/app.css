@@ -3,9 +3,30 @@
 @source '../../vendor/laravel/framework/src/Illuminate/Pagination/resources/views/*.blade.php';
 @source '../../storage/framework/views/*.php';
 
+@theme {
+    --color-brand: #056a4d;
+    --color-brand-yellow: #ffc72c;
+    --color-brand-orange: #f47b20;
+    --color-ink: #1f2421;
+    --color-muted: #5f6b65;
+    --color-line: #d8ded9;
+    --color-canvas: #f4f6f4;
+    --color-danger: #b3261e;
+    --color-warning: #9a5b00;
+    --color-success: #1e6b3a;
+    --color-info: #1f5fa8;
+}
+
 @theme inline {
     --font-sans:
         Instrument Sans, ui-sans-serif, system-ui, sans-serif,
         'Apple Color Emoji', 'Segoe UI Emoji', 'Segoe UI Symbol',
         'Noto Color Emoji';
+}
+
+@layer base {
+    body {
+        background-color: var(--color-canvas);
+        color: var(--color-ink);
+    }
 }

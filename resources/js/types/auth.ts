@@ -1,7 +1,12 @@
+export type Role = 'owner' | 'cashier' | 'kitchen';
+
 export type User = {
     id: number;
     name: string;
     email: string;
+    role: Role;
+    branch_id: number | null;
+    is_active: boolean;
     avatar?: string;
     email_verified_at: string | null;
     created_at: string;
@@ -10,5 +15,5 @@ export type User = {
 };
 
 export type Auth = {
-    user: User;
+    user: User | null;
 };

@@ -3,6 +3,7 @@
 namespace App\Providers;
 
 use Carbon\CarbonImmutable;
+use Illuminate\Database\Eloquent\Factories\Factory;
 use Illuminate\Support\Facades\Date;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\ServiceProvider;
@@ -32,6 +33,10 @@ class AppServiceProvider extends ServiceProvider
     protected function configureDefaults(): void
     {
         Date::use(CarbonImmutable::class);
+
+        Factory::guessFactoryNamesUsing(
+            fn (string $modelName): string => 'Database\\Factories\\'.class_basename($modelName).'Factory',
+        );
 
         DB::prohibitDestructiveCommands(
             app()->isProduction(),
