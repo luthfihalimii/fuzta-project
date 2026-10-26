@@ -16,6 +16,7 @@ const nav = computed(() => {
     if (current.role === 'owner') {
         return [
             { label: 'Dashboard', href: '/admin' },
+            { label: 'POS', href: '/pos' },
             { label: 'Katalog', href: '/admin/catalog/products' },
             { label: 'Staf', href: '/admin/staff' },
             { label: 'Cabang', href: '/admin/branches' },
@@ -23,13 +24,20 @@ const nav = computed(() => {
     }
 
     if (current.role === 'cashier') {
-        return [{ label: 'POS', href: '/pos' }];
+        return [
+            { label: 'POS', href: '/pos' },
+            { label: 'Pesanan', href: '/pos/orders' },
+        ];
     }
 
     return [{ label: 'Dapur', href: '/kitchen' }];
 });
 
 function isActive(href: string): boolean {
+    if (href === '/admin' || href === '/pos') {
+        return page.url === href;
+    }
+
     return page.url === href || page.url.startsWith(`${href}/`);
 }
 

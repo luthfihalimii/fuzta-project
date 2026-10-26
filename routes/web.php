@@ -7,7 +7,9 @@ use App\Modules\Catalog\Http\Controllers\CategoryController;
 use App\Modules\Catalog\Http\Controllers\ModifierGroupController;
 use App\Modules\Catalog\Http\Controllers\ProductController;
 use App\Modules\Identity\Enums\Role;
+use App\Modules\Ordering\Http\Controllers\OrderController;
 use App\Modules\Ordering\Http\Controllers\PosController;
+use App\Modules\Payments\Http\Controllers\PaymentController;
 use Illuminate\Support\Facades\Route;
 
 Route::get('/health', fn () => response()->json(['status' => 'ok']));
@@ -38,6 +40,11 @@ Route::post('/logout', [LoginController::class, 'destroy'])
 Route::middleware(['auth', 'role:cashier,owner'])->group(function () {
     Route::get('/pos', [PosController::class, 'index'])->name('pos.index');
     Route::post('/pos/orders', [PosController::class, 'store'])->name('pos.orders.store');
+    Route::get('/pos/orders', [OrderController::class, 'index'])->name('pos.orders.index');
+
+    Route::post('/orders/{order}/pay', [PaymentController::class, 'store'])->name('orders.pay');
+    Route::post('/orders/{order}/cancel', [OrderController::class, 'cancel'])->name('orders.cancel');
+    Route::post('/orders/{order}/void', [OrderController::class, 'void'])->name('orders.void');
 });
 
 Route::middleware(['auth', 'role:owner'])->prefix('admin')->group(function () {

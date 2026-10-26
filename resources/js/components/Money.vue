@@ -1,16 +1,10 @@
 <script setup lang="ts">
 import { computed } from 'vue';
+import { formatRupiah } from '@/lib/money';
 
 const props = defineProps<{ value: number }>();
 
-const formatted = computed(() =>
-    new Intl.NumberFormat('id-ID', {
-        style: 'currency',
-        currency: 'IDR',
-        maximumFractionDigits: 0,
-        minimumFractionDigits: 0,
-    }).format(props.value),
-);
+const formatted = computed(() => formatRupiah(props.value));
 </script>
 
 <template>

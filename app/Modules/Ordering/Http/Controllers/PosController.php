@@ -4,26 +4,125 @@ namespace App\Modules\Ordering\Http\Controllers;
 
 use App\Http\Controllers\Controller;
 use App\Http\Requests\StoreOrderRequest;
+use App\Modules\Branches\Support\BranchPresenter;
+use App\Modules\Catalog\Models\Category;
+use App\Modules\Catalog\Models\Modifier;
+use App\Modules\Catalog\Models\ModifierGroup;
+use App\Modules\Catalog\Models\Product;
+use App\Modules\Catalog\Models\ProductVariant;
 use App\Modules\Ordering\Actions\CreateOrder;
+use App\Modules\Ordering\Actions\ResolvePosBranch;
 use App\Modules\Ordering\Data\CreateOrderData;
 use App\Modules\Ordering\Enums\OrderChannel;
-use App\Modules\Ordering\Models\Order;
-use App\Modules\Ordering\Models\OrderItem;
-use App\Modules\Ordering\Models\OrderItemModifier;
+use App\Modules\Ordering\Support\OrderPayload;
 use Illuminate\Http\JsonResponse;
+use Illuminate\Http\Request;
 use Illuminate\Validation\ValidationException;
 use Inertia\Inertia;
 use Inertia\Response;
 
 class PosController extends Controller
 {
-    public function index(): Response
-    {
-        return Inertia::render('pos/Index');
+    public function index(
+        Request $request,
+        ResolvePosBranch $resolveBranch,
+    ): Response {
+        $user = $request->user();
+        $requestedBranchId = $request->integer('branch');
+        $branch = $resolveBranch($user, $requestedBranchId > 0 ? $requestedBranchId : null);
+
+        $categories = [];
+        $products = [];
+
+        if ($branch !== null && $branch->is_active) {
+            $products = Product::query()
+                ->with([
+                    'category',
+                    'variants' => fn ($query) => $query
+                        ->where('is_active', true)
+                        ->orderBy('sort_order')
+                        ->orderBy('id'),
+                    'modifierGroups' => fn ($query) => $query
+                        ->orderBy('product_modifier_groups.sort_order'),
+                    'modifierGroups.modifiers' => fn ($query) => $query
+                        ->where('is_active', true)
+                        ->orderBy('sort_order')
+                        ->orderBy('id'),
+                ])
+                ->where('is_active', true)
+                ->whereHas('category', fn ($query) => $query->where('is_active', true))
+                ->whereHas('branches', fn ($query) => $query
+                    ->where('branches.id', $branch->id)
+                    ->where('product_branch_availability.is_available', true))
+                ->orderBy('name')
+                ->get()
+                ->map(fn (Product $product) => [
+                    'id' => $product->id,
+                    'name' => $product->name,
+                    'description' => $product->description,
+                    'category_id' => $product->category_id,
+                    'category_name' => $product->category?->name,
+                    'base_price' => $product->base_price,
+                    'variants' => $product->variants
+                        ->map(fn (ProductVariant $variant) => [
+                            'id' => $variant->id,
+                            'name' => $variant->name,
+                            'price' => $variant->price,
+                        ])
+                        ->values()
+                        ->all(),
+                    'modifier_groups' => $product->modifierGroups
+                        ->map(fn (ModifierGroup $group) => [
+                            'id' => $group->id,
+                            'name' => $group->name,
+                            'min_select' => $group->min_select,
+                            'max_select' => $group->max_select,
+                            'is_required' => $group->is_required,
+                            'modifiers' => $group->modifiers
+                                ->map(fn (Modifier $modifier) => [
+                                    'id' => $modifier->id,
+                                    'name' => $modifier->name,
+                                    'price_delta' => $modifier->price_delta,
+                                ])
+                                ->values()
+                                ->all(),
+                        ])
+                        ->values()
+                        ->all(),
+                ])
+                ->values()
+                ->all();
+
+            $categoryIds = collect($products)->pluck('category_id')->unique();
+
+            $categories = Category::query()
+                ->whereIn('id', $categoryIds)
+                ->orderBy('sort_order')
+                ->orderBy('name')
+                ->get(['id', 'name'])
+                ->map(fn (Category $category) => [
+                    'id' => $category->id,
+                    'name' => $category->name,
+                ])
+                ->values()
+                ->all();
+        }
+
+        return Inertia::render('pos/Index', [
+            'branch' => $branch ? BranchPresenter::summary($branch) : null,
+            'branches' => $user->isOwner() ? BranchPresenter::options() : [],
+            'canChooseBranch' => $user->isOwner(),
+            'categories' => $categories,
+            'products' => $products,
+            'ordersUrl' => $branch ? '/pos/orders?branch='.$branch->id : '/pos/orders',
+        ]);
     }
 
-    public function store(StoreOrderRequest $request, CreateOrder $createOrder): JsonResponse
-    {
+    public function store(
+        StoreOrderRequest $request,
+        CreateOrder $createOrder,
+        OrderPayload $payload,
+    ): JsonResponse {
         $validated = $request->validated();
         $user = $request->user();
 
@@ -48,48 +147,8 @@ class PosController extends Controller
         ));
 
         return response()->json(
-            ['order' => $this->payload($order)],
+            ['order' => $payload($order)],
             $order->wasRecentlyCreated ? 201 : 200,
         );
-    }
-
-    /**
-     * @return array<string, mixed>
-     */
-    private function payload(Order $order): array
-    {
-        $order->loadMissing(['items.modifiers']);
-
-        return [
-            'id' => $order->id,
-            'order_number' => $order->order_number,
-            'branch_id' => $order->branch_id,
-            'channel' => $order->channel->value,
-            'table_number' => $order->table_number,
-            'customer_name' => $order->customer_name,
-            'note' => $order->note,
-            'status' => $order->status->value,
-            'payment_status' => $order->payment_status->value,
-            'subtotal' => $order->subtotal,
-            'total' => $order->total,
-            'created_at' => $order->created_at?->toIso8601String(),
-            'items' => $order->items
-                ->map(fn (OrderItem $item) => [
-                    'id' => $item->id,
-                    'product_name' => $item->product_name,
-                    'variant_name' => $item->variant_name,
-                    'quantity' => $item->quantity,
-                    'unit_price' => $item->unit_price,
-                    'line_total' => $item->line_total,
-                    'note' => $item->note,
-                    'modifiers' => $item->modifiers
-                        ->map(fn (OrderItemModifier $modifier) => [
-                            'modifier_name' => $modifier->modifier_name,
-                            'price_delta' => $modifier->price_delta,
-                        ])
-                        ->all(),
-                ])
-                ->all(),
-        ];
     }
 }

@@ -7,12 +7,14 @@ use App\Modules\Branches\Models\Branch;
 use App\Modules\Ordering\Enums\OrderChannel;
 use App\Modules\Ordering\Enums\OrderStatus;
 use App\Modules\Payments\Enums\PaymentStatus;
+use App\Modules\Payments\Models\Payment;
 use Database\Factories\OrderFactory;
 use Illuminate\Database\Eloquent\Attributes\Fillable;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\HasMany;
+use Illuminate\Database\Eloquent\Relations\HasOne;
 
 #[Fillable([
     'order_number',
@@ -59,11 +61,22 @@ class Order extends Model
 
     public function items(): HasMany
     {
-        return $this->hasMany(OrderItem::class);
+        return $this->hasMany(OrderItem::class)->orderBy('id');
     }
 
     public function statusEvents(): HasMany
     {
         return $this->hasMany(OrderStatusEvent::class);
+    }
+
+    public function payment(): HasOne
+    {
+        return $this->hasOne(Payment::class);
+    }
+
+    public function canBeCancelled(): bool
+    {
+        return $this->status === OrderStatus::Queued
+            && $this->payment_status === PaymentStatus::Unpaid;
     }
 }
