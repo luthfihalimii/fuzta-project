@@ -1,5 +1,6 @@
 <?php
 
+use App\Http\Controllers\Admin\DashboardController;
 use App\Http\Controllers\Admin\StaffController;
 use App\Http\Controllers\Auth\LoginController;
 use App\Modules\Branches\Http\Controllers\BranchController;
@@ -7,6 +8,9 @@ use App\Modules\Catalog\Http\Controllers\CategoryController;
 use App\Modules\Catalog\Http\Controllers\ModifierGroupController;
 use App\Modules\Catalog\Http\Controllers\ProductController;
 use App\Modules\Identity\Enums\Role;
+use App\Modules\Inventory\Http\Controllers\IngredientController;
+use App\Modules\Inventory\Http\Controllers\StockCountController;
+use App\Modules\Inventory\Http\Controllers\StockMovementController;
 use App\Modules\Kitchen\Http\Controllers\KitchenController;
 use App\Modules\Ordering\Http\Controllers\OrderController;
 use App\Modules\Ordering\Http\Controllers\PosController;
@@ -52,10 +56,23 @@ Route::middleware(['auth', 'role:kitchen,owner'])->group(function () {
     Route::get('/kitchen', [KitchenController::class, 'index'])->name('kitchen.index');
     Route::get('/kitchen/orders', [KitchenController::class, 'orders'])->name('kitchen.orders');
     Route::patch('/kitchen/orders/{order}/status', [KitchenController::class, 'updateStatus'])->name('kitchen.orders.status');
+
+    Route::get('/kitchen/stock', [StockMovementController::class, 'kitchenIndex'])->name('kitchen.stock.index');
+    Route::post('/kitchen/stock/waste', [StockMovementController::class, 'kitchenWaste'])->name('kitchen.stock.waste');
+    Route::post('/kitchen/stock/counts', [StockCountController::class, 'kitchenStore'])->name('kitchen.stock.counts');
 });
 
 Route::middleware(['auth', 'role:owner'])->prefix('admin')->group(function () {
-    Route::inertia('/', 'admin/Dashboard')->name('admin.dashboard');
+    Route::get('/', [DashboardController::class, 'index'])->name('admin.dashboard');
+
+    Route::prefix('stock')->name('admin.stock.')->group(function () {
+        Route::get('/ingredients', [IngredientController::class, 'index'])->name('ingredients.index');
+        Route::post('/ingredients', [IngredientController::class, 'store'])->name('ingredients.store');
+        Route::get('/movements', [StockMovementController::class, 'index'])->name('movements.index');
+        Route::post('/movements', [StockMovementController::class, 'store'])->name('movements.store');
+        Route::get('/counts', [StockCountController::class, 'index'])->name('counts.index');
+        Route::post('/counts', [StockCountController::class, 'store'])->name('counts.store');
+    });
 
     Route::get('/staff', [StaffController::class, 'index'])->name('admin.staff.index');
     Route::post('/staff', [StaffController::class, 'store'])->name('admin.staff.store');

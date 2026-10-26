@@ -248,6 +248,13 @@ onUnmounted(() => {
                     </template>
 
                     <Link
+                        href="/kitchen/stock"
+                        class="inline-flex min-h-11 items-center rounded-xl border border-white/15 px-3 text-sm font-semibold text-white/80 transition hover:bg-white/10"
+                    >
+                        Stok
+                    </Link>
+
+                    <Link
                         v-if="user?.role === 'owner'"
                         href="/admin"
                         class="hidden min-h-11 items-center rounded-xl border border-white/15 px-3 text-sm font-semibold text-white/80 transition hover:bg-white/10 sm:flex"

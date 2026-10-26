@@ -14,6 +14,8 @@ class DatabaseSeeder extends Seeder
 
     public function run(): void
     {
+        $this->call(UnitSeeder::class);
+
         $first = Branch::query()->firstOrCreate(
             ['code' => 'PF-01'],
             [

@@ -1,6 +1,22 @@
 <script setup lang="ts">
 import { Head, Link } from '@inertiajs/vue3';
+import Badge from '@/components/Badge.vue';
 import StaffLayout from '@/layouts/StaffLayout.vue';
+
+type LowStockRow = {
+    ingredient_id: number;
+    ingredient_name: string;
+    quantity: number;
+    low_stock_threshold: number;
+    unit: string;
+    branch_id: number;
+    branch_code: string;
+    branch_name: string;
+};
+
+defineProps<{
+    low_stock: LowStockRow[];
+}>();
 </script>
 
 <template>
@@ -15,7 +31,7 @@ import StaffLayout from '@/layouts/StaffLayout.vue';
                 </p>
             </div>
 
-            <div class="grid gap-4 sm:grid-cols-3">
+            <div class="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
                 <Link
                     href="/admin/catalog/products"
                     class="rounded-2xl border border-line bg-white p-5 transition hover:border-brand/40 hover:shadow-sm"
@@ -23,6 +39,16 @@ import StaffLayout from '@/layouts/StaffLayout.vue';
                     <h2 class="font-semibold text-ink">Katalog</h2>
                     <p class="mt-1 text-sm text-muted">
                         Kelola kategori, produk, varian, dan modifier.
+                    </p>
+                </Link>
+
+                <Link
+                    href="/admin/stock/ingredients"
+                    class="rounded-2xl border border-line bg-white p-5 transition hover:border-brand/40 hover:shadow-sm"
+                >
+                    <h2 class="font-semibold text-ink">Stok</h2>
+                    <p class="mt-1 text-sm text-muted">
+                        Bahan, ledger, opname, dan stok menipis.
                     </p>
                 </Link>
 
@@ -46,6 +72,55 @@ import StaffLayout from '@/layouts/StaffLayout.vue';
                     </p>
                 </Link>
             </div>
+
+            <section class="rounded-2xl border border-line bg-white">
+                <div
+                    class="flex flex-wrap items-center justify-between gap-2 border-b border-line px-5 py-4"
+                >
+                    <div>
+                        <h2 class="font-semibold text-ink">Stok menipis</h2>
+                        <p class="mt-1 text-sm text-muted">
+                            Bahan pada atau di bawah ambang minimum.
+                        </p>
+                    </div>
+                    <Badge :tone="low_stock.length > 0 ? 'warning' : 'success'">
+                        {{ low_stock.length }} bahan
+                    </Badge>
+                </div>
+
+                <div
+                    v-if="low_stock.length === 0"
+                    class="px-5 py-8 text-center text-sm text-muted"
+                >
+                    Semua stok di atas ambang minimum.
+                </div>
+
+                <div v-else class="divide-y divide-line">
+                    <div
+                        v-for="row in low_stock"
+                        :key="`${row.branch_id}-${row.ingredient_id}`"
+                        class="flex flex-wrap items-center justify-between gap-3 px-5 py-4"
+                    >
+                        <div>
+                            <p class="font-semibold text-ink">
+                                {{ row.ingredient_name }}
+                            </p>
+                            <p class="mt-0.5 text-sm text-muted">
+                                {{ row.branch_code }} — {{ row.branch_name }}
+                            </p>
+                        </div>
+                        <div class="text-right">
+                            <p class="font-bold tabular-nums text-warning">
+                                {{ row.quantity }} {{ row.unit }}
+                            </p>
+                            <p class="text-xs text-muted">
+                                Minimum {{ row.low_stock_threshold }}
+                                {{ row.unit }}
+                            </p>
+                        </div>
+                    </div>
+                </div>
+            </section>
         </div>
     </StaffLayout>
 </template>
