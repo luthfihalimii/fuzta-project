@@ -10,6 +10,7 @@ use App\Modules\Payments\Enums\PaymentStatus;
 use App\Modules\Payments\Models\Payment;
 use Database\Factories\OrderFactory;
 use Illuminate\Database\Eloquent\Attributes\Fillable;
+use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
@@ -78,5 +79,13 @@ class Order extends Model
     {
         return $this->status === OrderStatus::Queued
             && $this->payment_status === PaymentStatus::Unpaid;
+    }
+
+    public function scopeVisibleToKitchen(Builder $query, ?int $branchId = null): Builder
+    {
+        return $query
+            ->when($branchId !== null, fn (Builder $query) => $query->where('branch_id', $branchId))
+            ->where('payment_status', PaymentStatus::Paid)
+            ->where('status', '!=', OrderStatus::Cancelled);
     }
 }

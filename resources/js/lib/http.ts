@@ -32,18 +32,32 @@ function csrfToken(): string {
     );
 }
 
-export async function postJson<T>(url: string, body: unknown): Promise<T> {
-    const response = await fetch(url, {
-        method: 'POST',
+async function requestJson<T>(
+    method: 'GET' | 'POST' | 'PATCH',
+    url: string,
+    body?: unknown,
+): Promise<T> {
+    const headers: Record<string, string> = {
+        Accept: 'application/json',
+        'X-Requested-With': 'XMLHttpRequest',
+    };
+
+    if (body !== undefined) {
+        headers['Content-Type'] = 'application/json';
+        headers['X-CSRF-TOKEN'] = csrfToken();
+    }
+
+    const options: RequestInit = {
+        method,
         credentials: 'same-origin',
-        headers: {
-            'Content-Type': 'application/json',
-            Accept: 'application/json',
-            'X-Requested-With': 'XMLHttpRequest',
-            'X-CSRF-TOKEN': csrfToken(),
-        },
-        body: JSON.stringify(body),
-    });
+        headers,
+    };
+
+    if (body !== undefined) {
+        options.body = JSON.stringify(body);
+    }
+
+    const response = await fetch(url, options);
 
     const text = await response.text();
     let payload: unknown = null;
@@ -71,4 +85,16 @@ export async function postJson<T>(url: string, body: unknown): Promise<T> {
     }
 
     return (payload ?? {}) as T;
+}
+
+export async function getJson<T>(url: string): Promise<T> {
+    return requestJson<T>('GET', url);
+}
+
+export async function postJson<T>(url: string, body: unknown): Promise<T> {
+    return requestJson<T>('POST', url, body);
+}
+
+export async function patchJson<T>(url: string, body: unknown): Promise<T> {
+    return requestJson<T>('PATCH', url, body);
 }

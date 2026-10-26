@@ -7,6 +7,7 @@ use App\Modules\Catalog\Http\Controllers\CategoryController;
 use App\Modules\Catalog\Http\Controllers\ModifierGroupController;
 use App\Modules\Catalog\Http\Controllers\ProductController;
 use App\Modules\Identity\Enums\Role;
+use App\Modules\Kitchen\Http\Controllers\KitchenController;
 use App\Modules\Ordering\Http\Controllers\OrderController;
 use App\Modules\Ordering\Http\Controllers\PosController;
 use App\Modules\Payments\Http\Controllers\PaymentController;
@@ -45,6 +46,12 @@ Route::middleware(['auth', 'role:cashier,owner'])->group(function () {
     Route::post('/orders/{order}/pay', [PaymentController::class, 'store'])->name('orders.pay');
     Route::post('/orders/{order}/cancel', [OrderController::class, 'cancel'])->name('orders.cancel');
     Route::post('/orders/{order}/void', [OrderController::class, 'void'])->name('orders.void');
+});
+
+Route::middleware(['auth', 'role:kitchen,owner'])->group(function () {
+    Route::get('/kitchen', [KitchenController::class, 'index'])->name('kitchen.index');
+    Route::get('/kitchen/orders', [KitchenController::class, 'orders'])->name('kitchen.orders');
+    Route::patch('/kitchen/orders/{order}/status', [KitchenController::class, 'updateStatus'])->name('kitchen.orders.status');
 });
 
 Route::middleware(['auth', 'role:owner'])->prefix('admin')->group(function () {

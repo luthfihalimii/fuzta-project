@@ -34,4 +34,10 @@ class OrderPolicy
         return $user->role() === Role::Owner
             && $order->payment_status === PaymentStatus::Paid;
     }
+
+    public function transition(User $user, Order $order): bool
+    {
+        return $user->hasBranchAccess($order->branch_id)
+            && in_array($user->role(), [Role::Owner, Role::Kitchen], true);
+    }
 }

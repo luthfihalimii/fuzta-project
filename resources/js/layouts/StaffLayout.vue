@@ -17,6 +17,7 @@ const nav = computed(() => {
         return [
             { label: 'Dashboard', href: '/admin' },
             { label: 'POS', href: '/pos' },
+            { label: 'Dapur', href: '/kitchen' },
             { label: 'Katalog', href: '/admin/catalog/products' },
             { label: 'Staf', href: '/admin/staff' },
             { label: 'Cabang', href: '/admin/branches' },
