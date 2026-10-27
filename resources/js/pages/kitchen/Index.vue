@@ -41,11 +41,11 @@ const nextActions: Record<
 };
 
 const statusTone: Record<KitchenStatus, string> = {
-    queued: 'bg-[#ffc72c] text-[#1a1a1a]',
-    accepted: 'bg-[#60a5fa] text-[#0b1b33]',
-    preparing: 'bg-[#f97316] text-[#1a1a1a]',
-    ready: 'bg-[#22c55e] text-[#102016]',
-    completed: 'bg-white/10 text-[#aab5ac]',
+    queued: 'bg-brand-yellow text-ink',
+    accepted: 'bg-kitchen-accepted text-ink',
+    preparing: 'bg-brand-orange text-ink',
+    ready: 'bg-kitchen-ready text-ink',
+    completed: 'bg-white/10 text-kitchen-muted',
 };
 
 const activeStatus = ref<KitchenStatus>('queued');
@@ -204,9 +204,9 @@ onUnmounted(() => {
 <template>
     <Head title="Dapur" />
 
-    <div class="min-h-screen bg-[#0d120e] text-[#f4f1e8]">
+    <div class="min-h-screen bg-kitchen-canvas text-kitchen-text">
         <header
-            class="sticky top-0 z-20 border-b border-white/10 bg-[#0d120e]/95 backdrop-blur"
+            class="sticky top-0 z-20 border-b border-white/10 bg-kitchen-canvas/95 backdrop-blur"
         >
             <div
                 class="mx-auto flex max-w-[1600px] flex-wrap items-center justify-between gap-3 px-4 py-3 sm:px-6"
@@ -214,7 +214,7 @@ onUnmounted(() => {
                 <div class="flex min-w-0 items-center gap-3">
                     <Link
                         href="/"
-                        class="shrink-0 text-lg font-black tracking-tight text-[#ffc72c]"
+                        class="inline-flex min-h-12 shrink-0 items-center text-lg font-black tracking-tight text-brand-yellow 2xl:text-2xl"
                     >
                         Pizza Fruzta
                     </Link>
@@ -233,14 +233,14 @@ onUnmounted(() => {
                         <select
                             id="kitchen-branch"
                             v-model="branchSelect"
-                            class="min-h-11 rounded-xl border border-white/15 bg-white/5 px-3 text-sm font-semibold text-white outline-none focus:border-[#ffc72c] focus:ring-2 focus:ring-[#ffc72c]/30"
+                            class="min-h-12 rounded-xl border border-white/15 bg-white/5 px-3 text-sm font-semibold text-white outline-none focus:border-brand-yellow focus:ring-2 focus:ring-brand-yellow/30"
                             @change="changeBranch"
                         >
                             <option
                                 v-for="option in branches"
                                 :key="option.id"
                                 :value="option.id"
-                                class="bg-[#1a201b]"
+                                class="bg-kitchen-surface"
                             >
                                 {{ option.name }}
                             </option>
@@ -249,7 +249,7 @@ onUnmounted(() => {
 
                     <Link
                         href="/kitchen/stock"
-                        class="inline-flex min-h-11 items-center rounded-xl border border-white/15 px-3 text-sm font-semibold text-white/80 transition hover:bg-white/10"
+                        class="inline-flex min-h-12 items-center rounded-xl border border-white/15 px-3 text-sm font-semibold text-white/80 transition hover:bg-white/10"
                     >
                         Stok
                     </Link>
@@ -257,7 +257,7 @@ onUnmounted(() => {
                     <Link
                         v-if="user?.role === 'owner'"
                         href="/admin"
-                        class="hidden min-h-11 items-center rounded-xl border border-white/15 px-3 text-sm font-semibold text-white/80 transition hover:bg-white/10 sm:flex"
+                        class="hidden min-h-12 items-center rounded-xl border border-white/15 px-3 text-sm font-semibold text-white/80 transition hover:bg-white/10 sm:flex"
                     >
                         Admin
                     </Link>
@@ -268,7 +268,7 @@ onUnmounted(() => {
 
                     <button
                         type="button"
-                        class="min-h-11 rounded-xl px-3 text-sm font-semibold text-white/60 transition hover:bg-white/10 hover:text-white"
+                        class="min-h-12 rounded-xl px-3 text-sm font-semibold text-white/60 transition hover:bg-white/10 hover:text-white"
                         @click="logout"
                     >
                         Keluar
@@ -288,10 +288,10 @@ onUnmounted(() => {
                     :key="tab.value"
                     type="button"
                     :aria-pressed="activeStatus === tab.value"
-                    class="min-h-12 shrink-0 rounded-xl px-4 text-base font-bold transition focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[#ffc72c]"
+                    class="min-h-12 shrink-0 rounded-xl px-4 text-base font-bold transition focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-brand-yellow 2xl:min-h-14 2xl:px-6 2xl:text-lg"
                     :class="
                         activeStatus === tab.value
-                            ? 'bg-[#ffc72c] text-[#1a1a1a]'
+                            ? 'bg-brand-yellow text-ink'
                             : 'bg-white/5 text-white/65 hover:bg-white/10 hover:text-white'
                     "
                     @click="selectTab(tab.value)"
@@ -306,7 +306,7 @@ onUnmounted(() => {
 
             <div
                 v-if="error"
-                class="mb-4 rounded-xl border border-[#f97316]/40 bg-[#f97316]/10 px-4 py-3 text-sm font-semibold text-[#f97316]"
+                class="mb-4 rounded-xl border border-brand-orange/40 bg-brand-orange/10 px-4 py-3 text-sm font-semibold text-brand-orange"
                 role="alert"
                 aria-live="polite"
             >
@@ -315,7 +315,7 @@ onUnmounted(() => {
 
             <div
                 v-if="actionError"
-                class="mb-4 rounded-xl border border-[#ef4444]/40 bg-[#ef4444]/10 px-4 py-3 text-sm font-semibold text-[#fca5a5]"
+                class="mb-4 rounded-xl border border-danger/40 bg-danger/10 px-4 py-3 text-sm font-semibold text-kitchen-danger-text"
                 role="alert"
                 aria-live="polite"
             >
@@ -350,8 +350,8 @@ onUnmounted(() => {
                 v-else-if="orders.length === 0"
                 class="rounded-2xl border border-dashed border-white/15 bg-white/[0.03] px-6 py-16 text-center"
             >
-                <p class="text-xl font-bold">{{ emptyMessage }}</p>
-                <p class="mt-2 text-sm text-white/60">
+                <p class="text-xl font-bold 2xl:text-3xl">{{ emptyMessage }}</p>
+                <p class="mt-2 text-sm text-white/60 2xl:text-lg">
                     Halaman ini memperbarui daftar secara otomatis.
                 </p>
             </div>
@@ -360,10 +360,10 @@ onUnmounted(() => {
                 <article
                     v-for="order in orders"
                     :key="order.id"
-                    class="flex flex-col rounded-2xl border bg-[#161d18] p-4 shadow-lg shadow-black/20"
+                    class="flex flex-col rounded-2xl border bg-kitchen-surface p-4 shadow-lg shadow-black/20"
                     :class="
                         newOrderIds.has(order.id)
-                            ? 'border-[#ffc72c] ring-2 ring-[#ffc72c]/60 motion-safe:animate-pulse'
+                            ? 'border-brand-yellow ring-2 ring-brand-yellow/60 motion-safe:animate-pulse'
                             : 'border-white/10'
                     "
                 >
@@ -375,7 +375,7 @@ onUnmounted(() => {
                                     · Meja {{ order.table_number }}
                                 </span>
                             </p>
-                            <h2 class="mt-1 text-2xl font-black tracking-tight">
+                            <h2 class="mt-1 text-2xl font-black tracking-tight 2xl:text-3xl">
                                 {{ order.order_number }}
                             </h2>
                             <p
@@ -388,12 +388,12 @@ onUnmounted(() => {
 
                         <div class="shrink-0 text-right">
                             <span
-                                class="inline-flex rounded-full px-2.5 py-1 text-base font-black uppercase tracking-wide"
+                                class="inline-flex rounded-full px-2.5 py-1 text-base font-black uppercase tracking-wide 2xl:px-3 2xl:py-1.5 2xl:text-lg"
                                 :class="statusTone[activeStatus]"
                             >
                                 {{ activeTab?.label }}
                             </span>
-                            <p class="mt-2 text-base font-semibold text-white/65">
+                            <p class="mt-2 text-base font-semibold text-white/65 2xl:text-lg">
                                 {{ formatElapsed(order.created_at) }}
                             </p>
                         </div>
@@ -405,10 +405,10 @@ onUnmounted(() => {
                         <li
                             v-for="item in order.items"
                             :key="item.id"
-                            class="text-lg leading-snug"
+                            class="text-lg leading-snug 2xl:text-2xl"
                         >
                             <div class="flex gap-2">
-                                <span class="font-black text-[#ffc72c]">
+                                <span class="font-black text-brand-yellow">
                                     {{ item.quantity }}×
                                 </span>
                                 <div class="min-w-0">
@@ -417,20 +417,20 @@ onUnmounted(() => {
                                     </p>
                                     <p
                                         v-if="item.variant_name"
-                                        class="text-sm text-white/60"
+                                        class="text-sm text-white/60 2xl:text-lg"
                                     >
                                         {{ item.variant_name }}
                                     </p>
                                     <p
                                         v-for="(modifier, index) in item.modifiers"
                                         :key="`${item.id}-${index}`"
-                                        class="text-sm text-white/60"
+                                        class="text-sm text-white/60 2xl:text-lg"
                                     >
                                         + {{ modifier.modifier_name }}
                                     </p>
                                     <p
                                         v-if="item.note"
-                                        class="mt-1 text-base font-medium text-[#ffc72c]/80"
+                                        class="mt-1 text-base font-medium text-brand-yellow/80 2xl:text-xl"
                                     >
                                         Catatan item: {{ item.note }}
                                     </p>
@@ -441,7 +441,7 @@ onUnmounted(() => {
 
                     <p
                         v-if="order.note"
-                        class="mt-4 rounded-xl border border-[#ffc72c]/25 bg-[#ffc72c]/10 px-3 py-2 text-base font-semibold text-[#ffc72c]"
+                        class="mt-4 rounded-xl border border-brand-yellow/25 bg-brand-yellow/10 px-3 py-2 text-base font-semibold text-brand-yellow 2xl:text-xl"
                     >
                         Catatan: {{ order.note }}
                     </p>
@@ -450,7 +450,7 @@ onUnmounted(() => {
                         <button
                             v-if="nextActions[order.status]"
                             type="button"
-                            class="min-h-14 w-full rounded-xl bg-[#ffc72c] px-4 text-lg font-black text-[#1a1a1a] transition hover:bg-[#ffd95c] focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[#ffc72c] disabled:cursor-not-allowed disabled:opacity-50"
+                            class="min-h-14 w-full rounded-xl bg-brand-yellow px-4 text-lg font-black text-ink transition hover:bg-brand-yellow/90 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-brand-yellow disabled:cursor-not-allowed disabled:opacity-50 2xl:min-h-16 2xl:text-xl"
                             :disabled="transitioningId === order.id"
                             @click="advance(order)"
                         >

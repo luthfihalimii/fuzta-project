@@ -2,7 +2,7 @@
 
 Design system and UX guidelines for the public website, customer ordering, Flutter app, POS, kitchen display, and admin. Read together with `PRD.md` (§6, §9.5, §12) and `AGENTS.md`.
 
-> **Status: Draft.** The PRD states that logo, colors, typography, and photography **must be confirmed with Pizza Fruzta, not assumed**. Everything marked **[PROPOSED]** is a working default so development can start. Keep it in one tokens file so it can be swapped in one place when the brand is confirmed. Do not hard-code these values in components.
+> **Status: Draft.** The PRD states that logo, colors, typography, and photography **must be confirmed with Pizza Fruzta, not assumed**. Green `#056A4D` is confirmed; yellow/orange and typography remain working defaults. Keep tokens in `resources/css/app.css` so provisional values can be swapped in one place. Do not hard-code values in components.
 
 ## 1. Design intent
 
@@ -27,7 +27,7 @@ Spend boldness in one place per surface: on customer pages it is the food photog
 6. **Transparent money.** Totals, fees, and discounts are shown before payment; what is displayed matches the server-calculated total.
 7. **Plain language.** Written for restaurant staff and customers, not engineers.
 
-## 3. Brand tokens [PROPOSED — confirm with Pizza Fruzta]
+## 3. Brand tokens (green confirmed; yellow/orange provisional)
 
 Brand name: "Pizza Fruzta". Do not invent a logo, mascot, or tagline. Use a text wordmark placeholder until the real logo is supplied.
 
@@ -35,24 +35,24 @@ Brand name: "Pizza Fruzta". Do not invent a logo, mascot, or tagline. Use a text
 
 | Token | Hex | Role |
 |---|---|---|
-| `brand-primary` | `#C23B22` | Brand accent, primary CTA on customer surfaces |
-| `brand-secondary` | `#2E6B45` | Secondary accent, positive/fresh highlights |
-| `brand-highlight` | `#E8A33D` | Promotions, badges (use sparingly) |
+| `brand` | `#056A4D` | Brand accent, primary CTA |
+| `brand-yellow` | `#FFC72C` | Promotions, badges, kitchen "new order" highlight |
+| `brand-orange` | `#F47B20` | Secondary accent, kitchen preparing state |
 | `surface` | `#FFFFFF` | Cards, sheets |
-| `canvas` | `#F7F6F4` | Page background (customer) |
-| `canvas-staff` | `#F2F3F5` | Page background (POS/admin), neutral and cooler |
-| `ink` | `#26211E` | Primary text |
-| `ink-muted` | `#6B645E` | Secondary text |
-| `line` | `#DDD9D4` | Dividers, input borders |
+| `canvas` | `#F4F6F4` | Page background (customer and staff) |
+| `ink` | `#1F2421` | Primary text |
+| `muted` | `#5F6B65` | Secondary text |
+| `line` | `#D8DED9` | Dividers, input borders |
 
 Constraints:
+- Green `brand` is the confirmed brand base. Yellow and orange are **provisional** until Pizza Fruzta supplies official hex values; replace them in `resources/css/app.css` without touching components.
 - Text/background pairs meet **WCAG AA** (4.5:1 body, 3:1 large text and UI components). Verify before shipping; do not assume the hexes above pass in every combination.
 - Do not use gradient washes as decoration or identical soft-shadow card grids as the default layout.
-- `brand-primary` is red, so it **must not** also signal errors. See semantic colors below.
+- Brand colors must not signal errors or status. See semantic colors below.
 
 ### Semantic and status colors (staff and customer)
 
-Keep these **separate from brand colors** so a red brand button is never confused with an error.
+Keep these **separate from brand colors** so a branded action is never confused with an error or warning.
 
 | Token | Hex | Use |
 |---|---|---|
@@ -61,6 +61,21 @@ Keep these **separate from brand colors** so a red brand button is never confuse
 | `success` | `#1E6B3A` | Paid, ready, completed |
 | `info` | `#1F5FA8` | Neutral informational states |
 | `neutral` | `#5C6670` | Queued, draft, cancelled |
+
+### Kitchen display theme
+
+The kitchen display has a fixed dark theme on every viewport. Do not follow the system light/dark preference; the kitchen environment and TV use case require consistent contrast.
+
+| Token | Hex | Use |
+|---|---|---|
+| `kitchen-canvas` | `#0D120E` | Page background |
+| `kitchen-surface` | `#161D18` | Order cards and panels |
+| `kitchen-text` | `#F4F1E8` | Primary text |
+| `kitchen-muted` | `#AAB5AC` | Secondary text |
+| `kitchen-accepted` | `#60A5FA` | Accepted badge |
+| `kitchen-ready` | `#22C55E` | Ready badge and success |
+| `kitchen-danger-text` | `#FCA5A5` | Error text on dark |
+| `kitchen-success-text` | `#86EFAC` | Success text on dark |
 
 ### Order and payment status mapping
 
@@ -133,44 +148,46 @@ Home (mobile)
 +------------------------+
 ```
 
-## 5. POS (browser, tablet and desktop)
+## 5. POS (browser, phone, tablet and desktop)
 
 ### Principles
-- Target device: tablet landscape and desktop. Large touch-friendly controls: **minimum touch target 48×48px, primary actions 56px+**.
+- **Phone-first** for this release: a cashier must be able to complete a sale from 360px width upward. Tablet landscape is the primary in-store layout; desktop is supported.
+- Large touch-friendly controls: **minimum touch target 48×48px, primary actions 56px+**. Quantity steppers are 48×48px.
 - Popular items and categories reachable in **one tap**. Search is always visible.
 - A cashier completes a standard sale in as few steps as possible; avoid modal chains.
-- Branch, cashier, and shift status are always visible in the header.
-- Destructive/sensitive actions (void, discount, refund, cancel) require a reason and a confirmation that states the effect (e.g. "Void order #A-0142? Stock will be returned.").
+- Branch and cashier are always visible in the header. Cashier shifts are deferred from MVP; do not show a shift status.
+- Payment is taken at the start. Supported methods are cash and manual static QRIS; record the payment reference for QRIS.
+- Destructive/sensitive actions (void, refund, cancel) require a reason and a confirmation that states the effect (e.g. "Void order #A-0142? Stock will be returned.").
 - Permission-gated actions are hidden **or** disabled with an explanation; the server remains the real gate.
 - Never block the whole screen for slow network. Show clear in-progress, success, and failure states, and make retries safe (idempotent).
 
 ```
 POS (tablet landscape)
 +----------------------------------------------------------+
-| Branch X | Cashier | Shift open          [Search........] |
+| Branch X | Cashier                    [Search........] |
 |----------------------------------------------------------|
 | Categories |  Product grid              |  Current order  |
 | [Pizza]    |  [item] [item] [item]      |  1x Item   Rp   |
 | [Drinks]   |  [item] [item] [item]      |  note ...       |
 | [Sides]    |  [item] [item] [item]      |-----------------|
 |            |                            |  Subtotal  Rp   |
-|            |                            |  Discount  Rp   |
 |            |                            |  Total     Rp   |
-|            |                            | [Pay]  [Hold]   |
+|            |                            | [Bayar]         |
 +----------------------------------------------------------+
 ```
 
-### Cashier shift
-- Open shift: enter opening cash. Close shift: show **expected** vs **counted** cash and the difference before confirming. Differences are highlighted with `warning` and require a note.
+On phones the order summary becomes a sticky bottom bar; tapping it opens the cart sheet. Do not shrink targets to fit more columns.
 
 ## 6. Kitchen display
 
+- Responsive from a kitchen phone (360px) to a wall-mounted TV. Cards use a fluid grid; on a TV, type and controls scale up rather than adding more columns.
+- Fixed dark theme using the kitchen tokens above. High contrast is required at 1–2 meters.
 - Shows orders for the assigned branch only, sorted by accepted time (or configured priority).
 - Each order card: order number, fulfillment type, elapsed time, items with quantities, **options and special instructions prominently**, and one primary action for the next status (Accept → Start preparing → Mark ready → Complete).
 - Statuses: queued, accepted, preparing, ready, completed. Every transition is timestamped and attributed.
-- Readable from 1–2 meters: large type, high contrast. Elapsed-time indicator escalates through `neutral` → `warning` → `danger` using configurable thresholds (P1).
+- Elapsed-time indicator escalates through `kitchen-muted` → `warning` → `danger` using configurable thresholds (P1).
 - Do not show customer phone number or address to kitchen staff unless the workflow needs it.
-- Sound/visual alert for new orders (P1). Visual alert must work without sound.
+- Sound/visual alert for new orders (P1). Visual alert must work without sound and respect `prefers-reduced-motion` (use a static highlight when motion is reduced).
 
 ## 7. Admin
 
@@ -219,18 +236,18 @@ Applies to every surface (PRD §9.5):
 - **Shared components first.** Build and reuse: `Button`, `Input`, `Select`, `Badge` (order and payment variants), `Money`, `QuantityStepper`, `ProductCard`, `CartLine`, `OrderCard`, `ConfirmDialog` (with reason field), `DataTable`, `EmptyState`, `Toast`. Add new variants before adding one-off styles.
 - **Components needing state variants:** default, hover/pressed, focus, disabled, loading, error.
 - **Performance:** optimize images, lazy-load below the fold, keep the customer menu fast on ordinary mobile networks.
-- **Theme per surface, not per component.** Customer and staff surfaces share tokens but use different background/density settings (`canvas` vs `canvas-staff`, comfortable vs compact spacing).
+- **Theme per surface, not per component.** Customer and staff surfaces share tokens but use different density settings (comfortable vs compact spacing). The kitchen uses its fixed dark token set; all other surfaces use the light `canvas` theme.
 - Do not introduce a UI library without agreement; if one is adopted, map its theme to these tokens.
 
 ## 12. Open design questions (ask, do not assume)
 
-- Final logo, brand colors, typography, and tone of voice.
+- Final logo, official yellow/orange hex values, typography, and tone of voice. Green `#056A4D` is the confirmed base.
 - Approved product photography and who produces it.
 - Whether the customer app and website share the exact same visual language or the app is lighter.
 - Receipt layout and printer width (depends on printer model).
 - Kitchen display hardware (tablet, monitor, printer) and viewing distance.
 - Whether English UI is needed at launch.
-- Dark mode: out of scope for MVP unless requested.
+- Light/dark mode for customer and admin surfaces is out of scope for MVP. The kitchen display is fixed dark by design.
 
 ## 13. Review checklist (before merging UI changes)
 

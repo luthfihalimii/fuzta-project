@@ -109,9 +109,9 @@ function logout(): void {
 <template>
     <Head title="Stok Dapur" />
 
-    <div class="min-h-screen bg-[#0d120e] text-[#f4f1e8]">
+    <div class="min-h-screen bg-kitchen-canvas text-kitchen-text">
         <header
-            class="sticky top-0 z-20 border-b border-white/10 bg-[#0d120e]/95 backdrop-blur"
+            class="sticky top-0 z-20 border-b border-white/10 bg-kitchen-canvas/95 backdrop-blur"
         >
             <div
                 class="mx-auto flex max-w-[1200px] flex-wrap items-center justify-between gap-3 px-4 py-3 sm:px-6"
@@ -119,7 +119,7 @@ function logout(): void {
                 <div class="flex min-w-0 items-center gap-3">
                     <Link
                         href="/"
-                        class="shrink-0 text-lg font-black tracking-tight text-[#ffc72c]"
+                        class="inline-flex min-h-12 shrink-0 items-center text-lg font-black tracking-tight text-brand-yellow"
                     >
                         Pizza Fruzta
                     </Link>
@@ -138,14 +138,14 @@ function logout(): void {
                         <select
                             id="stock-branch"
                             v-model="branchSelect"
-                            class="min-h-11 rounded-xl border border-white/15 bg-white/5 px-3 text-sm font-semibold text-white outline-none focus:border-[#ffc72c] focus:ring-2 focus:ring-[#ffc72c]/30"
+                            class="min-h-12 rounded-xl border border-white/15 bg-white/5 px-3 text-sm font-semibold text-white outline-none focus:border-brand-yellow focus:ring-2 focus:ring-brand-yellow/30"
                             @change="changeBranch"
                         >
                             <option
                                 v-for="option in props.branches"
                                 :key="option.id"
                                 :value="option.id"
-                                class="bg-[#1a201b]"
+                                class="bg-kitchen-surface"
                             >
                                 {{ option.name }}
                             </option>
@@ -154,20 +154,20 @@ function logout(): void {
 
                     <Link
                         href="/kitchen"
-                        class="inline-flex min-h-11 items-center rounded-xl border border-white/15 px-3 text-sm font-semibold text-white/80 transition hover:bg-white/10"
+                        class="inline-flex min-h-12 items-center rounded-xl border border-white/15 px-3 text-sm font-semibold text-white/80 transition hover:bg-white/10"
                     >
                         Dapur
                     </Link>
                     <Link
                         v-if="page.props.auth.user?.role === 'owner'"
                         href="/admin"
-                        class="hidden min-h-11 items-center rounded-xl border border-white/15 px-3 text-sm font-semibold text-white/80 transition hover:bg-white/10 sm:flex"
+                        class="hidden min-h-12 items-center rounded-xl border border-white/15 px-3 text-sm font-semibold text-white/80 transition hover:bg-white/10 sm:flex"
                     >
                         Admin
                     </Link>
                     <button
                         type="button"
-                        class="min-h-11 rounded-xl px-3 text-sm font-semibold text-white/60 transition hover:bg-white/10 hover:text-white"
+                        class="min-h-12 rounded-xl px-3 text-sm font-semibold text-white/60 transition hover:bg-white/10 hover:text-white"
                         @click="logout"
                     >
                         Keluar
@@ -179,14 +179,14 @@ function logout(): void {
         <main class="mx-auto w-full max-w-[1200px] px-4 py-5 sm:px-6">
             <div
                 v-if="page.props.flash.success"
-                class="mb-4 rounded-xl border border-[#22c55e]/40 bg-[#22c55e]/10 px-4 py-3 text-sm font-semibold text-[#86efac]"
+                class="mb-4 rounded-xl border border-kitchen-ready/40 bg-kitchen-ready/10 px-4 py-3 text-sm font-semibold text-kitchen-success-text"
                 role="status"
             >
                 {{ page.props.flash.success }}
             </div>
             <div
                 v-if="page.props.flash.error"
-                class="mb-4 rounded-xl border border-[#ef4444]/40 bg-[#ef4444]/10 px-4 py-3 text-sm font-semibold text-[#fca5a5]"
+                class="mb-4 rounded-xl border border-danger/40 bg-danger/10 px-4 py-3 text-sm font-semibold text-kitchen-danger-text"
                 role="alert"
             >
                 {{ page.props.flash.error }}
@@ -212,7 +212,7 @@ function logout(): void {
                             </p>
                         </div>
                         <span
-                            class="rounded-full border border-[#ffc72c]/40 bg-[#ffc72c]/10 px-3 py-1 text-xs font-bold text-[#ffc72c]"
+                            class="rounded-full border border-brand-yellow/40 bg-brand-yellow/10 px-3 py-1 text-xs font-bold text-brand-yellow"
                         >
                             {{ props.low_stock.length }} bahan
                         </span>
@@ -229,11 +229,11 @@ function logout(): void {
                         <div
                             v-for="ingredient in props.low_stock"
                             :key="ingredient.ingredient_id"
-                            class="rounded-2xl border border-[#ffc72c]/30 bg-[#ffc72c]/10 p-4"
+                            class="rounded-2xl border border-brand-yellow/30 bg-brand-yellow/10 p-4"
                         >
                             <p class="font-bold text-white">{{ ingredient.name }}</p>
                             <p class="mt-1 text-sm text-white/70">
-                                <span class="text-xl font-black tabular-nums text-[#ffc72c]">
+                                <span class="text-xl font-black tabular-nums text-brand-yellow">
                                     {{ ingredient.quantity }}
                                 </span>
                                 {{ ingredient.unit }} / min.
@@ -244,7 +244,7 @@ function logout(): void {
                 </section>
 
                 <div class="grid gap-5 lg:grid-cols-[minmax(0,380px)_minmax(0,1fr)]">
-                    <section class="rounded-2xl border border-white/10 bg-[#161d18] p-4">
+                    <section class="rounded-2xl border border-white/10 bg-kitchen-surface p-4">
                         <h2 class="text-lg font-bold">Catat stok rusak</h2>
                         <p class="mt-1 text-sm text-white/60">
                             Jumlah akan mengurangi stok cabang ini.
@@ -258,16 +258,16 @@ function logout(): void {
                                 <select
                                     v-model="wasteForm.ingredient_id"
                                     required
-                                    class="min-h-12 w-full rounded-xl border border-white/15 bg-white/5 px-3 text-base text-white outline-none focus:border-[#ffc72c] focus:ring-2 focus:ring-[#ffc72c]/30"
+                                    class="min-h-12 w-full rounded-xl border border-white/15 bg-white/5 px-3 text-base text-white outline-none focus:border-brand-yellow focus:ring-2 focus:ring-brand-yellow/30"
                                 >
-                                    <option :value="null" class="bg-[#1a201b]">
+                                    <option :value="null" class="bg-kitchen-surface">
                                         Pilih bahan
                                     </option>
                                     <option
                                         v-for="ingredient in props.ingredients"
                                         :key="ingredient.ingredient_id"
                                         :value="ingredient.ingredient_id"
-                                        class="bg-[#1a201b]"
+                                        class="bg-kitchen-surface"
                                     >
                                         {{ ingredient.name }} — {{ ingredient.quantity }}
                                         {{ ingredient.unit }}
@@ -275,7 +275,7 @@ function logout(): void {
                                 </select>
                                 <span
                                     v-if="wasteForm.errors.ingredient_id"
-                                    class="mt-1.5 block text-sm text-[#fca5a5]"
+                                    class="mt-1.5 block text-sm text-kitchen-danger-text"
                                 >
                                     {{ wasteForm.errors.ingredient_id }}
                                 </span>
@@ -292,11 +292,11 @@ function logout(): void {
                                     step="1"
                                     inputmode="numeric"
                                     required
-                                    class="min-h-12 w-full rounded-xl border border-white/15 bg-white/5 px-3 text-base text-white outline-none focus:border-[#ffc72c] focus:ring-2 focus:ring-[#ffc72c]/30"
+                                    class="min-h-12 w-full rounded-xl border border-white/15 bg-white/5 px-3 text-base text-white outline-none focus:border-brand-yellow focus:ring-2 focus:ring-brand-yellow/30"
                                 />
                                 <span
                                     v-if="wasteForm.errors.quantity"
-                                    class="mt-1.5 block text-sm text-[#fca5a5]"
+                                    class="mt-1.5 block text-sm text-kitchen-danger-text"
                                 >
                                     {{ wasteForm.errors.quantity }}
                                 </span>
@@ -310,12 +310,12 @@ function logout(): void {
                                     v-model="wasteForm.reason"
                                     type="text"
                                     required
-                                    class="min-h-12 w-full rounded-xl border border-white/15 bg-white/5 px-3 text-base text-white outline-none placeholder:text-white/35 focus:border-[#ffc72c] focus:ring-2 focus:ring-[#ffc72c]/30"
+                                    class="min-h-12 w-full rounded-xl border border-white/15 bg-white/5 px-3 text-base text-white outline-none placeholder:text-white/35 focus:border-brand-yellow focus:ring-2 focus:ring-brand-yellow/30"
                                     placeholder="Contoh: rusak saat persiapan"
                                 />
                                 <span
                                     v-if="wasteForm.errors.reason"
-                                    class="mt-1.5 block text-sm text-[#fca5a5]"
+                                    class="mt-1.5 block text-sm text-kitchen-danger-text"
                                 >
                                     {{ wasteForm.errors.reason }}
                                 </span>
@@ -324,7 +324,7 @@ function logout(): void {
                             <button
                                 type="submit"
                                 :disabled="wasteForm.processing || props.ingredients.length === 0"
-                                class="min-h-12 w-full rounded-xl bg-[#f97316] px-4 text-base font-black text-[#1a1a1a] transition hover:bg-[#fb923c] focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[#f97316] disabled:cursor-not-allowed disabled:opacity-50"
+                                class="min-h-12 w-full rounded-xl bg-brand-orange px-4 text-base font-black text-ink transition hover:bg-brand-orange/90 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-brand-orange disabled:cursor-not-allowed disabled:opacity-50"
                             >
                                 {{
                                     wasteForm.processing
@@ -335,7 +335,7 @@ function logout(): void {
                         </form>
                     </section>
 
-                    <section class="rounded-2xl border border-white/10 bg-[#161d18] p-4">
+                    <section class="rounded-2xl border border-white/10 bg-kitchen-surface p-4">
                         <div class="flex flex-wrap items-start justify-between gap-2">
                             <div>
                                 <h2 class="text-lg font-bold">Opname tutup</h2>
@@ -356,7 +356,7 @@ function logout(): void {
                                 <input
                                     v-model="countForm.note"
                                     type="text"
-                                    class="min-h-12 w-full rounded-xl border border-white/15 bg-white/5 px-3 text-base text-white outline-none placeholder:text-white/35 focus:border-[#ffc72c] focus:ring-2 focus:ring-[#ffc72c]/30"
+                                    class="min-h-12 w-full rounded-xl border border-white/15 bg-white/5 px-3 text-base text-white outline-none placeholder:text-white/35 focus:border-brand-yellow focus:ring-2 focus:ring-brand-yellow/30"
                                     placeholder="Contoh: opname tutup shift"
                                 />
                             </label>
@@ -384,7 +384,7 @@ function logout(): void {
                                         {{ ingredient.unit }}
                                         <span
                                             v-if="ingredient.is_low_stock"
-                                            class="ml-1 font-bold text-[#ffc72c]"
+                                            class="ml-1 font-bold text-brand-yellow"
                                         >
                                             · Menipis
                                         </span>
@@ -397,7 +397,7 @@ function logout(): void {
                                     step="1"
                                     inputmode="numeric"
                                     :aria-label="`Hitung ${ingredient.name}`"
-                                    class="min-h-12 w-24 rounded-xl border border-white/15 bg-white/5 px-3 text-right text-base font-bold text-white outline-none focus:border-[#ffc72c] focus:ring-2 focus:ring-[#ffc72c]/30"
+                                    class="min-h-12 w-24 rounded-xl border border-white/15 bg-white/5 px-3 text-right text-base font-bold text-white outline-none focus:border-brand-yellow focus:ring-2 focus:ring-brand-yellow/30"
                                     placeholder="—"
                                 />
                             </label>
@@ -405,7 +405,7 @@ function logout(): void {
 
                         <p
                             v-if="countForm.errors.counted_items"
-                            class="mt-3 text-sm font-semibold text-[#fca5a5]"
+                            class="mt-3 text-sm font-semibold text-kitchen-danger-text"
                         >
                             {{ countForm.errors.counted_items }}
                         </p>
@@ -413,7 +413,7 @@ function logout(): void {
                         <button
                             type="button"
                             :disabled="countForm.processing || props.ingredients.length === 0"
-                            class="mt-4 min-h-12 w-full rounded-xl bg-[#ffc72c] px-4 text-base font-black text-[#1a1a1a] transition hover:bg-[#ffd95c] focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[#ffc72c] disabled:cursor-not-allowed disabled:opacity-50"
+                            class="mt-4 min-h-12 w-full rounded-xl bg-brand-yellow px-4 text-base font-black text-ink transition hover:bg-brand-yellow/90 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-brand-yellow disabled:cursor-not-allowed disabled:opacity-50"
                             @click="submitCount"
                         >
                             {{

@@ -112,13 +112,13 @@ function signed(value: number): string {
                 <div class="flex flex-wrap gap-2">
                     <Link
                         href="/admin/stock/ingredients"
-                        class="inline-flex min-h-11 items-center rounded-xl border border-line bg-white px-4 text-sm font-semibold text-ink transition hover:bg-canvas"
+                        class="inline-flex min-h-12 items-center rounded-xl border border-line bg-white px-4 text-sm font-semibold text-ink transition hover:bg-canvas"
                     >
                         Bahan
                     </Link>
                     <Link
                         href="/admin/stock/counts"
-                        class="inline-flex min-h-11 items-center rounded-xl bg-brand px-4 text-sm font-semibold text-white transition hover:bg-brand/90"
+                        class="inline-flex min-h-12 items-center rounded-xl bg-brand px-4 text-sm font-semibold text-white transition hover:bg-brand/90"
                     >
                         Opname
                     </Link>
@@ -145,7 +145,7 @@ function signed(value: number): string {
                 <select
                     id="movement-branch"
                     v-model="branchSelect"
-                    class="min-h-11 rounded-xl border border-line bg-white px-3 text-sm font-semibold text-ink outline-none focus:border-brand focus:ring-2 focus:ring-brand/20"
+                    class="min-h-12 rounded-xl border border-line bg-white px-3 text-sm font-semibold text-ink outline-none focus:border-brand focus:ring-2 focus:ring-brand/20"
                     @change="changeBranch"
                 >
                     <option

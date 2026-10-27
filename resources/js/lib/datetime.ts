@@ -1,8 +1,4 @@
-const dateTimeFormatter = new Intl.DateTimeFormat('id-ID', {
-    timeZone: 'Asia/Jakarta',
-    dateStyle: 'medium',
-    timeStyle: 'short',
-});
+import { formatJakartaDateTime } from '@/lib/date';
 
 export function formatDateTime(value: string | null): string {
     if (!value) {
@@ -15,7 +11,7 @@ export function formatDateTime(value: string | null): string {
         return value;
     }
 
-    return dateTimeFormatter.format(date);
+    return formatJakartaDateTime(date);
 }
 
 export function formatElapsed(value: string | null): string {

@@ -142,7 +142,7 @@ async function pay(): Promise<void> {
                     </div>
                     <button
                         type="button"
-                        class="min-h-10 rounded-xl px-3 text-sm font-semibold text-muted hover:bg-canvas"
+                        class="min-h-12 rounded-xl px-3 text-sm font-semibold text-muted hover:bg-canvas"
                         :disabled="processing"
                         @click="close"
                     >
@@ -197,7 +197,7 @@ async function pay(): Promise<void> {
                             v-for="amount in quickAmounts"
                             :key="amount"
                             type="button"
-                            class="min-h-10 rounded-xl border border-line bg-white px-3 text-sm font-semibold text-ink hover:bg-canvas"
+                            class="min-h-12 rounded-xl border border-line bg-white px-3 text-sm font-semibold text-ink hover:bg-canvas"
                             @click="cashReceived = String(amount)"
                         >
                             <Money :value="amount" />

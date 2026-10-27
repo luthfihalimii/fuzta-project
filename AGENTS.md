@@ -55,6 +55,7 @@ php artisan test                # run before every commit
 npm install
 npm run dev
 npm run build
+npm run test:js
 npm run lint && npm run typecheck
 
 # Mobile

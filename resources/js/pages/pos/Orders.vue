@@ -163,7 +163,7 @@ function switchBranch(): void {
                     <select
                         v-if="props.canChooseBranch"
                         v-model="branchSelect"
-                        class="min-h-11 rounded-xl border border-line bg-white px-3 text-sm font-semibold text-ink"
+                        class="min-h-12 rounded-xl border border-line bg-white px-3 text-sm font-semibold text-ink"
                         aria-label="Pilih cabang"
                         @change="switchBranch"
                     >
@@ -178,7 +178,7 @@ function switchBranch(): void {
 
                     <Link
                         :href="props.posUrl"
-                        class="inline-flex min-h-11 items-center justify-center rounded-xl bg-brand px-4 text-sm font-semibold text-white transition hover:bg-brand/90"
+                        class="inline-flex min-h-12 items-center justify-center rounded-xl bg-brand px-4 text-sm font-semibold text-white transition hover:bg-brand/90"
                     >
                         Kembali ke POS
                     </Link>
@@ -269,7 +269,7 @@ function switchBranch(): void {
                     <div class="mt-3 flex flex-wrap gap-2 border-t border-line pt-3">
                         <Button
                             v-if="order.can.pay"
-                            class="min-h-10 px-4"
+                            class="min-h-12 px-4"
                             @click="openPay(order)"
                         >
                             Bayar
@@ -277,7 +277,7 @@ function switchBranch(): void {
                         <button
                             v-if="order.can.cancel"
                             type="button"
-                            class="min-h-10 rounded-xl border border-line bg-white px-4 text-sm font-semibold text-danger transition hover:bg-danger/5"
+                            class="min-h-12 rounded-xl border border-line bg-white px-4 text-sm font-semibold text-danger transition hover:bg-danger/5"
                             @click="openReason('cancel', order)"
                         >
                             Batalkan
@@ -285,14 +285,14 @@ function switchBranch(): void {
                         <button
                             v-if="order.can.void"
                             type="button"
-                            class="min-h-10 rounded-xl border border-danger/30 bg-white px-4 text-sm font-semibold text-danger transition hover:bg-danger/5"
+                            class="min-h-12 rounded-xl border border-danger/30 bg-white px-4 text-sm font-semibold text-danger transition hover:bg-danger/5"
                             @click="openReason('void', order)"
                         >
                             Void
                         </button>
                         <button
                             type="button"
-                            class="min-h-10 rounded-xl border border-line bg-white px-4 text-sm font-semibold text-ink transition hover:bg-canvas"
+                            class="min-h-12 rounded-xl border border-line bg-white px-4 text-sm font-semibold text-ink transition hover:bg-canvas"
                             @click="openReceipt(order)"
                         >
                             Struk

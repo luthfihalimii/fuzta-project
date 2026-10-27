@@ -84,13 +84,13 @@ function applyFilters(): void {
                 <div class="flex flex-wrap gap-2">
                     <Link
                         href="/admin/reports/stock"
-                        class="inline-flex min-h-11 items-center rounded-xl border border-line bg-white px-4 text-sm font-semibold text-ink transition hover:bg-canvas"
+                        class="inline-flex min-h-12 items-center rounded-xl border border-line bg-white px-4 text-sm font-semibold text-ink transition hover:bg-canvas"
                     >
                         Laporan stok
                     </Link>
                     <Link
                         href="/admin/audit"
-                        class="inline-flex min-h-11 items-center rounded-xl border border-line bg-white px-4 text-sm font-semibold text-ink transition hover:bg-canvas"
+                        class="inline-flex min-h-12 items-center rounded-xl border border-line bg-white px-4 text-sm font-semibold text-ink transition hover:bg-canvas"
                     >
                         Audit
                     </Link>

@@ -109,13 +109,13 @@ function submit(): void {
                 <div class="flex flex-wrap gap-2">
                     <Link
                         href="/admin/stock/ingredients"
-                        class="inline-flex min-h-11 items-center rounded-xl border border-line bg-white px-4 text-sm font-semibold text-ink transition hover:bg-canvas"
+                        class="inline-flex min-h-12 items-center rounded-xl border border-line bg-white px-4 text-sm font-semibold text-ink transition hover:bg-canvas"
                     >
                         Bahan
                     </Link>
                     <Link
                         href="/admin/stock/movements"
-                        class="inline-flex min-h-11 items-center rounded-xl border border-line bg-white px-4 text-sm font-semibold text-ink transition hover:bg-canvas"
+                        class="inline-flex min-h-12 items-center rounded-xl border border-line bg-white px-4 text-sm font-semibold text-ink transition hover:bg-canvas"
                     >
                         Pergerakan
                     </Link>
@@ -142,7 +142,7 @@ function submit(): void {
                 <select
                     id="count-branch"
                     v-model="branchSelect"
-                    class="min-h-11 rounded-xl border border-line bg-white px-3 text-sm font-semibold text-ink outline-none focus:border-brand focus:ring-2 focus:ring-brand/20"
+                    class="min-h-12 rounded-xl border border-line bg-white px-3 text-sm font-semibold text-ink outline-none focus:border-brand focus:ring-2 focus:ring-brand/20"
                     @change="changeBranch"
                 >
                     <option
@@ -226,7 +226,7 @@ function submit(): void {
                                             step="1"
                                             inputmode="numeric"
                                             :aria-label="`Hitung ${ingredient.name}`"
-                                            class="min-h-11 w-32 rounded-xl border border-line bg-white px-3 text-base text-ink outline-none transition focus:border-brand focus:ring-2 focus:ring-brand/20"
+                                            class="min-h-12 w-32 rounded-xl border border-line bg-white px-3 text-base text-ink outline-none transition focus:border-brand focus:ring-2 focus:ring-brand/20"
                                         />
                                     </td>
                                     <td class="px-4 py-3">

@@ -50,13 +50,13 @@ function hasDetails(values: Record<string, unknown>): boolean {
                 <div class="flex flex-wrap gap-2">
                     <Link
                         href="/admin/reports/sales"
-                        class="inline-flex min-h-11 items-center rounded-xl border border-line bg-white px-4 text-sm font-semibold text-ink transition hover:bg-canvas"
+                        class="inline-flex min-h-12 items-center rounded-xl border border-line bg-white px-4 text-sm font-semibold text-ink transition hover:bg-canvas"
                     >
                         Laporan penjualan
                     </Link>
                     <Link
                         href="/admin/reports/stock"
-                        class="inline-flex min-h-11 items-center rounded-xl border border-line bg-white px-4 text-sm font-semibold text-ink transition hover:bg-canvas"
+                        class="inline-flex min-h-12 items-center rounded-xl border border-line bg-white px-4 text-sm font-semibold text-ink transition hover:bg-canvas"
                     >
                         Laporan stok
                     </Link>
@@ -158,7 +158,7 @@ function hasDetails(values: Record<string, unknown>): boolean {
                     <Link
                         v-if="logs.prev_page_url"
                         :href="logs.prev_page_url"
-                        class="inline-flex min-h-11 items-center rounded-xl border border-line bg-white px-4 text-sm font-semibold text-ink transition hover:bg-canvas"
+                        class="inline-flex min-h-12 items-center rounded-xl border border-line bg-white px-4 text-sm font-semibold text-ink transition hover:bg-canvas"
                     >
                         Sebelumnya
                     </Link>
@@ -167,7 +167,7 @@ function hasDetails(values: Record<string, unknown>): boolean {
                     <Link
                         v-if="logs.next_page_url"
                         :href="logs.next_page_url"
-                        class="inline-flex min-h-11 items-center rounded-xl border border-line bg-white px-4 text-sm font-semibold text-ink transition hover:bg-canvas"
+                        class="inline-flex min-h-12 items-center rounded-xl border border-line bg-white px-4 text-sm font-semibold text-ink transition hover:bg-canvas"
                     >
                         Berikutnya
                     </Link>

@@ -18,7 +18,7 @@ const props = withDefaults(
 
 const classes = computed(() => {
     const base =
-        'inline-flex min-h-12 items-center justify-center gap-2 rounded-xl px-5 text-sm font-semibold transition focus-visible:outline-2 focus-visible:outline-offset-2 disabled:cursor-not-allowed disabled:opacity-50';
+        'inline-flex min-h-14 items-center justify-center gap-2 rounded-xl px-5 text-sm font-semibold transition focus-visible:outline-2 focus-visible:outline-offset-2 disabled:cursor-not-allowed disabled:opacity-50';
 
     const variants: Record<Variant, string> = {
         primary:

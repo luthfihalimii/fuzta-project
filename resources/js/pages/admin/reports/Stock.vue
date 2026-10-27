@@ -137,13 +137,13 @@ function signed(value: number): string {
                 <div class="flex flex-wrap gap-2">
                     <Link
                         href="/admin/reports/sales"
-                        class="inline-flex min-h-11 items-center rounded-xl border border-line bg-white px-4 text-sm font-semibold text-ink transition hover:bg-canvas"
+                        class="inline-flex min-h-12 items-center rounded-xl border border-line bg-white px-4 text-sm font-semibold text-ink transition hover:bg-canvas"
                     >
                         Laporan penjualan
                     </Link>
                     <Link
                         href="/admin/audit"
-                        class="inline-flex min-h-11 items-center rounded-xl border border-line bg-white px-4 text-sm font-semibold text-ink transition hover:bg-canvas"
+                        class="inline-flex min-h-12 items-center rounded-xl border border-line bg-white px-4 text-sm font-semibold text-ink transition hover:bg-canvas"
                     >
                         Audit
                     </Link>
@@ -324,7 +324,7 @@ function signed(value: number): string {
                         <input
                             v-model="movementFrom"
                             type="date"
-                            class="min-h-11 w-full rounded-xl border border-line bg-white px-3 text-sm text-ink outline-none focus:border-brand focus:ring-2 focus:ring-brand/20"
+                            class="min-h-12 w-full rounded-xl border border-line bg-white px-3 text-sm text-ink outline-none focus:border-brand focus:ring-2 focus:ring-brand/20"
                         />
                     </label>
                     <label class="block">
@@ -334,7 +334,7 @@ function signed(value: number): string {
                         <input
                             v-model="movementTo"
                             type="date"
-                            class="min-h-11 w-full rounded-xl border border-line bg-white px-3 text-sm text-ink outline-none focus:border-brand focus:ring-2 focus:ring-brand/20"
+                            class="min-h-12 w-full rounded-xl border border-line bg-white px-3 text-sm text-ink outline-none focus:border-brand focus:ring-2 focus:ring-brand/20"
                         />
                     </label>
                     <label class="block sm:col-span-2">
@@ -343,7 +343,7 @@ function signed(value: number): string {
                         </span>
                         <select
                             v-model="movementType"
-                            class="min-h-11 w-full rounded-xl border border-line bg-white px-3 text-sm text-ink outline-none focus:border-brand focus:ring-2 focus:ring-brand/20"
+                            class="min-h-12 w-full rounded-xl border border-line bg-white px-3 text-sm text-ink outline-none focus:border-brand focus:ring-2 focus:ring-brand/20"
                         >
                             <option value="">Semua jenis</option>
                             <option

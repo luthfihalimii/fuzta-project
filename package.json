@@ -9,6 +9,7 @@
         "check": "vp check",
         "check:fix": "vp check --fix",
         "lint": "vp lint",
+        "test:js": "vitest run",
         "typecheck": "vue-tsc --noEmit",
         "types:check": "vue-tsc --noEmit"
     },
@@ -30,6 +31,7 @@
         "@laravel/vite-plugin-wayfinder": "^0.1.3",
         "@types/node": "^22.13.5",
         "vite-plus": "1.4.0",
+        "vitest": "^5.0.5",
         "vue-tsc": "^3.3.13"
     },
     "optionalDependencies": {

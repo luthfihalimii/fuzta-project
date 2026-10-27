@@ -6,7 +6,7 @@ const rupiahFormatter = new Intl.NumberFormat('id-ID', {
 });
 
 export function formatRupiah(value: number): string {
-    return rupiahFormatter.format(value);
+    return rupiahFormatter.format(value).replace(/\u00a0/g, ' ');
 }
 
 export function formatSignedRupiah(value: number): string {

@@ -76,13 +76,13 @@ function submit(): void {
                 <div class="flex flex-wrap gap-2">
                     <Link
                         href="/admin/stock/movements"
-                        class="inline-flex min-h-11 items-center rounded-xl border border-line bg-white px-4 text-sm font-semibold text-ink transition hover:bg-canvas"
+                        class="inline-flex min-h-12 items-center rounded-xl border border-line bg-white px-4 text-sm font-semibold text-ink transition hover:bg-canvas"
                     >
                         Pergerakan
                     </Link>
                     <Link
                         href="/admin/stock/counts"
-                        class="inline-flex min-h-11 items-center rounded-xl bg-brand px-4 text-sm font-semibold text-white transition hover:bg-brand/90"
+                        class="inline-flex min-h-12 items-center rounded-xl bg-brand px-4 text-sm font-semibold text-white transition hover:bg-brand/90"
                     >
                         Opname
                     </Link>

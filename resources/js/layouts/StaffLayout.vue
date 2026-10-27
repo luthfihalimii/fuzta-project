@@ -56,7 +56,7 @@ function logout(): void {
             <div
                 class="mx-auto flex max-w-6xl flex-wrap items-center justify-between gap-2 px-4 py-3"
             >
-                <Link href="/" class="text-lg font-bold text-brand">
+                <Link href="/" class="inline-flex min-h-12 items-center text-lg font-bold text-brand">
                     Pizza Fruzta
                 </Link>
 
@@ -69,7 +69,7 @@ function logout(): void {
                         :key="item.href"
                         :href="item.href"
                         :aria-current="isActive(item.href) ? 'page' : undefined"
-                        class="flex min-h-11 shrink-0 items-center rounded-xl px-3 text-sm font-semibold transition"
+                        class="flex min-h-12 shrink-0 items-center rounded-xl px-3 text-sm font-semibold transition"
                         :class="
                             isActive(item.href)
                                 ? 'bg-brand text-white'
@@ -86,7 +86,7 @@ function logout(): void {
                     </span>
                     <button
                         type="button"
-                        class="min-h-11 rounded-xl px-3 text-sm font-semibold text-muted transition hover:bg-canvas hover:text-ink"
+                        class="min-h-12 rounded-xl px-3 text-sm font-semibold text-muted transition hover:bg-canvas hover:text-ink"
                         @click="logout"
                     >
                         Keluar

@@ -503,7 +503,7 @@ function switchBranch(): void {
                     <select
                         v-if="props.canChooseBranch"
                         v-model="branchSelect"
-                        class="min-h-11 rounded-xl border border-line bg-white px-3 text-sm font-semibold text-ink"
+                        class="min-h-12 rounded-xl border border-line bg-white px-3 text-sm font-semibold text-ink"
                         aria-label="Pilih cabang"
                         @change="switchBranch"
                     >
@@ -518,7 +518,7 @@ function switchBranch(): void {
 
                     <Link
                         :href="props.ordersUrl"
-                        class="inline-flex min-h-11 items-center justify-center rounded-xl border border-line bg-white px-4 text-sm font-semibold text-ink transition hover:bg-canvas"
+                        class="inline-flex min-h-12 items-center justify-center rounded-xl border border-line bg-white px-4 text-sm font-semibold text-ink transition hover:bg-canvas"
                     >
                         Pesanan
                     </Link>
@@ -564,7 +564,7 @@ function switchBranch(): void {
                 <div class="flex gap-2 overflow-x-auto pb-1">
                     <button
                         type="button"
-                        class="min-h-11 shrink-0 rounded-xl px-4 text-sm font-semibold transition"
+                        class="min-h-12 shrink-0 rounded-xl px-4 text-sm font-semibold transition"
                         :class="
                             selectedCategoryId === null
                                 ? 'bg-brand text-white'
@@ -579,7 +579,7 @@ function switchBranch(): void {
                         v-for="category in props.categories"
                         :key="category.id"
                         type="button"
-                        class="min-h-11 shrink-0 rounded-xl px-4 text-sm font-semibold transition"
+                        class="min-h-12 shrink-0 rounded-xl px-4 text-sm font-semibold transition"
                         :class="
                             selectedCategoryId === category.id
                                 ? 'bg-brand text-white'
@@ -678,7 +678,7 @@ function switchBranch(): void {
                         </h2>
                         <button
                             type="button"
-                            class="min-h-10 rounded-xl px-3 text-sm font-semibold text-muted hover:bg-canvas lg:hidden"
+                            class="min-h-12 rounded-xl px-3 text-sm font-semibold text-muted hover:bg-canvas lg:hidden"
                             @click="cartOpen = false"
                         >
                             Tutup
@@ -739,7 +739,7 @@ function switchBranch(): void {
                                 </div>
                                 <button
                                     type="button"
-                                    class="min-h-9 shrink-0 rounded-lg px-2 text-xs font-semibold text-danger hover:bg-danger/10"
+                                    class="min-h-12 shrink-0 rounded-lg px-2 text-xs font-semibold text-danger hover:bg-danger/10"
                                     @click="removeLine(line.key)"
                                 >
                                     Hapus
@@ -750,7 +750,7 @@ function switchBranch(): void {
                                 <div class="flex items-center gap-1">
                                     <button
                                         type="button"
-                                        class="h-10 w-10 rounded-lg border border-line text-lg font-semibold text-ink disabled:opacity-40"
+                                        class="h-12 w-12 rounded-lg border border-line text-lg font-semibold text-ink disabled:opacity-40"
                                         :disabled="line.quantity <= 1"
                                         aria-label="Kurangi jumlah"
                                         @click="decrement(line)"
@@ -762,7 +762,7 @@ function switchBranch(): void {
                                     </span>
                                     <button
                                         type="button"
-                                        class="h-10 w-10 rounded-lg border border-line text-lg font-semibold text-ink disabled:opacity-40"
+                                        class="h-12 w-12 rounded-lg border border-line text-lg font-semibold text-ink disabled:opacity-40"
                                         :disabled="line.quantity >= 99"
                                         aria-label="Tambah jumlah"
                                         @click="increment(line)"
@@ -789,7 +789,7 @@ function switchBranch(): void {
                             <div class="grid grid-cols-2 gap-2">
                                 <button
                                     type="button"
-                                    class="min-h-11 rounded-xl border px-3 text-sm font-semibold transition"
+                                    class="min-h-12 rounded-xl border px-3 text-sm font-semibold transition"
                                     :class="
                                         channel === 'dine_in'
                                             ? 'border-brand bg-brand text-white'
@@ -802,7 +802,7 @@ function switchBranch(): void {
                                 </button>
                                 <button
                                     type="button"
-                                    class="min-h-11 rounded-xl border px-3 text-sm font-semibold transition"
+                                    class="min-h-12 rounded-xl border px-3 text-sm font-semibold transition"
                                     :class="
                                         channel === 'takeaway'
                                             ? 'border-brand bg-brand text-white'
@@ -932,7 +932,7 @@ function switchBranch(): void {
                         </div>
                         <button
                             type="button"
-                            class="min-h-10 rounded-xl px-3 text-sm font-semibold text-muted hover:bg-canvas"
+                            class="min-h-12 rounded-xl px-3 text-sm font-semibold text-muted hover:bg-canvas"
                             @click="selectedProduct = null"
                         >
                             Tutup

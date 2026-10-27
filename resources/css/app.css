@@ -15,6 +15,14 @@
     --color-warning: #9a5b00;
     --color-success: #1e6b3a;
     --color-info: #1f5fa8;
+    --color-kitchen-canvas: #0d120e;
+    --color-kitchen-surface: #161d18;
+    --color-kitchen-text: #f4f1e8;
+    --color-kitchen-muted: #aab5ac;
+    --color-kitchen-accepted: #60a5fa;
+    --color-kitchen-ready: #22c55e;
+    --color-kitchen-danger-text: #fca5a5;
+    --color-kitchen-success-text: #86efac;
 }
 
 @theme inline {
@@ -28,5 +36,21 @@
     body {
         background-color: var(--color-canvas);
         color: var(--color-ink);
+    }
+
+    :focus-visible {
+        outline: 2px solid var(--color-brand);
+        outline-offset: 2px;
+    }
+
+    @media (prefers-reduced-motion: reduce) {
+        *,
+        ::before,
+        ::after {
+            animation-duration: 0.01ms !important;
+            animation-iteration-count: 1 !important;
+            scroll-behavior: auto !important;
+            transition-duration: 0.01ms !important;
+        }
     }
 }

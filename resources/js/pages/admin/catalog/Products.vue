@@ -171,7 +171,7 @@ function toggleBranch(
                                         <label
                                             v-for="branch in props.branches"
                                             :key="branch.id"
-                                            class="inline-flex min-h-10 items-center gap-1.5 text-xs font-medium text-muted"
+                                            class="inline-flex min-h-12 items-center gap-1.5 text-xs font-medium text-muted"
                                             :title="branch.name"
                                         >
                                             <input
@@ -214,7 +214,7 @@ function toggleBranch(
                                     <div class="flex justify-end">
                                         <Link
                                             :href="`/admin/catalog/products/${product.id}/edit`"
-                                            class="inline-flex min-h-10 items-center justify-center rounded-xl border border-line bg-white px-4 text-sm font-semibold text-ink transition hover:bg-canvas"
+                                            class="inline-flex min-h-12 items-center justify-center rounded-xl border border-line bg-white px-4 text-sm font-semibold text-ink transition hover:bg-canvas"
                                         >
                                             Ubah
                                         </Link>
