@@ -37,7 +37,7 @@ Route::get('/', function () {
 
 Route::middleware('guest')->group(function () {
     Route::get('/login', [LoginController::class, 'create'])->name('login');
-    Route::post('/login', [LoginController::class, 'store']);
+    Route::post('/login', [LoginController::class, 'store'])->middleware('throttle:login');
 });
 
 Route::post('/logout', [LoginController::class, 'destroy'])
@@ -46,7 +46,7 @@ Route::post('/logout', [LoginController::class, 'destroy'])
 
 Route::middleware(['auth', 'role:cashier,owner'])->group(function () {
     Route::get('/pos', [PosController::class, 'index'])->name('pos.index');
-    Route::post('/pos/orders', [PosController::class, 'store'])->name('pos.orders.store');
+    Route::post('/pos/orders', [PosController::class, 'store'])->middleware('throttle:orders')->name('pos.orders.store');
     Route::get('/pos/orders', [OrderController::class, 'index'])->name('pos.orders.index');
 
     Route::get('/orders/{order}/receipt', [PaymentController::class, 'receipt'])->name('orders.receipt');
