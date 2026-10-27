@@ -42,7 +42,7 @@ npm run dev
 
 Open `http://127.0.0.1:8000`.
 
-The seeder creates two branches, an owner, and one cashier and one kitchen account per branch. All seeded passwords are `password`; change them before any pilot.
+The seeder creates two branches, an owner, and one cashier and one kitchen account per branch. Outside production it also loads a small sample catalog and ingredients for acceptance testing. All seeded passwords are `password`; change them before any pilot.
 
 | Role | Email |
 |---|---|
@@ -82,6 +82,7 @@ docs/operations/           Deployment, backups, printing, and pilot checklists
 - [Deployment](docs/operations/deployment.md)
 - [Backup and restore](docs/operations/backup-restore.md)
 - [Receipt printing](docs/operations/printing.md)
+- [Pilot acceptance checklist](docs/operations/pilot-checklist.md)
 
 Production reminders: `APP_ENV=production`, `APP_DEBUG=false`, HTTPS, `SESSION_SECURE_COOKIE=true`, a real `APP_KEY`, database backups, and queue/scheduler services. See the deployment checklist.
 
@@ -89,4 +90,4 @@ Production reminders: `APP_ENV=production`, `APP_DEBUG=false`, HTTPS, `SESSION_S
 
 - Thermal printer model, connection, and paper width must be confirmed per branch before printing is considered ready.
 - Brand yellow/orange hex values are provisional.
-- Menus, prices, ingredients, opening stock, and staff accounts come from the business, not the seeder.
+- The non-production sample catalog, prices, ingredients, and thresholds are placeholders. Replace them with business-approved data before production; production seeding skips demo data.

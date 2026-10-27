@@ -72,5 +72,9 @@ class DatabaseSeeder extends Seeder
                 ],
             );
         }
+
+        if (! app()->isProduction()) {
+            $this->call(PilotDemoSeeder::class);
+        }
     }
 }
