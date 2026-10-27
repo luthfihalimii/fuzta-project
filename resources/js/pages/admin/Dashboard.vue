@@ -53,6 +53,36 @@ defineProps<{
                 </Link>
 
                 <Link
+                    href="/admin/reports/sales"
+                    class="rounded-2xl border border-line bg-white p-5 transition hover:border-brand/40 hover:shadow-sm"
+                >
+                    <h2 class="font-semibold text-ink">Laporan penjualan</h2>
+                    <p class="mt-1 text-sm text-muted">
+                        Omzet, metode bayar, dan jumlah produk terjual.
+                    </p>
+                </Link>
+
+                <Link
+                    href="/admin/reports/stock"
+                    class="rounded-2xl border border-line bg-white p-5 transition hover:border-brand/40 hover:shadow-sm"
+                >
+                    <h2 class="font-semibold text-ink">Laporan stok</h2>
+                    <p class="mt-1 text-sm text-muted">
+                        Saldo bahan, stok menipis, dan pergerakan.
+                    </p>
+                </Link>
+
+                <Link
+                    href="/admin/audit"
+                    class="rounded-2xl border border-line bg-white p-5 transition hover:border-brand/40 hover:shadow-sm"
+                >
+                    <h2 class="font-semibold text-ink">Audit</h2>
+                    <p class="mt-1 text-sm text-muted">
+                        Riwayat tindakan penting dan perubahannya.
+                    </p>
+                </Link>
+
+                <Link
                     href="/admin/staff"
                     class="rounded-2xl border border-line bg-white p-5 transition hover:border-brand/40 hover:shadow-sm"
                 >

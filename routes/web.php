@@ -3,6 +3,7 @@
 use App\Http\Controllers\Admin\DashboardController;
 use App\Http\Controllers\Admin\StaffController;
 use App\Http\Controllers\Auth\LoginController;
+use App\Modules\Audit\Http\Controllers\AuditLogController;
 use App\Modules\Branches\Http\Controllers\BranchController;
 use App\Modules\Catalog\Http\Controllers\CategoryController;
 use App\Modules\Catalog\Http\Controllers\ModifierGroupController;
@@ -15,6 +16,7 @@ use App\Modules\Kitchen\Http\Controllers\KitchenController;
 use App\Modules\Ordering\Http\Controllers\OrderController;
 use App\Modules\Ordering\Http\Controllers\PosController;
 use App\Modules\Payments\Http\Controllers\PaymentController;
+use App\Modules\Reporting\Http\Controllers\ReportController;
 use Illuminate\Support\Facades\Route;
 
 Route::get('/health', fn () => response()->json(['status' => 'ok']));
@@ -64,6 +66,13 @@ Route::middleware(['auth', 'role:kitchen,owner'])->group(function () {
 
 Route::middleware(['auth', 'role:owner'])->prefix('admin')->group(function () {
     Route::get('/', [DashboardController::class, 'index'])->name('admin.dashboard');
+
+    Route::prefix('reports')->name('admin.reports.')->group(function () {
+        Route::get('/sales', [ReportController::class, 'sales'])->name('sales');
+        Route::get('/stock', [ReportController::class, 'stock'])->name('stock');
+    });
+
+    Route::get('/audit', [AuditLogController::class, 'index'])->name('admin.audit.index');
 
     Route::prefix('stock')->name('admin.stock.')->group(function () {
         Route::get('/ingredients', [IngredientController::class, 'index'])->name('ingredients.index');
