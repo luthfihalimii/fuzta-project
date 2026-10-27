@@ -118,13 +118,28 @@ class ModifierGroupController extends Controller
             $keep[] = $modifier->id;
         }
 
-        if ($keep === []) {
-            $group->modifiers()->delete();
+        $removed = $keep === []
+            ? $group->modifiers()->get()
+            : $group->modifiers()->whereKeyNot($keep)->get();
 
+        if ($removed->isEmpty()) {
             return;
         }
 
-        $group->modifiers()->whereKeyNot($keep)->delete();
+        $referenced = DB::table('order_item_modifiers')
+            ->whereIn('modifier_id', $removed->pluck('id'))
+            ->pluck('modifier_id')
+            ->all();
+
+        foreach ($removed as $modifier) {
+            if (in_array($modifier->id, $referenced, true)) {
+                $modifier->update(['is_active' => false]);
+
+                continue;
+            }
+
+            $modifier->delete();
+        }
     }
 
     /**

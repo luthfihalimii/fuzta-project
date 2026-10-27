@@ -83,6 +83,22 @@ class StaffController extends Controller
             ]);
         }
 
+        $newRole = $data['role'] ?? $staff->role()->value;
+
+        if (
+            $staff->isOwner()
+            && ($newRole !== Role::Owner->value || ! (bool) $data['is_active'])
+            && User::query()
+                ->where('role', Role::Owner)
+                ->where('is_active', true)
+                ->whereKeyNot($staff->id)
+                ->doesntExist()
+        ) {
+            throw ValidationException::withMessages([
+                'role' => 'Minimal satu pemilik aktif harus tersisa.',
+            ]);
+        }
+
         DB::transaction(function () use ($staff, $data, $reason, $request, $audit) {
             $before = $this->snapshot($staff);
             $passwordChanged = array_key_exists('password', $data);
@@ -92,6 +108,11 @@ class StaffController extends Controller
             $staff->refresh();
 
             $after = $this->snapshot($staff);
+
+            if ($passwordChanged || ($before['is_active'] && ! $after['is_active'])) {
+                $this->invalidateSessions($staff);
+                $staff->refresh();
+            }
 
             if ($passwordChanged) {
                 $audit($request->user(), 'staff.password_reset', $staff, [], [], $reason);
@@ -107,6 +128,18 @@ class StaffController extends Controller
         });
 
         return back()->with('success', 'Data staf diperbarui.');
+    }
+
+    private function invalidateSessions(User $staff): void
+    {
+        $staff->forceFill(['remember_token' => null])->save();
+
+        if (config('session.driver') === 'database') {
+            DB::connection(config('session.connection'))
+                ->table(config('session.table', 'sessions'))
+                ->where('user_id', $staff->id)
+                ->delete();
+        }
     }
 
     /**

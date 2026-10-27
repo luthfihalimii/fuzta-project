@@ -16,6 +16,10 @@ class PilotDemoSeeder extends Seeder
 {
     public function run(): void
     {
+        if (app()->isProduction()) {
+            return;
+        }
+
         $pizza = Category::query()->firstOrCreate(
             ['name' => 'Pizza'],
             ['sort_order' => 0, 'is_active' => true],

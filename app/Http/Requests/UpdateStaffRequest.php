@@ -5,6 +5,7 @@ namespace App\Http\Requests;
 use App\Modules\Identity\Enums\Role;
 use Illuminate\Foundation\Http\FormRequest;
 use Illuminate\Validation\Rule;
+use Illuminate\Validation\Rules\Password;
 
 class UpdateStaffRequest extends FormRequest
 {
@@ -30,7 +31,7 @@ class UpdateStaffRequest extends FormRequest
                 'max:255',
                 Rule::unique('users', 'email')->ignore($staffId),
             ],
-            'password' => ['sometimes', 'nullable', 'string', 'min:8'],
+            'password' => ['sometimes', 'nullable', 'string', Password::default() ?? Password::min(8)],
             'role' => ['sometimes', Rule::enum(Role::class)],
             'branch_id' => [
                 'nullable',

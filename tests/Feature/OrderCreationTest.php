@@ -315,6 +315,27 @@ class OrderCreationTest extends TestCase
         $this->assertDatabaseCount('orders', 0);
     }
 
+    public function test_product_in_inactive_category_cannot_be_ordered(): void
+    {
+        $branch = Branch::factory()->create();
+        $cashier = User::factory()->cashier()->for($branch)->create();
+        $category = Category::factory()->create(['is_active' => false]);
+        $product = Product::factory()->for($category)->create(['base_price' => 50000]);
+        $product->branches()->attach($branch, ['is_available' => true]);
+
+        $this->actingAs($cashier)->post('/pos/orders', [
+            'branch_id' => $branch->id,
+            'channel' => 'takeaway',
+            'items' => [[
+                'product_id' => $product->id,
+                'quantity' => 1,
+            ]],
+            'idempotency_key' => 'checkout-inactive-category',
+        ])->assertSessionHasErrors('items.0.product_id');
+
+        $this->assertDatabaseCount('orders', 0);
+    }
+
     public function test_product_without_active_variants_uses_base_price(): void
     {
         $branch = Branch::factory()->create();

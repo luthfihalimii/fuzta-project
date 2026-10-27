@@ -44,13 +44,21 @@ Open `http://127.0.0.1:8000`.
 
 The seeder creates two branches, an owner, and one cashier and one kitchen account per branch. Outside production it also loads a small sample catalog and ingredients for acceptance testing. All seeded passwords are `password`; change them before any pilot.
 
-| Role | Email |
-|---|---|
-| Owner | `owner@pizzafruzta.test` |
+| Role          | Email                          |
+| ------------- | ------------------------------ |
+| Owner         | `owner@pizzafruzta.test`       |
 | Cashier PF-01 | `kasir.pf-01@pizzafruzta.test` |
 | Kitchen PF-01 | `dapur.pf-01@pizzafruzta.test` |
 | Cashier PF-02 | `kasir.pf-02@pizzafruzta.test` |
 | Kitchen PF-02 | `dapur.pf-02@pizzafruzta.test` |
+
+If production seeding is used, it creates the units and branches only; it does not create demo users or the sample catalog. After the first production migration, create the first owner once:
+
+```bash
+php artisan app:create-owner owner@your-domain.example
+```
+
+The command prompts for the password and refuses to run when an active owner already exists. Add the remaining staff through the owner UI.
 
 ## Tests and checks
 
@@ -63,6 +71,8 @@ npm run lint
 ```
 
 The PHP suite uses the `pizza_fruzta_test` database (create it once). Do not run `npm run build` at the same time as `php artisan test`; Vite can rewrite the manifest and break Inertia rendering during the run.
+
+`composer ci:check` runs formatting, lint, typecheck, JS tests, the production build, Pint, and the PHP suite. Static analysis is available with `composer analyse`, but PHPStan is not a CI gate yet.
 
 ## Project layout
 

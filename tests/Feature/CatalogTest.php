@@ -8,6 +8,9 @@ use App\Modules\Catalog\Models\Category;
 use App\Modules\Catalog\Models\Modifier;
 use App\Modules\Catalog\Models\ModifierGroup;
 use App\Modules\Catalog\Models\Product;
+use App\Modules\Ordering\Models\Order;
+use App\Modules\Ordering\Models\OrderItem;
+use App\Modules\Ordering\Models\OrderItemModifier;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Inertia\Testing\AssertableInertia;
 use Tests\TestCase;
@@ -259,5 +262,57 @@ class CatalogTest extends TestCase
         $this->assertFalse($product->modifierGroups->contains($oldGroup));
         $this->assertTrue($product->isAvailableAt($branchA->id));
         $this->assertFalse($product->isAvailableAt($branchB->id));
+    }
+
+    public function test_removing_sold_variant_deactivates_it_instead_of_failing(): void
+    {
+        $owner = User::factory()->owner()->create();
+        $product = Product::factory()->create();
+        $variant = $product->variants()->create(['name' => 'Large', 'price' => 75000]);
+        $item = OrderItem::factory()->for(Order::factory())->create([
+            'product_id' => $product->id,
+            'variant_id' => $variant->id,
+            'variant_name' => $variant->name,
+        ]);
+
+        $this->actingAs($owner)->patch("/admin/catalog/products/{$product->id}", [
+            'variants' => [],
+        ])->assertRedirect();
+
+        $this->assertDatabaseHas('product_variants', [
+            'id' => $variant->id,
+            'is_active' => false,
+        ]);
+        $this->assertDatabaseHas('order_items', [
+            'id' => $item->id,
+            'variant_id' => $variant->id,
+        ]);
+    }
+
+    public function test_removing_sold_modifier_deactivates_it_instead_of_failing(): void
+    {
+        $owner = User::factory()->owner()->create();
+        $group = ModifierGroup::factory()->create();
+        $modifier = Modifier::factory()->for($group)->create();
+        $item = OrderItem::factory()->for(Order::factory())->create();
+        OrderItemModifier::create([
+            'order_item_id' => $item->id,
+            'modifier_id' => $modifier->id,
+            'modifier_name' => $modifier->name,
+            'price_delta' => $modifier->price_delta,
+        ]);
+
+        $this->actingAs($owner)->patch("/admin/catalog/modifier-groups/{$group->id}", [
+            'modifiers' => [],
+        ])->assertRedirect();
+
+        $this->assertDatabaseHas('modifiers', [
+            'id' => $modifier->id,
+            'is_active' => false,
+        ]);
+        $this->assertDatabaseHas('order_item_modifiers', [
+            'order_item_id' => $item->id,
+            'modifier_id' => $modifier->id,
+        ]);
     }
 }

@@ -172,6 +172,8 @@ class SubmitStockCount
             ];
         }
 
+        usort($validated, fn (array $left, array $right): int => $left['ingredient_id'] <=> $right['ingredient_id']);
+
         return $validated;
     }
 }

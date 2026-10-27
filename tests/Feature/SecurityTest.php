@@ -4,6 +4,7 @@ namespace Tests\Feature;
 
 use App\Models\User;
 use App\Modules\Branches\Models\Branch;
+use App\Modules\Ordering\Models\Order;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Tests\TestCase;
 
@@ -79,5 +80,32 @@ class SecurityTest extends TestCase
     {
         $this->assertTrue(config('session.http_only'));
         $this->assertSame('lax', config('session.same_site'));
+    }
+
+    public function test_payment_actions_are_rate_limited_per_user(): void
+    {
+        $order = Order::factory()->unpaid()->create();
+        $cashier = User::factory()->cashier()->for($order->branch)->create();
+
+        for ($i = 0; $i < 20; $i++) {
+            $this->actingAs($cashier)
+                ->postJson("/orders/{$order->id}/pay", [])
+                ->assertStatus(422);
+        }
+
+        $this->actingAs($cashier)
+            ->postJson("/orders/{$order->id}/pay", [])
+            ->assertStatus(429);
+    }
+
+    public function test_inactive_user_session_is_rejected(): void
+    {
+        $cashier = User::factory()->cashier()->inactive()->create();
+
+        $this->actingAs($cashier)
+            ->get('/pos')
+            ->assertRedirect('/login');
+
+        $this->assertGuest();
     }
 }

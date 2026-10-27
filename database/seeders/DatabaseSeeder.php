@@ -36,6 +36,10 @@ class DatabaseSeeder extends Seeder
             ],
         );
 
+        if (app()->isProduction()) {
+            return;
+        }
+
         User::query()->firstOrCreate(
             ['email' => 'owner@pizzafruzta.test'],
             [
@@ -73,8 +77,6 @@ class DatabaseSeeder extends Seeder
             );
         }
 
-        if (! app()->isProduction()) {
-            $this->call(PilotDemoSeeder::class);
-        }
+        $this->call(PilotDemoSeeder::class);
     }
 }

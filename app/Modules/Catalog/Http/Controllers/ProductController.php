@@ -184,13 +184,28 @@ class ProductController extends Controller
             $keep[] = $variant->id;
         }
 
-        if ($keep === []) {
-            $product->variants()->delete();
+        $removed = $keep === []
+            ? $product->variants()->get()
+            : $product->variants()->whereKeyNot($keep)->get();
 
+        if ($removed->isEmpty()) {
             return;
         }
 
-        $product->variants()->whereKeyNot($keep)->delete();
+        $referenced = DB::table('order_items')
+            ->whereIn('variant_id', $removed->pluck('id'))
+            ->pluck('variant_id')
+            ->all();
+
+        foreach ($removed as $variant) {
+            if (in_array($variant->id, $referenced, true)) {
+                $variant->update(['is_active' => false]);
+
+                continue;
+            }
+
+            $variant->delete();
+        }
     }
 
     /**

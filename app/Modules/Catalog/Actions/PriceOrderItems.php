@@ -35,10 +35,15 @@ class PriceOrderItems
             }
 
             $product = Product::query()
-                ->with(['variants', 'modifierGroups'])
+                ->with(['category', 'variants', 'modifierGroups'])
                 ->find($item['product_id'] ?? null);
 
-            if ($product === null || ! $product->is_active) {
+            if (
+                $product === null
+                || ! $product->is_active
+                || $product->category === null
+                || ! $product->category->is_active
+            ) {
                 $this->fail($index, 'product_id', 'Produk tidak tersedia.');
             }
 

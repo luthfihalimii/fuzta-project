@@ -146,6 +146,22 @@ php artisan optimize
 
 `php artisan optimize` caches config, routes, views, and events. Run `php artisan optimize:clear` before changing `.env`, then re-run `optimize`.
 
+On the first production deploy, seed the base units and pilot branches once:
+
+```bash
+php artisan db:seed --force
+```
+
+In production this creates units and branches only. It does not create demo users, the sample catalog, or known default passwords.
+
+Then create the first owner once:
+
+```bash
+php artisan app:create-owner owner@your-domain.example
+```
+
+The command prompts for a strong password and refuses to run if an active owner already exists. Add the remaining staff through the owner UI.
+
 Take a database backup before every migrate. Do not use `migrate:fresh` against a shared or production database.
 
 ## 6. Queue worker

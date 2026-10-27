@@ -69,7 +69,10 @@ class KitchenController extends Controller
             ->when($status !== null, fn ($query) => $query->where('status', $status))
             ->when(
                 $status === OrderStatus::Completed,
-                fn ($query) => $query->orderByDesc('updated_at')->orderByDesc('id'),
+                fn ($query) => $query
+                    ->orderByDesc('updated_at')
+                    ->orderByDesc('id')
+                    ->limit(100),
                 fn ($query) => $query->orderBy('created_at')->orderBy('id'),
             )
             ->get()

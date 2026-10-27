@@ -45,7 +45,11 @@ class StaffAccessTest extends TestCase
             ->patch("/admin/staff/{$cashier->id}", ['is_active' => false])
             ->assertRedirect();
 
-        $this->assertDatabaseHas('users', ['id' => $cashier->id, 'is_active' => false]);
+        $this->assertDatabaseHas('users', [
+            'id' => $cashier->id,
+            'is_active' => false,
+            'remember_token' => null,
+        ]);
     }
 
     public function test_owner_cannot_deactivate_self(): void
@@ -57,6 +61,22 @@ class StaffAccessTest extends TestCase
             ->assertSessionHasErrors('is_active');
 
         $this->assertDatabaseHas('users', ['id' => $owner->id, 'is_active' => true]);
+    }
+
+    public function test_last_active_owner_cannot_demote_self(): void
+    {
+        $owner = User::factory()->owner()->create();
+        $branch = Branch::factory()->create();
+
+        $this->actingAs($owner)
+            ->patch("/admin/staff/{$owner->id}", [
+                'is_active' => true,
+                'role' => 'cashier',
+                'branch_id' => $branch->id,
+            ])
+            ->assertSessionHasErrors('role');
+
+        $this->assertDatabaseHas('users', ['id' => $owner->id, 'role' => 'owner']);
     }
 
     public function test_cashier_cannot_update_staff(): void
