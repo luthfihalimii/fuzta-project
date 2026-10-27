@@ -85,7 +85,9 @@ function hasDetails(values: Record<string, unknown>): boolean {
 
                 <div v-else class="overflow-x-auto">
                     <table class="w-full min-w-[980px] text-left text-sm">
-                        <thead class="bg-canvas text-xs tracking-wide text-muted uppercase">
+                        <thead
+                            class="bg-canvas text-xs tracking-wide text-muted uppercase"
+                        >
                             <tr>
                                 <th class="px-5 py-3">Waktu</th>
                                 <th class="px-5 py-3">Aktor</th>
@@ -98,13 +100,17 @@ function hasDetails(values: Record<string, unknown>): boolean {
                         </thead>
                         <tbody class="divide-y divide-line">
                             <tr v-for="log in logs.data" :key="log.id">
-                                <td class="px-5 py-4 whitespace-nowrap text-muted">
+                                <td
+                                    class="px-5 py-4 whitespace-nowrap text-muted"
+                                >
                                     {{ formatDateTime(log.created_at) }}
                                 </td>
                                 <td class="px-5 py-4 font-medium text-ink">
                                     {{ log.actor_name ?? '—' }}
                                 </td>
-                                <td class="px-5 py-4 font-mono text-xs text-ink">
+                                <td
+                                    class="px-5 py-4 font-mono text-xs text-ink"
+                                >
                                     {{ log.action }}
                                 </td>
                                 <td class="px-5 py-4 text-muted">
@@ -131,16 +137,36 @@ function hasDetails(values: Record<string, unknown>): boolean {
                                         </summary>
                                         <div class="mt-2 space-y-2">
                                             <div v-if="hasDetails(log.before)">
-                                                <p class="text-xs font-semibold text-muted">
+                                                <p
+                                                    class="text-xs font-semibold text-muted"
+                                                >
                                                     Sebelum
                                                 </p>
-                                                <pre class="mt-1 max-h-48 overflow-auto rounded-lg bg-canvas p-2 text-xs text-ink">{{ JSON.stringify(log.before, null, 2) }}</pre>
+                                                <pre
+                                                    class="mt-1 max-h-48 overflow-auto rounded-lg bg-canvas p-2 text-xs text-ink"
+                                                    >{{
+                                                        JSON.stringify(
+                                                            log.before,
+                                                            null,
+                                                            2,
+                                                        )
+                                                    }}</pre>
                                             </div>
                                             <div v-if="hasDetails(log.after)">
-                                                <p class="text-xs font-semibold text-muted">
+                                                <p
+                                                    class="text-xs font-semibold text-muted"
+                                                >
                                                     Sesudah
                                                 </p>
-                                                <pre class="mt-1 max-h-48 overflow-auto rounded-lg bg-canvas p-2 text-xs text-ink">{{ JSON.stringify(log.after, null, 2) }}</pre>
+                                                <pre
+                                                    class="mt-1 max-h-48 overflow-auto rounded-lg bg-canvas p-2 text-xs text-ink"
+                                                    >{{
+                                                        JSON.stringify(
+                                                            log.after,
+                                                            null,
+                                                            2,
+                                                        )
+                                                    }}</pre>
                                             </div>
                                         </div>
                                     </details>

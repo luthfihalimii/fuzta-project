@@ -8,10 +8,10 @@ Design system and UX guidelines for the public website, customer ordering, Flutt
 
 Two audiences, two registers, one system:
 
-| Surface | Job | Register |
-|---|---|---|
-| Public website, customer ordering, Flutter app | Make the food look good and ordering effortless | Expressive: photography, color, personality |
-| POS, kitchen display, admin | Let staff work fast and without mistakes under pressure | Functional: neutral, dense where useful, high legibility |
+| Surface                                        | Job                                                     | Register                                                 |
+| ---------------------------------------------- | ------------------------------------------------------- | -------------------------------------------------------- |
+| Public website, customer ordering, Flutter app | Make the food look good and ordering effortless         | Expressive: photography, color, personality              |
+| POS, kitchen display, admin                    | Let staff work fast and without mistakes under pressure | Functional: neutral, dense where useful, high legibility |
 
 Rule: **brand expression lives on customer surfaces; staff surfaces prioritize speed, clarity, and error prevention.** Do not decorate the POS.
 
@@ -33,18 +33,19 @@ Brand name: "Pizza Fruzta". Do not invent a logo, mascot, or tagline. Use a text
 
 ### Color
 
-| Token | Hex | Role |
-|---|---|---|
-| `brand` | `#056A4D` | Brand accent, primary CTA |
+| Token          | Hex       | Role                                              |
+| -------------- | --------- | ------------------------------------------------- |
+| `brand`        | `#056A4D` | Brand accent, primary CTA                         |
 | `brand-yellow` | `#FFC72C` | Promotions, badges, kitchen "new order" highlight |
-| `brand-orange` | `#F47B20` | Secondary accent, kitchen preparing state |
-| `surface` | `#FFFFFF` | Cards, sheets |
-| `canvas` | `#F4F6F4` | Page background (customer and staff) |
-| `ink` | `#1F2421` | Primary text |
-| `muted` | `#5F6B65` | Secondary text |
-| `line` | `#D8DED9` | Dividers, input borders |
+| `brand-orange` | `#F47B20` | Secondary accent, kitchen preparing state         |
+| `surface`      | `#FFFFFF` | Cards, sheets                                     |
+| `canvas`       | `#F4F6F4` | Page background (customer and staff)              |
+| `ink`          | `#1F2421` | Primary text                                      |
+| `muted`        | `#5F6B65` | Secondary text                                    |
+| `line`         | `#D8DED9` | Dividers, input borders                           |
 
 Constraints:
+
 - Green `brand` is the confirmed brand base. Yellow and orange are **provisional** until Pizza Fruzta supplies official hex values; replace them in `resources/css/app.css` without touching components.
 - Text/background pairs meet **WCAG AA** (4.5:1 body, 3:1 large text and UI components). Verify before shipping; do not assume the hexes above pass in every combination.
 - Do not use gradient washes as decoration or identical soft-shadow card grids as the default layout.
@@ -54,41 +55,41 @@ Constraints:
 
 Keep these **separate from brand colors** so a branded action is never confused with an error or warning.
 
-| Token | Hex | Use |
-|---|---|---|
-| `danger` | `#B3261E` | Errors, destructive actions, failed payment (always with icon + text; never used as a decorative brand color) |
-| `warning` | `#9A5B00` | Low stock, price changed, pending transfer |
-| `success` | `#1E6B3A` | Paid, ready, completed |
-| `info` | `#1F5FA8` | Neutral informational states |
-| `neutral` | `#5C6670` | Queued, draft, cancelled |
+| Token     | Hex       | Use                                                                                                           |
+| --------- | --------- | ------------------------------------------------------------------------------------------------------------- |
+| `danger`  | `#B3261E` | Errors, destructive actions, failed payment (always with icon + text; never used as a decorative brand color) |
+| `warning` | `#9A5B00` | Low stock, price changed, pending transfer                                                                    |
+| `success` | `#1E6B3A` | Paid, ready, completed                                                                                        |
+| `info`    | `#1F5FA8` | Neutral informational states                                                                                  |
+| `neutral` | `#5C6670` | Queued, draft, cancelled                                                                                      |
 
 ### Kitchen display theme
 
 The kitchen display has a fixed dark theme on every viewport. Do not follow the system light/dark preference; the kitchen environment and TV use case require consistent contrast.
 
-| Token | Hex | Use |
-|---|---|---|
-| `kitchen-canvas` | `#0D120E` | Page background |
-| `kitchen-surface` | `#161D18` | Order cards and panels |
-| `kitchen-text` | `#F4F1E8` | Primary text |
-| `kitchen-muted` | `#AAB5AC` | Secondary text |
-| `kitchen-accepted` | `#60A5FA` | Accepted badge |
-| `kitchen-ready` | `#22C55E` | Ready badge and success |
-| `kitchen-danger-text` | `#FCA5A5` | Error text on dark |
-| `kitchen-success-text` | `#86EFAC` | Success text on dark |
+| Token                  | Hex       | Use                     |
+| ---------------------- | --------- | ----------------------- |
+| `kitchen-canvas`       | `#0D120E` | Page background         |
+| `kitchen-surface`      | `#161D18` | Order cards and panels  |
+| `kitchen-text`         | `#F4F1E8` | Primary text            |
+| `kitchen-muted`        | `#AAB5AC` | Secondary text          |
+| `kitchen-accepted`     | `#60A5FA` | Accepted badge          |
+| `kitchen-ready`        | `#22C55E` | Ready badge and success |
+| `kitchen-danger-text`  | `#FCA5A5` | Error text on dark      |
+| `kitchen-success-text` | `#86EFAC` | Success text on dark    |
 
 ### Order and payment status mapping
 
 Order status and payment status are **independent** (see `AGENTS.md`) and are shown as **two separate badges**, never merged into one.
 
-| Order status | Badge | Payment status | Badge |
-|---|---|---|---|
-| Queued | neutral | Unpaid | warning |
-| Accepted | info | Paid | success |
-| Preparing | warning | Failed | danger |
-| Ready | success | Refunded | neutral |
-| Completed | neutral (muted) | Pending confirmation | info |
-| Cancelled | neutral + strike icon | | |
+| Order status | Badge                 | Payment status       | Badge   |
+| ------------ | --------------------- | -------------------- | ------- |
+| Queued       | neutral               | Unpaid               | warning |
+| Accepted     | info                  | Paid                 | success |
+| Preparing    | warning               | Failed               | danger  |
+| Ready        | success               | Refunded             | neutral |
+| Completed    | neutral (muted)       | Pending confirmation | info    |
+| Cancelled    | neutral + strike icon |                      |         |
 
 Each badge: icon + label + color. Labels are sentence case, in Bahasa Indonesia in the UI.
 
@@ -96,11 +97,11 @@ Each badge: icon + label + color. Labels are sentence case, in Bahasa Indonesia 
 
 Choose families that are free to use, support Latin Extended, and have **tabular numerals** (essential for prices and quantities).
 
-| Role | Proposal | Notes |
-|---|---|---|
-| Customer headings/wordmark | One characterful display or grotesque family, to be chosen with the brand | Used for headings and the menu; do not use it for dense data |
-| Body and UI (all surfaces) | One highly legible sans family | Staff UI uses this only |
-| Numbers (prices, qty, totals) | Same body family with `font-variant-numeric: tabular-nums` | Right-align money in tables and carts |
+| Role                          | Proposal                                                                  | Notes                                                        |
+| ----------------------------- | ------------------------------------------------------------------------- | ------------------------------------------------------------ |
+| Customer headings/wordmark    | One characterful display or grotesque family, to be chosen with the brand | Used for headings and the menu; do not use it for dense data |
+| Body and UI (all surfaces)    | One highly legible sans family                                            | Staff UI uses this only                                      |
+| Numbers (prices, qty, totals) | Same body family with `font-variant-numeric: tabular-nums`                | Right-align money in tables and carts                        |
 
 Scale (rem, base 16px): 0.875 / 1 / 1.125 / 1.25 / 1.5 / 2 / 2.75. Body line-height 1.5; headings 1.2. Keep text lines under ~75 characters. Minimum UI text on POS: 16px; primary item names and prices on POS: 18px+.
 
@@ -115,6 +116,7 @@ Avoid: tracked-out all-caps eyebrow labels above every heading, accenting a sing
 ## 4. Customer surfaces (website and Flutter app)
 
 ### Principles
+
 - Mobile-first. Most customers will order on a phone.
 - Menu: category navigation always reachable; product card shows photo, name, short description, and "from" price.
 - Customization (size, crust, toppings, add-ons) is progressive: required choices first, optional add-ons after, running price always visible.
@@ -124,11 +126,13 @@ Avoid: tracked-out all-caps eyebrow labels above every heading, accenting a sing
 - Order tracking shows current status from the backend. A push notification is a convenience, never the only source of truth.
 
 ### Imagery
+
 - Use only **approved product photography** from Pizza Fruzta. Until supplied, use neutral placeholders that are clearly placeholders (no stock or generated pizza photos in production).
 - Optimize image sizes; always provide alt text and reserve space to avoid layout shift.
 - Show allergen information only when supplied and verified by Pizza Fruzta.
 
 ### Hero and layout
+
 - Lead the homepage with the most characteristic thing: the food, plus a direct "Order now" action and the nearest branch/hours. Do not default to a big-number-with-gradient hero.
 
 ```
@@ -151,6 +155,7 @@ Home (mobile)
 ## 5. POS (browser, phone, tablet and desktop)
 
 ### Principles
+
 - **Phone-first** for this release: a cashier must be able to complete a sale from 360px width upward. Tablet landscape is the primary in-store layout; desktop is supported.
 - Large touch-friendly controls: **minimum touch target 48×48px, primary actions 56px+**. Quantity steppers are 48×48px.
 - Popular items and categories reachable in **one tap**. Search is always visible.
@@ -208,6 +213,7 @@ On phones the order summary becomes a sticky bottom bar; tapping it opens the ca
 - Name things by what users understand (stok, pesanan, pembayaran), not by how the system is built.
 
 ### Formatting conventions
+
 - Currency: `Rp 85.000` (rupiah, dot as thousands separator, no decimals unless required). Format with a shared helper; never concatenate manually.
 - Dates and times: `Asia/Jakarta`, 24-hour time, e.g. `26 Okt 2026, 14:30`.
 - Order numbers: monospace-free, clearly separated from surrounding text, copyable.

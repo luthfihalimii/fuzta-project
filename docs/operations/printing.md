@@ -6,10 +6,10 @@
 
 The receipt page (`/orders/{order}/receipt`) renders an 80mm paper layout from order snapshots and offers two transport actions:
 
-| Action | Transport | Use when |
-|---|---|---|
-| Cetak browser | Browser print dialog + OS printer driver | A printer is installed on the device or shared on the local network with a working driver. This is the fallback and works on desktop, tablet, and phone. |
-| Cetak RawBT | Android `rawbt:` intent containing ESC/POS text | An Android device has the RawBT app and a paired Bluetooth/USB/network printer. |
+| Action        | Transport                                       | Use when                                                                                                                                                 |
+| ------------- | ----------------------------------------------- | -------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| Cetak browser | Browser print dialog + OS printer driver        | A printer is installed on the device or shared on the local network with a working driver. This is the fallback and works on desktop, tablet, and phone. |
+| Cetak RawBT   | Android `rawbt:` intent containing ESC/POS text | An Android device has the RawBT app and a paired Bluetooth/USB/network printer.                                                                          |
 
 The browser path uses the system print dialog. The RawBT path opens the RawBT app with the receipt bytes; it does not require a driver. The transport is isolated in `resources/js/lib/receipt.ts` so it can be replaced once the printer model is known.
 
@@ -20,9 +20,9 @@ Record the confirmed values here before the first branch rollout:
 - Printer model: **unknown**
 - Paper width: **unknown** (58mm or 80mm)
 - Connection: **unknown** — choose one:
-  1. USB or LAN printer with an OS driver (browser print).
-  2. Bluetooth or USB printer through RawBT on Android.
-  3. Network printer exposed as raw TCP port 9100 (not implemented; would need a small local bridge or server-side transport).
+    1. USB or LAN printer with an OS driver (browser print).
+    2. Bluetooth or USB printer through RawBT on Android.
+    3. Network printer exposed as raw TCP port 9100 (not implemented; would need a small local bridge or server-side transport).
 
 Do not assume a model, paper width, or connection. The receipt page defaults to 80mm and the ESC/POS builder defaults to 32 columns (58mm). For 80mm ESC/POS, use the 42-column option when a transport supports it.
 
@@ -58,9 +58,9 @@ Print one receipt at each branch and confirm:
 
 Add a row after testing each branch:
 
-| Date | Branch | Printer model | Connection | Paper | Tester | Result |
-|---|---|---|---|---|---|---|
-| — | — | — | — | — | — | Not tested |
+| Date | Branch | Printer model | Connection | Paper | Tester | Result     |
+| ---- | ------ | ------------- | ---------- | ----- | ------ | ---------- |
+| —    | —      | —             | —          | —     | —      | Not tested |
 
 ## Fallback and limitations
 

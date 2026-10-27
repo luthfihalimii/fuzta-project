@@ -25,8 +25,7 @@ const classes = computed(() => {
             'bg-brand text-white hover:bg-brand/90 focus-visible:outline-brand',
         secondary:
             'border border-line bg-white text-ink hover:bg-canvas focus-visible:outline-brand',
-        danger:
-            'bg-danger text-white hover:bg-danger/90 focus-visible:outline-danger',
+        danger: 'bg-danger text-white hover:bg-danger/90 focus-visible:outline-danger',
     };
 
     return `${base} ${variants[props.variant]}`;

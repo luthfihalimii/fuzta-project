@@ -65,7 +65,9 @@ const roleOptions = computed(() =>
 
 const isEditing = computed(() => editingId.value !== null);
 
-const formTitle = computed(() => (isEditing.value ? 'Ubah staf' : 'Tambah staf'));
+const formTitle = computed(() =>
+    isEditing.value ? 'Ubah staf' : 'Tambah staf',
+);
 
 function startEdit(row: StaffRow): void {
     editingId.value = row.id;
@@ -168,7 +170,10 @@ function toggleActive(row: StaffRow): void {
                     </button>
                 </div>
 
-                <form class="mt-4 grid gap-4 sm:grid-cols-2" @submit.prevent="submit">
+                <form
+                    class="mt-4 grid gap-4 sm:grid-cols-2"
+                    @submit.prevent="submit"
+                >
                     <Input
                         v-model="form.name"
                         label="Nama"

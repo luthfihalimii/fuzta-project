@@ -1,8 +1,5 @@
 import { describe, expect, it } from 'vitest';
-import {
-    formatRupiah,
-    formatSignedRupiah,
-} from '../../resources/js/lib/money';
+import { formatRupiah, formatSignedRupiah } from '../../resources/js/lib/money';
 
 describe('formatRupiah', () => {
     it('formats integer rupiah with dot separators', () => {

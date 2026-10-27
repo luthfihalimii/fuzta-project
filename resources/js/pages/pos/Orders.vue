@@ -111,9 +111,7 @@ function submitReason(): void {
             },
             onError: (errors) => {
                 reasonError.value =
-                    errors.reason ??
-                    errors.order ??
-                    'Pesanan gagal diproses.';
+                    errors.reason ?? errors.order ?? 'Pesanan gagal diproses.';
             },
             onFinish: () => {
                 processing.value = false;
@@ -217,10 +215,7 @@ function switchBranch(): void {
                 </Link>
             </EmptyState>
 
-            <div
-                v-else
-                class="grid gap-3 sm:grid-cols-2 xl:grid-cols-3"
-            >
+            <div v-else class="grid gap-3 sm:grid-cols-2 xl:grid-cols-3">
                 <article
                     v-for="order in props.orders"
                     :key="order.id"
@@ -266,7 +261,9 @@ function switchBranch(): void {
                         {{ order.note }}
                     </p>
 
-                    <div class="mt-3 flex flex-wrap gap-2 border-t border-line pt-3">
+                    <div
+                        class="mt-3 flex flex-wrap gap-2 border-t border-line pt-3"
+                    >
                         <Button
                             v-if="order.can.pay"
                             class="min-h-12 px-4"

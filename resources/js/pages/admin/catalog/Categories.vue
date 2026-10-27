@@ -79,7 +79,9 @@ function submit(): void {
                         Kelompokkan menu agar kasir mudah menemukan produk.
                     </p>
                 </div>
-                <Badge tone="info">{{ props.categories.length }} kategori</Badge>
+                <Badge tone="info"
+                    >{{ props.categories.length }} kategori</Badge
+                >
             </div>
 
             <div
@@ -176,7 +178,10 @@ function submit(): void {
                             </tr>
                         </thead>
                         <tbody class="divide-y divide-line">
-                            <tr v-for="category in props.categories" :key="category.id">
+                            <tr
+                                v-for="category in props.categories"
+                                :key="category.id"
+                            >
                                 <td class="px-5 py-4 font-medium text-ink">
                                     {{ category.name }}
                                 </td>

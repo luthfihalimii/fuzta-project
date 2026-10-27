@@ -114,7 +114,9 @@ function toggleBranch(
                     class="flex flex-wrap items-center justify-between gap-2 border-b border-line px-5 py-4"
                 >
                     <h2 class="font-semibold text-ink">Daftar produk</h2>
-                    <Badge tone="info">{{ props.products.length }} produk</Badge>
+                    <Badge tone="info"
+                        >{{ props.products.length }} produk</Badge
+                    >
                 </div>
 
                 <div v-if="props.products.length === 0" class="p-5">
@@ -147,7 +149,10 @@ function toggleBranch(
                             </tr>
                         </thead>
                         <tbody class="divide-y divide-line">
-                            <tr v-for="product in props.products" :key="product.id">
+                            <tr
+                                v-for="product in props.products"
+                                :key="product.id"
+                            >
                                 <td class="px-5 py-4 font-medium text-ink">
                                     {{ product.name }}
                                 </td>

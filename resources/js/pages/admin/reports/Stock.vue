@@ -94,7 +94,9 @@ function dateInJakarta(value: string | null): string {
 
     const date = new Date(value);
 
-    return Number.isNaN(date.getTime()) ? '' : jakartaDateFormatter.format(date);
+    return Number.isNaN(date.getTime())
+        ? ''
+        : jakartaDateFormatter.format(date);
 }
 
 function applyBranch(): void {
@@ -160,7 +162,7 @@ function signed(value: number): string {
                     </span>
                     <select
                         v-model="branch"
-                        class="min-h-12 w-full rounded-xl border border-line bg-white px-3.5 text-base text-ink outline-none transition focus:border-brand focus:ring-2 focus:ring-brand/20"
+                        class="min-h-12 w-full rounded-xl border border-line bg-white px-3.5 text-base text-ink transition outline-none focus:border-brand focus:ring-2 focus:ring-brand/20"
                     >
                         <option value="">Semua cabang</option>
                         <option
@@ -179,7 +181,7 @@ function signed(value: number): string {
             <div class="grid gap-4 sm:grid-cols-2">
                 <div class="rounded-2xl border border-line bg-white p-5">
                     <p class="text-sm text-muted">Baris saldo bahan</p>
-                    <p class="mt-2 text-2xl font-bold tabular-nums text-ink">
+                    <p class="mt-2 text-2xl font-bold text-ink tabular-nums">
                         {{ props.balances.length }}
                     </p>
                 </div>
@@ -203,7 +205,11 @@ function signed(value: number): string {
                     class="flex flex-wrap items-center justify-between gap-2 border-b border-line px-5 py-4"
                 >
                     <h2 class="font-semibold text-ink">Stok menipis</h2>
-                    <Badge :tone="props.low_stock.length > 0 ? 'warning' : 'success'">
+                    <Badge
+                        :tone="
+                            props.low_stock.length > 0 ? 'warning' : 'success'
+                        "
+                    >
                         {{ props.low_stock.length }} bahan
                     </Badge>
                 </div>
@@ -217,7 +223,9 @@ function signed(value: number): string {
 
                 <div v-else class="overflow-x-auto">
                     <table class="w-full min-w-[680px] text-left text-sm">
-                        <thead class="bg-canvas text-xs tracking-wide text-muted uppercase">
+                        <thead
+                            class="bg-canvas text-xs tracking-wide text-muted uppercase"
+                        >
                             <tr>
                                 <th class="px-5 py-3">Cabang</th>
                                 <th class="px-5 py-3">Bahan</th>
@@ -231,15 +239,20 @@ function signed(value: number): string {
                                 :key="`${row.branch_id}-${row.ingredient_id}`"
                             >
                                 <td class="px-5 py-4 text-muted">
-                                    {{ row.branch_code }} — {{ row.branch_name }}
+                                    {{ row.branch_code }} —
+                                    {{ row.branch_name }}
                                 </td>
                                 <td class="px-5 py-4 font-medium text-ink">
                                     {{ row.ingredient_name }}
                                 </td>
-                                <td class="px-5 py-4 text-right font-semibold tabular-nums text-warning">
+                                <td
+                                    class="px-5 py-4 text-right font-semibold text-warning tabular-nums"
+                                >
                                     {{ row.quantity }} {{ row.unit }}
                                 </td>
-                                <td class="px-5 py-4 text-right tabular-nums text-muted">
+                                <td
+                                    class="px-5 py-4 text-right text-muted tabular-nums"
+                                >
                                     {{ row.low_stock_threshold }} {{ row.unit }}
                                 </td>
                             </tr>
@@ -262,7 +275,9 @@ function signed(value: number): string {
 
                 <div v-else class="overflow-x-auto">
                     <table class="w-full min-w-[760px] text-left text-sm">
-                        <thead class="bg-canvas text-xs tracking-wide text-muted uppercase">
+                        <thead
+                            class="bg-canvas text-xs tracking-wide text-muted uppercase"
+                        >
                             <tr>
                                 <th class="px-5 py-3">Cabang</th>
                                 <th class="px-5 py-3">Bahan</th>
@@ -277,22 +292,35 @@ function signed(value: number): string {
                                 :key="`${row.branch_id}-${row.ingredient_id}`"
                             >
                                 <td class="px-5 py-4 text-muted">
-                                    {{ row.branch_code }} — {{ row.branch_name }}
+                                    {{ row.branch_code }} —
+                                    {{ row.branch_name }}
                                 </td>
                                 <td class="px-5 py-4 font-medium text-ink">
                                     {{ row.ingredient_name }}
                                 </td>
-                                <td class="px-5 py-4 text-right font-semibold tabular-nums text-ink">
+                                <td
+                                    class="px-5 py-4 text-right font-semibold text-ink tabular-nums"
+                                >
                                     {{ row.quantity }} {{ row.unit }}
                                 </td>
-                                <td class="px-5 py-4 text-right tabular-nums text-muted">
+                                <td
+                                    class="px-5 py-4 text-right text-muted tabular-nums"
+                                >
                                     {{ row.low_stock_threshold }} {{ row.unit }}
                                 </td>
                                 <td class="px-5 py-4">
                                     <Badge
-                                        :tone="row.is_low_stock ? 'warning' : 'success'"
+                                        :tone="
+                                            row.is_low_stock
+                                                ? 'warning'
+                                                : 'success'
+                                        "
                                     >
-                                        {{ row.is_low_stock ? 'Menipis' : 'Aman' }}
+                                        {{
+                                            row.is_low_stock
+                                                ? 'Menipis'
+                                                : 'Aman'
+                                        }}
                                     </Badge>
                                 </td>
                             </tr>
@@ -316,7 +344,9 @@ function signed(value: number): string {
                     </Badge>
                 </div>
 
-                <div class="grid gap-3 border-b border-line bg-canvas/60 px-5 py-4 sm:grid-cols-4">
+                <div
+                    class="grid gap-3 border-b border-line bg-canvas/60 px-5 py-4 sm:grid-cols-4"
+                >
                     <label class="block">
                         <span class="mb-1.5 block text-sm font-medium text-ink">
                             Dari tanggal
@@ -366,7 +396,9 @@ function signed(value: number): string {
 
                 <div v-else class="overflow-x-auto">
                     <table class="w-full min-w-[900px] text-left text-sm">
-                        <thead class="bg-canvas text-xs tracking-wide text-muted uppercase">
+                        <thead
+                            class="bg-canvas text-xs tracking-wide text-muted uppercase"
+                        >
                             <tr>
                                 <th class="px-5 py-3">Waktu</th>
                                 <th class="px-5 py-3">Cabang</th>
@@ -382,7 +414,9 @@ function signed(value: number): string {
                                 v-for="movement in filteredMovements"
                                 :key="movement.id"
                             >
-                                <td class="px-5 py-4 whitespace-nowrap text-muted">
+                                <td
+                                    class="px-5 py-4 whitespace-nowrap text-muted"
+                                >
                                     {{ formatDateTime(movement.created_at) }}
                                 </td>
                                 <td class="px-5 py-4 text-muted">
@@ -405,7 +439,9 @@ function signed(value: number): string {
                                     "
                                 >
                                     {{ signed(movement.quantity) }}
-                                    <span class="text-xs font-normal text-muted">
+                                    <span
+                                        class="text-xs font-normal text-muted"
+                                    >
                                         {{ movement.unit }}
                                     </span>
                                 </td>

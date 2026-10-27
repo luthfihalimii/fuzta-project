@@ -1,4 +1,5 @@
 # Product Requirements Document (PRD)
+
 # Pizza Fruzta — Digital Ordering & Multi-Branch Operations Platform
 
 - **Document status:** Draft v1.0
@@ -62,15 +63,15 @@ The platform should reduce manual duplication and provide a consistent operation
 
 Targets below are proposed and should be confirmed with the owner after observing current operations.
 
-| Metric | Proposed initial target |
-|---|---|
-| Successful order creation | At least 99% of valid checkout attempts, excluding provider/network outages |
-| Duplicate orders from repeated requests | 0 duplicate paid orders caused by retries |
-| Sales reconciliation | Daily POS and online sales can be reconciled against payment records |
-| Inventory traceability | 100% of stock changes recorded with a reason/source and timestamp |
-| Branch reporting | Owner can view sales by branch and consolidated totals |
-| Staff onboarding | Typical cashier can complete basic sale flow after brief training |
-| Data recovery | Backups run automatically and restore procedure is tested before production |
+| Metric                                  | Proposed initial target                                                     |
+| --------------------------------------- | --------------------------------------------------------------------------- |
+| Successful order creation               | At least 99% of valid checkout attempts, excluding provider/network outages |
+| Duplicate orders from repeated requests | 0 duplicate paid orders caused by retries                                   |
+| Sales reconciliation                    | Daily POS and online sales can be reconciled against payment records        |
+| Inventory traceability                  | 100% of stock changes recorded with a reason/source and timestamp           |
+| Branch reporting                        | Owner can view sales by branch and consolidated totals                      |
+| Staff onboarding                        | Typical cashier can complete basic sale flow after brief training           |
+| Data recovery                           | Backups run automatically and restore procedure is tested before production |
 
 Targets are provisional; the team should collect a baseline before using them as formal service-level commitments.
 
@@ -79,6 +80,7 @@ Targets are provisional; the team should collect a baseline before using them as
 ## 4. Users and Roles
 
 ### 4.1 Customer
+
 - Browse menu, product options, prices, and promotions.
 - Select a branch and fulfillment method.
 - Place orders and view order status.
@@ -86,6 +88,7 @@ Targets are provisional; the team should collect a baseline before using them as
 - Receive order updates and payment status.
 
 ### 4.2 Cashier
+
 - Sign in to the assigned branch.
 - Create in-store orders.
 - Apply authorized discounts.
@@ -95,24 +98,28 @@ Targets are provisional; the team should collect a baseline before using them as
 - View permitted transactions for the assigned branch.
 
 ### 4.3 Kitchen Staff
+
 - View incoming orders for the relevant branch.
 - Accept and update preparation status.
 - Mark orders ready for pickup or handoff.
 - See order notes and item customizations.
 
 ### 4.4 Branch Manager
+
 - View branch sales and order activity.
 - Manage branch-level stock tasks and stock counts.
 - Request or approve stock transfers according to permissions.
 - Review branch reports and exceptions.
 
 ### 4.5 Warehouse / Inventory Staff
+
 - Record goods received and supplier deliveries.
 - Manage stock counts and adjustments.
 - Prepare and dispatch stock transfers.
 - Track ingredients, packaging, units, and stock movement history.
 
 ### 4.6 Owner / Administrator
+
 - Access consolidated and branch-level dashboards.
 - Manage branches, staff, roles, products, prices, recipes, and promotions.
 - Review sales, estimated cost, waste, stock, and audit logs.
@@ -166,9 +173,11 @@ Access must be enforced on the server, not only by hiding UI elements.
 ## 6. Product Surfaces
 
 ### 6.1 Public Website
+
 Purpose: brand discovery, menu browsing, and conversion to ordering.
 
 Pages:
+
 - Home
 - Menu / product detail
 - Promotions
@@ -179,6 +188,7 @@ Pages:
 - Privacy policy and terms
 
 Requirements:
+
 - Mobile-first responsive design.
 - Search-engine-friendly page content and metadata.
 - Optimized image sizes and loading.
@@ -186,6 +196,7 @@ Requirements:
 - Clear calls to action to order online.
 
 ### 6.2 Customer Ordering Website
+
 - Browse categories and product details.
 - Select size, crust, toppings, add-ons, and other configured options.
 - Add products to cart and edit quantities.
@@ -197,9 +208,11 @@ Requirements:
 - Receive clear feedback when an item becomes unavailable or a price changes.
 
 ### 6.3 Flutter Customer App
+
 Target: Android first; architecture should remain suitable for iOS if included in the launch plan.
 
 Features:
+
 - Onboarding and optional account registration.
 - Menu browsing and product customization.
 - Cart and checkout.
@@ -213,6 +226,7 @@ Features:
 The app must not trust client-provided prices, discount amounts, payment state, or inventory availability. Laravel remains authoritative.
 
 ### 6.4 POS and Admin Web App
+
 - Browser-based interface for desktops and tablets.
 - Fast product search and category navigation.
 - Cart editing, item notes, discounts, taxes/fees where applicable, and payment selection.
@@ -223,6 +237,7 @@ The app must not trust client-provided prices, discount amounts, payment state, 
 - Admin tools for catalog, branches, staff, inventory, and reporting.
 
 ### 6.5 Kitchen Order Display
+
 - Display orders for the assigned branch.
 - Sort by accepted time or configured priority.
 - Show item quantities, options, and special instructions.
@@ -235,6 +250,7 @@ The app must not trust client-provided prices, discount amounts, payment state, 
 ## 7. Functional Requirements
 
 Priority labels:
+
 - **P0:** Required for MVP launch.
 - **P1:** Important, can follow shortly after initial launch.
 - **P2:** Future enhancement.
@@ -384,6 +400,7 @@ Reports must clearly distinguish sales, discounts, refunds, tax/fees, payment re
 ## 9. Non-Functional Requirements
 
 ### 9.1 Security
+
 - HTTPS in production.
 - Server-side authorization for every protected action.
 - Request validation and output encoding.
@@ -396,6 +413,7 @@ Reports must clearly distinguish sales, discounts, refunds, tax/fees, payment re
 - Data minimization and documented retention rules.
 
 ### 9.2 Reliability and Performance
+
 - Initial target: common catalog and admin pages should feel responsive on ordinary mobile networks.
 - Initial target: p95 API response under 500 ms for routine non-reporting requests under expected launch load, excluding external provider latency. Validate through load testing; this is a target, not a guarantee.
 - Slow reports and notifications should use background jobs where appropriate.
@@ -403,6 +421,7 @@ Reports must clearly distinguish sales, discounts, refunds, tax/fees, payment re
 - Monitor failed jobs, API errors, database health, and disk usage.
 
 ### 9.3 Availability and Recovery
+
 - Automated database backups with off-server copies.
 - Define and test restoration before launch.
 - Proposed initial recovery objectives: RPO 24 hours or better and RTO 8 hours or better; improve if business operations require it.
@@ -410,6 +429,7 @@ Reports must clearly distinguish sales, discounts, refunds, tax/fees, payment re
 - POS offline operation is not included in MVP unless explicitly prioritized and designed.
 
 ### 9.4 Privacy
+
 - Collect only customer information needed to fulfill orders and provide support.
 - Publish a privacy notice and terms.
 - Restrict staff access to customer data.
@@ -417,6 +437,7 @@ Reports must clearly distinguish sales, discounts, refunds, tax/fees, payment re
 - Do not expose customer phone numbers or addresses unnecessarily to kitchen staff.
 
 ### 9.5 Accessibility and Usability
+
 - Responsive design for mobile, tablet, and desktop.
 - Clear touch targets and readable text for POS use.
 - Form validation with actionable error messages.
@@ -429,24 +450,25 @@ Reports must clearly distinguish sales, discounts, refunds, tax/fees, payment re
 
 ### 10.1 Recommended Stack
 
-| Layer | Technology | Purpose |
-|---|---|---|
-| Backend | Laravel 13, subject to compatibility checks | Shared business logic and API |
-| Public website / admin / POS | Vue 3 + TypeScript + Inertia.js | SEO-capable public pages and operational web interfaces |
-| Customer app | Flutter + Dart | Android first; iOS if included in launch scope |
-| Database | PostgreSQL | Orders, payments, branches, stock ledger, users, reporting |
-| Queue/cache | Redis, optional initially | Background jobs and caching |
-| Push notifications | Firebase Cloud Messaging | Mobile push delivery |
-| Image/file storage | S3-compatible object storage | Product images and approved files |
-| Web server | Nginx | HTTPS termination/reverse proxy and static asset delivery |
-| Deployment | Linux VPS or managed hosting | Initial production environment |
-| Monitoring | Error tracking, logs, uptime checks | Diagnose production problems |
+| Layer                        | Technology                                  | Purpose                                                    |
+| ---------------------------- | ------------------------------------------- | ---------------------------------------------------------- |
+| Backend                      | Laravel 13, subject to compatibility checks | Shared business logic and API                              |
+| Public website / admin / POS | Vue 3 + TypeScript + Inertia.js             | SEO-capable public pages and operational web interfaces    |
+| Customer app                 | Flutter + Dart                              | Android first; iOS if included in launch scope             |
+| Database                     | PostgreSQL                                  | Orders, payments, branches, stock ledger, users, reporting |
+| Queue/cache                  | Redis, optional initially                   | Background jobs and caching                                |
+| Push notifications           | Firebase Cloud Messaging                    | Mobile push delivery                                       |
+| Image/file storage           | S3-compatible object storage                | Product images and approved files                          |
+| Web server                   | Nginx                                       | HTTPS termination/reverse proxy and static asset delivery  |
+| Deployment                   | Linux VPS or managed hosting                | Initial production environment                             |
+| Monitoring                   | Error tracking, logs, uptime checks         | Diagnose production problems                               |
 
 Before implementation, confirm that the selected Laravel, Vue, Inertia, Flutter, and package versions are compatible and supported. Prefer stable releases and lock dependencies.
 
 ### 10.2 Architecture Pattern
 
 Use a **modular monolith** initially. Keep modules separated by responsibility inside one deployable backend:
+
 - Identity and access
 - Branches
 - Catalog and pricing
@@ -474,6 +496,7 @@ Avoid microservices until there is a demonstrated scaling, team ownership, or de
 - Publish API documentation for mobile/web integration.
 
 Example endpoint groups:
+
 - `GET /api/v1/menu`
 - `GET /api/v1/branches`
 - `POST /api/v1/orders`
@@ -493,6 +516,7 @@ Endpoints are illustrative; authorization and exact request/response contracts m
 The following is a conceptual starting point, not a finalized migration specification.
 
 ### 11.1 Identity and Organization
+
 - `users`
 - `roles`
 - `permissions`
@@ -503,6 +527,7 @@ The following is a conceptual starting point, not a finalized migration specific
 - `warehouses`
 
 ### 11.2 Catalog
+
 - `categories`
 - `products`
 - `product_branch_availability`
@@ -514,6 +539,7 @@ The following is a conceptual starting point, not a finalized migration specific
 - `promotion_rules`
 
 ### 11.3 Orders and Payments
+
 - `orders`
 - `order_items`
 - `order_item_modifiers`
@@ -526,6 +552,7 @@ The following is a conceptual starting point, not a finalized migration specific
 - `receipts` (if required)
 
 ### 11.4 Inventory and Purchasing
+
 - `ingredients`
 - `units`
 - `unit_conversions`
@@ -546,12 +573,14 @@ The following is a conceptual starting point, not a finalized migration specific
 - `waste_records`
 
 ### 11.5 Operations
+
 - `notifications`
 - `audit_logs`
 - `settings`
 - `file_assets`
 
 ### 11.6 Data Integrity Notes
+
 - Use foreign keys and appropriate unique constraints.
 - Index branch, status, and timestamp fields used in common queries.
 - Store order-item price and product snapshots.
@@ -567,6 +596,7 @@ The following is a conceptual starting point, not a finalized migration specific
 The brand should feel appetizing, friendly, modern, and easy to recognize. The exact colors, typography, logo, and visual language must be confirmed with Pizza Fruzta rather than assumed.
 
 ### Customer experience
+
 - Product photography and pricing are easy to scan.
 - Branch and fulfillment choices are clear.
 - Customization is understandable and does not overwhelm the user.
@@ -574,6 +604,7 @@ The brand should feel appetizing, friendly, modern, and easy to recognize. The e
 - Order confirmation includes the order number and next step.
 
 ### POS experience
+
 - Large touch-friendly controls.
 - Fast access to popular items and categories.
 - Clear distinction between unpaid, paid, preparing, ready, and completed orders.
@@ -581,6 +612,7 @@ The brand should feel appetizing, friendly, modern, and easy to recognize. The e
 - Confirmation for destructive or sensitive actions.
 
 ### Admin experience
+
 - Branch filter visible on reports and stock screens.
 - Search, filters, pagination, and useful empty states.
 - Clear warnings for low stock, discrepancies, failed payments, and pending transfers.
@@ -592,6 +624,7 @@ The brand should feel appetizing, friendly, modern, and easy to recognize. The e
 The MVP is ready for controlled pilot use when all applicable criteria below pass.
 
 ### Ordering
+
 - A customer can browse the menu and submit a valid order from web and Flutter.
 - Server-calculated totals match the displayed checkout total.
 - Invalid options, unavailable products, and unauthorized discounts are rejected.
@@ -599,12 +632,14 @@ The MVP is ready for controlled pilot use when all applicable criteria below pas
 - Customer can retrieve current order status.
 
 ### POS and Kitchen
+
 - An authorized cashier can create a sale for the correct branch.
 - Payment and order states remain accurate after refresh.
 - Kitchen staff can update statuses and the history is recorded.
 - Cashier shift totals can be reconciled against recorded transactions.
 
 ### Inventory
+
 - A configured recipe consumes the expected ingredients at the agreed business event.
 - Stock receipt, adjustment, transfer, and waste each produce traceable movements.
 - A transfer is not treated as received until destination confirmation.
@@ -612,12 +647,14 @@ The MVP is ready for controlled pilot use when all applicable criteria below pas
 - Cancellation/refund behavior follows the approved inventory policy.
 
 ### Permissions and Security
+
 - A staff user cannot read or change data for an unauthorized branch by manipulating requests.
 - Sensitive actions require the right permission and create audit records.
 - Production secrets and debug information are not exposed.
 - Payment callbacks are authenticated and idempotent.
 
 ### Operations
+
 - Automated backups run successfully.
 - A restore test has been completed and documented.
 - Monitoring alerts on critical application and background-job failures.
@@ -627,17 +664,17 @@ The MVP is ready for controlled pilot use when all applicable criteria below pas
 
 ## 14. Risks and Mitigations
 
-| Risk | Impact | Mitigation |
-|---|---|---|
-| Unclear current restaurant workflow | Rework and poor adoption | Interview owner and staff; map current sales, stock, and transfer processes |
-| Printer or cash drawer incompatibility | POS delays | Test actual hardware and browser/OS before committing to implementation |
-| Unstable internet | Orders or POS disruption | Define manual fallback; consider offline-first POS as a separate phase |
-| Incorrect recipe quantities | Misleading stock and cost reports | Validate recipes with kitchen staff and run reconciliation |
-| Payment webhook retries or delays | Incorrect payment/order state | Verify signatures, make processing idempotent, and support reconciliation |
-| Unauthorized staff access | Data exposure or fraud | Server-side RBAC, branch scope checks, audit logs |
-| Stock race conditions | Overselling or negative stock | Database transactions, suitable locking, and concurrency tests |
-| Unreliable backups | Extended outage/data loss | Off-server backups and regular restore tests |
-| Scope creep | Delayed launch | Prioritize MVP and maintain a separate post-launch backlog |
+| Risk                                   | Impact                            | Mitigation                                                                  |
+| -------------------------------------- | --------------------------------- | --------------------------------------------------------------------------- |
+| Unclear current restaurant workflow    | Rework and poor adoption          | Interview owner and staff; map current sales, stock, and transfer processes |
+| Printer or cash drawer incompatibility | POS delays                        | Test actual hardware and browser/OS before committing to implementation     |
+| Unstable internet                      | Orders or POS disruption          | Define manual fallback; consider offline-first POS as a separate phase      |
+| Incorrect recipe quantities            | Misleading stock and cost reports | Validate recipes with kitchen staff and run reconciliation                  |
+| Payment webhook retries or delays      | Incorrect payment/order state     | Verify signatures, make processing idempotent, and support reconciliation   |
+| Unauthorized staff access              | Data exposure or fraud            | Server-side RBAC, branch scope checks, audit logs                           |
+| Stock race conditions                  | Overselling or negative stock     | Database transactions, suitable locking, and concurrency tests              |
+| Unreliable backups                     | Extended outage/data loss         | Off-server backups and regular restore tests                                |
+| Scope creep                            | Delayed launch                    | Prioritize MVP and maintain a separate post-launch backlog                  |
 
 ---
 
@@ -646,6 +683,7 @@ The MVP is ready for controlled pilot use when all applicable criteria below pas
 These items require confirmation from Pizza Fruzta before the relevant feature is finalized.
 
 ### Business and Operations
+
 - Exact menu, sizes, toppings, add-ons, and product pricing.
 - Current opening hours and branch addresses.
 - Whether there is a central warehouse, branch-level storage, or both.
@@ -656,17 +694,20 @@ These items require confirmation from Pizza Fruzta before the relevant feature i
 - Expected order volume and peak periods.
 
 ### Hardware
+
 - POS devices and operating systems used at each branch.
 - Receipt printer model and connection method.
 - Kitchen printer/display requirements.
 - Barcode scanner, cash drawer, or other hardware, if any.
 
 ### Payments
+
 - Whether MVP starts with cash/manual payment or online payment.
 - Preferred payment gateway and supported QRIS/payment methods.
 - Refund and settlement reconciliation process.
 
 ### Product Launch
+
 - Android only or Android + iOS on day one.
 - Whether customers can order without creating an account.
 - Whether offline POS is mandatory for the initial launch.
@@ -679,18 +720,19 @@ These items require confirmation from Pizza Fruzta before the relevant feature i
 
 A proposed solo-developer sequence; timeline depends on confirmed scope, hardware, and integration requirements.
 
-| Phase | Deliverables | Indicative duration |
-|---|---|---|
-| 0. Discovery | Interview owner/staff, map workflows, validate recipes and hardware | 1–2 weeks |
-| 1. Foundation | Repo, environments, auth, roles, branches, catalog, design system | 1–2 weeks |
-| 2. Ordering | Website ordering, Flutter app basics, checkout, order state | 2–3 weeks |
-| 3. POS/Kitchen | Sales, shift handling, receipts, kitchen queue | 2–3 weeks |
-| 4. Inventory | Recipes, stock ledger, receipts, transfers, counts | 2–4 weeks |
-| 5. Reports/Hardening | Reports, security review, backups, tests, pilot training | 1–2 weeks |
+| Phase                | Deliverables                                                        | Indicative duration |
+| -------------------- | ------------------------------------------------------------------- | ------------------- |
+| 0. Discovery         | Interview owner/staff, map workflows, validate recipes and hardware | 1–2 weeks           |
+| 1. Foundation        | Repo, environments, auth, roles, branches, catalog, design system   | 1–2 weeks           |
+| 2. Ordering          | Website ordering, Flutter app basics, checkout, order state         | 2–3 weeks           |
+| 3. POS/Kitchen       | Sales, shift handling, receipts, kitchen queue                      | 2–3 weeks           |
+| 4. Inventory         | Recipes, stock ledger, receipts, transfers, counts                  | 2–4 weeks           |
+| 5. Reports/Hardening | Reports, security review, backups, tests, pilot training            | 1–2 weeks           |
 
 Indicative total: **9–16 weeks** for a focused MVP with one developer, subject to discovery findings and available working time. A robust offline POS, complex delivery, or extensive payment integration can increase the schedule.
 
 ### Release Strategy
+
 1. Development environment with seeded sample data.
 2. Internal testing using representative orders and stock movements.
 3. Pilot in one branch with staff training.
@@ -703,6 +745,7 @@ Indicative total: **9–16 weeks** for a focused MVP with one developer, subject
 ## 17. Definition of Done
 
 A feature is complete when:
+
 - Requirements and acceptance criteria are met.
 - Authorization and validation are implemented server-side.
 - Automated tests cover core success and failure paths.

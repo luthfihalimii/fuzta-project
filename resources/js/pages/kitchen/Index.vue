@@ -30,10 +30,7 @@ const tabs: { value: KitchenStatus; label: string }[] = [
     { value: 'completed', label: 'Selesai' },
 ];
 
-const nextActions: Record<
-    string,
-    { status: KitchenStatus; label: string }
-> = {
+const nextActions: Record<string, { status: KitchenStatus; label: string }> = {
     queued: { status: 'accepted', label: 'Terima pesanan' },
     accepted: { status: 'preparing', label: 'Mulai masak' },
     preparing: { status: 'ready', label: 'Siap disajikan' },
@@ -229,7 +226,9 @@ onUnmounted(() => {
 
                 <div class="flex flex-wrap items-center gap-2">
                     <template v-if="canChooseBranch && branches.length > 0">
-                        <label for="kitchen-branch" class="sr-only">Cabang</label>
+                        <label for="kitchen-branch" class="sr-only"
+                            >Cabang</label
+                        >
                         <select
                             id="kitchen-branch"
                             v-model="branchSelect"
@@ -299,7 +298,9 @@ onUnmounted(() => {
                     {{ tab.label }}
                 </button>
 
-                <span class="ml-auto hidden shrink-0 text-xs text-white/55 sm:block">
+                <span
+                    class="ml-auto hidden shrink-0 text-xs text-white/55 sm:block"
+                >
                     Diperbarui otomatis tiap 5 detik
                 </span>
             </div>
@@ -369,13 +370,17 @@ onUnmounted(() => {
                 >
                     <div class="flex items-start justify-between gap-3">
                         <div class="min-w-0">
-                            <p class="text-xs font-bold uppercase tracking-[0.16em] text-white/55">
+                            <p
+                                class="text-xs font-bold tracking-[0.16em] text-white/55 uppercase"
+                            >
                                 {{ channelLabel(order.channel) }}
                                 <span v-if="order.table_number">
                                     · Meja {{ order.table_number }}
                                 </span>
                             </p>
-                            <h2 class="mt-1 text-2xl font-black tracking-tight 2xl:text-3xl">
+                            <h2
+                                class="mt-1 text-2xl font-black tracking-tight 2xl:text-3xl"
+                            >
                                 {{ order.order_number }}
                             </h2>
                             <p
@@ -388,12 +393,14 @@ onUnmounted(() => {
 
                         <div class="shrink-0 text-right">
                             <span
-                                class="inline-flex rounded-full px-2.5 py-1 text-base font-black uppercase tracking-wide 2xl:px-3 2xl:py-1.5 2xl:text-lg"
+                                class="inline-flex rounded-full px-2.5 py-1 text-base font-black tracking-wide uppercase 2xl:px-3 2xl:py-1.5 2xl:text-lg"
                                 :class="statusTone[activeStatus]"
                             >
                                 {{ activeTab?.label }}
                             </span>
-                            <p class="mt-2 text-base font-semibold text-white/65 2xl:text-lg">
+                            <p
+                                class="mt-2 text-base font-semibold text-white/65 2xl:text-lg"
+                            >
                                 {{ formatElapsed(order.created_at) }}
                             </p>
                         </div>
@@ -422,7 +429,9 @@ onUnmounted(() => {
                                         {{ item.variant_name }}
                                     </p>
                                     <p
-                                        v-for="(modifier, index) in item.modifiers"
+                                        v-for="(
+                                            modifier, index
+                                        ) in item.modifiers"
                                         :key="`${item.id}-${index}`"
                                         class="text-sm text-white/60 2xl:text-lg"
                                     >

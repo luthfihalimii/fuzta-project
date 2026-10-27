@@ -1,11 +1,7 @@
 import { formatJakartaDateTime } from './date';
 import { formatRupiah, formatSignedRupiah } from './money';
 import type { BranchSummary, OrderItemModifier } from './order';
-import {
-    channelLabel,
-    paymentMethodLabel,
-    paymentStatusLabel,
-} from './status';
+import { channelLabel, paymentMethodLabel, paymentStatusLabel } from './status';
 
 export type ReceiptModifier = OrderItemModifier;
 
@@ -103,7 +99,9 @@ function pair(label: string, value: string, columns: number): string[] {
     const right = normalizeText(value);
 
     if (left.length + right.length + 1 <= columns) {
-        return [`${left}${' '.repeat(columns - left.length - right.length)}${right}`];
+        return [
+            `${left}${' '.repeat(columns - left.length - right.length)}${right}`,
+        ];
     }
 
     return [left, right.padStart(columns)];
@@ -141,9 +139,7 @@ export function toEscPos(payload: ReceiptPayload, columns = 32): string {
     push(
         ...pair(
             'Waktu',
-            payload.datetime
-                ? formatJakartaDateTime(payload.datetime)
-                : '-',
+            payload.datetime ? formatJakartaDateTime(payload.datetime) : '-',
             columns,
         ),
     );
@@ -171,9 +167,7 @@ export function toEscPos(payload: ReceiptPayload, columns = 32): string {
                 modifier.price_delta === 0
                     ? ''
                     : ` (${formatSignedRupiah(modifier.price_delta)})`;
-            push(
-                ...wrapText(`+ ${modifier.modifier_name}${price}`, columns),
-            );
+            push(...wrapText(`+ ${modifier.modifier_name}${price}`, columns));
         }
 
         if (item.note) {
@@ -188,11 +182,7 @@ export function toEscPos(payload: ReceiptPayload, columns = 32): string {
     push(...pair('TOTAL', formatRupiah(payload.total), columns));
     push(`${ESC}E${String.fromCharCode(0)}`);
     push(
-        ...pair(
-            'Status',
-            paymentStatusLabel(payload.payment_status),
-            columns,
-        ),
+        ...pair('Status', paymentStatusLabel(payload.payment_status), columns),
     );
 
     if (payload.payment_method) {

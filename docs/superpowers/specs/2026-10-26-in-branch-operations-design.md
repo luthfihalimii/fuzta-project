@@ -56,23 +56,23 @@ The release fails if any of these happen:
 
 Three roles in this release. No custom role editor yet.
 
-| Capability | Owner | Cashier | Kitchen |
-|---|---|---|---|
-| See and switch all branches | Yes | No | No |
-| Manage branches | Yes | No | No |
-| Manage staff accounts | Yes | No | No |
-| Manage categories, products, prices, modifiers | Yes | No | No |
-| Set product availability per branch | Yes | No | No |
-| Create orders and take payment | Yes, any branch | Yes, own branch | No |
-| Cancel unpaid order | Yes, any branch | Yes, own branch, before kitchen accepts | No |
-| Void paid order with reason | Yes | No | No |
-| View own branch orders | Yes | Yes | Yes |
-| Update kitchen status | No | No | Yes, own branch |
-| Record stock receipts and adjustments | Yes | No | No |
-| Record waste and closing counts | Yes | No | Yes, own branch |
-| Set low-stock thresholds | Yes | No | No |
-| View reports | Yes, all branches | No | No |
-| View audit log | Yes | No | No |
+| Capability                                     | Owner             | Cashier                                 | Kitchen         |
+| ---------------------------------------------- | ----------------- | --------------------------------------- | --------------- |
+| See and switch all branches                    | Yes               | No                                      | No              |
+| Manage branches                                | Yes               | No                                      | No              |
+| Manage staff accounts                          | Yes               | No                                      | No              |
+| Manage categories, products, prices, modifiers | Yes               | No                                      | No              |
+| Set product availability per branch            | Yes               | No                                      | No              |
+| Create orders and take payment                 | Yes, any branch   | Yes, own branch                         | No              |
+| Cancel unpaid order                            | Yes, any branch   | Yes, own branch, before kitchen accepts | No              |
+| Void paid order with reason                    | Yes               | No                                      | No              |
+| View own branch orders                         | Yes               | Yes                                     | Yes             |
+| Update kitchen status                          | No                | No                                      | Yes, own branch |
+| Record stock receipts and adjustments          | Yes               | No                                      | No              |
+| Record waste and closing counts                | Yes               | No                                      | Yes, own branch |
+| Set low-stock thresholds                       | Yes               | No                                      | No              |
+| View reports                                   | Yes, all branches | No                                      | No              |
+| View audit log                                 | Yes               | No                                      | No              |
 
 Rules:
 

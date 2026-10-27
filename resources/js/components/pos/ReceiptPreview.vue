@@ -75,9 +75,7 @@ const emit = defineEmits<{
                         </div>
                         <div class="flex justify-between gap-3">
                             <span class="text-muted">Tipe</span>
-                            <span>{{
-                                channelLabel(order.channel)
-                            }}</span>
+                            <span>{{ channelLabel(order.channel) }}</span>
                         </div>
                         <div
                             v-if="order.table_number"
@@ -109,10 +107,7 @@ const emit = defineEmits<{
                                 </span>
                                 <Money :value="item.line_total" />
                             </div>
-                            <p
-                                v-if="item.variant_name"
-                                class="text-muted"
-                            >
+                            <p v-if="item.variant_name" class="text-muted">
                                 {{ item.variant_name }}
                             </p>
                             <p
@@ -142,7 +137,9 @@ const emit = defineEmits<{
                             <span>Subtotal</span>
                             <Money :value="order.subtotal" />
                         </div>
-                        <div class="flex justify-between gap-3 text-base font-bold">
+                        <div
+                            class="flex justify-between gap-3 text-base font-bold"
+                        >
                             <span>Total</span>
                             <Money :value="order.total" />
                         </div>

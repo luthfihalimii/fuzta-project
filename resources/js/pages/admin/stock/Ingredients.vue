@@ -113,7 +113,10 @@ function submit(): void {
                     dahulu.
                 </div>
 
-                <form class="mt-4 grid gap-4 sm:grid-cols-3" @submit.prevent="submit">
+                <form
+                    class="mt-4 grid gap-4 sm:grid-cols-3"
+                    @submit.prevent="submit"
+                >
                     <Input
                         v-model="form.name"
                         label="Nama bahan"
@@ -141,9 +144,15 @@ function submit(): void {
                     <div class="sm:col-span-3">
                         <Button
                             type="submit"
-                            :disabled="form.processing || props.units.length === 0"
+                            :disabled="
+                                form.processing || props.units.length === 0
+                            "
                         >
-                            {{ form.processing ? 'Menyimpan...' : 'Tambah bahan' }}
+                            {{
+                                form.processing
+                                    ? 'Menyimpan...'
+                                    : 'Tambah bahan'
+                            }}
                         </Button>
                     </div>
                 </form>
@@ -154,7 +163,9 @@ function submit(): void {
                     class="flex flex-wrap items-center justify-between gap-2 border-b border-line px-5 py-4"
                 >
                     <h2 class="font-semibold text-ink">Daftar bahan</h2>
-                    <Badge tone="info">{{ props.ingredients.length }} bahan</Badge>
+                    <Badge tone="info"
+                        >{{ props.ingredients.length }} bahan</Badge
+                    >
                 </div>
 
                 <div v-if="props.ingredients.length === 0" class="p-5">
@@ -178,14 +189,17 @@ function submit(): void {
                             </tr>
                         </thead>
                         <tbody class="divide-y divide-line">
-                            <tr v-for="ingredient in props.ingredients" :key="ingredient.id">
+                            <tr
+                                v-for="ingredient in props.ingredients"
+                                :key="ingredient.id"
+                            >
                                 <td class="px-5 py-4 font-medium text-ink">
                                     {{ ingredient.name }}
                                 </td>
                                 <td class="px-5 py-4 text-muted">
                                     {{ ingredient.unit.code ?? '—' }}
                                 </td>
-                                <td class="px-5 py-4 tabular-nums text-muted">
+                                <td class="px-5 py-4 text-muted tabular-nums">
                                     {{ ingredient.low_stock_threshold }}
                                 </td>
                                 <td class="px-5 py-4">
@@ -201,19 +215,23 @@ function submit(): void {
                                             "
                                         >
                                             {{ balance.branch_code ?? '—' }}
-                                            <span class="tabular-nums text-ink">
+                                            <span class="text-ink tabular-nums">
                                                 {{ balance.quantity }}
                                             </span>
                                         </span>
                                         <span
-                                            v-if="ingredient.balances.length === 0"
+                                            v-if="
+                                                ingredient.balances.length === 0
+                                            "
                                             class="text-muted"
                                         >
                                             Belum ada stok
                                         </span>
                                     </div>
                                 </td>
-                                <td class="px-5 py-4 tabular-nums font-semibold text-ink">
+                                <td
+                                    class="px-5 py-4 font-semibold text-ink tabular-nums"
+                                >
                                     {{ ingredient.total_quantity }}
                                 </td>
                             </tr>

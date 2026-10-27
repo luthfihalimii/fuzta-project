@@ -9,11 +9,7 @@ import PaymentSheet from '@/components/pos/PaymentSheet.vue';
 import ReceiptPreview from '@/components/pos/ReceiptPreview.vue';
 import StaffLayout from '@/layouts/StaffLayout.vue';
 import { HttpError, postJson } from '@/lib/http';
-import type {
-    BranchOption,
-    BranchSummary,
-    PosOrder,
-} from '@/lib/order';
+import type { BranchOption, BranchSummary, PosOrder } from '@/lib/order';
 import { formatSignedRupiah } from '@/lib/money';
 
 type PosVariant = {
@@ -199,10 +195,7 @@ function lineDescription(line: CartLine): string {
 }
 
 function openProduct(product: PosProduct): void {
-    if (
-        product.variants.length === 0 &&
-        product.modifier_groups.length === 0
-    ) {
+    if (product.variants.length === 0 && product.modifier_groups.length === 0) {
         cart.value.push({
             key: newKey(),
             product,
@@ -247,10 +240,7 @@ function isModifierDisabled(
     return selectedCount(group) >= group.max_select;
 }
 
-function toggleModifier(
-    group: PosModifierGroup,
-    modifier: PosModifier,
-): void {
+function toggleModifier(group: PosModifierGroup, modifier: PosModifier): void {
     if (draftModifierIds.value.includes(modifier.id)) {
         draftModifierIds.value = draftModifierIds.value.filter(
             (id) => id !== modifier.id,
@@ -641,7 +631,9 @@ function switchBranch(): void {
                             <span class="mt-0.5 text-xs text-muted">
                                 {{ product.category_name ?? 'Tanpa kategori' }}
                             </span>
-                            <span class="mt-auto pt-3 text-sm font-bold text-brand">
+                            <span
+                                class="mt-auto pt-3 text-sm font-bold text-brand"
+                            >
                                 <span
                                     v-if="product.variants.length > 0"
                                     class="block text-[10px] font-medium tracking-wide text-muted uppercase"
@@ -714,11 +706,7 @@ function switchBranch(): void {
                     </div>
 
                     <div v-else class="mt-3 divide-y divide-line">
-                        <div
-                            v-for="line in cart"
-                            :key="line.key"
-                            class="py-3"
-                        >
+                        <div v-for="line in cart" :key="line.key" class="py-3">
                             <div class="flex items-start justify-between gap-2">
                                 <div class="min-w-0">
                                     <p class="font-semibold text-ink">
@@ -746,7 +734,9 @@ function switchBranch(): void {
                                 </button>
                             </div>
 
-                            <div class="mt-2 flex items-center justify-between gap-2">
+                            <div
+                                class="mt-2 flex items-center justify-between gap-2"
+                            >
                                 <div class="flex items-center gap-1">
                                     <button
                                         type="button"
@@ -757,7 +747,9 @@ function switchBranch(): void {
                                     >
                                         −
                                     </button>
-                                    <span class="w-8 text-center text-sm font-semibold">
+                                    <span
+                                        class="w-8 text-center text-sm font-semibold"
+                                    >
                                         {{ line.quantity }}
                                     </span>
                                     <button
@@ -783,7 +775,9 @@ function switchBranch(): void {
 
                     <div v-if="cart.length > 0" class="mt-4 space-y-3">
                         <div>
-                            <span class="mb-1.5 block text-sm font-medium text-ink">
+                            <span
+                                class="mb-1.5 block text-sm font-medium text-ink"
+                            >
                                 Tipe pesanan
                             </span>
                             <div class="grid grid-cols-2 gap-2">
@@ -830,7 +824,9 @@ function switchBranch(): void {
                         />
 
                         <label class="block">
-                            <span class="mb-1.5 block text-sm font-medium text-ink">
+                            <span
+                                class="mb-1.5 block text-sm font-medium text-ink"
+                            >
                                 Catatan pesanan (opsional)
                             </span>
                             <textarea
@@ -841,7 +837,9 @@ function switchBranch(): void {
                             />
                         </label>
 
-                        <div class="flex items-center justify-between border-t border-line pt-3">
+                        <div
+                            class="flex items-center justify-between border-t border-line pt-3"
+                        >
                             <span class="text-sm font-semibold text-ink">
                                 Total
                             </span>
@@ -895,7 +893,11 @@ function switchBranch(): void {
                 </span>
                 <span class="flex items-center gap-2">
                     <Money
-                        :value="createdOrder && cartCount === 0 ? createdOrder.total : cartTotal"
+                        :value="
+                            createdOrder && cartCount === 0
+                                ? createdOrder.total
+                                : cartTotal
+                        "
                     />
                     <span aria-hidden="true">›</span>
                 </span>
@@ -917,8 +919,12 @@ function switchBranch(): void {
                 :aria-label="`Atur ${selectedProduct.name}`"
                 @click.self="selectedProduct = null"
             >
-                <div class="max-h-[90vh] w-full max-w-lg overflow-y-auto rounded-2xl bg-white shadow-xl">
-                    <div class="sticky top-0 flex items-start justify-between gap-3 border-b border-line bg-white px-5 py-4">
+                <div
+                    class="max-h-[90vh] w-full max-w-lg overflow-y-auto rounded-2xl bg-white shadow-xl"
+                >
+                    <div
+                        class="sticky top-0 flex items-start justify-between gap-3 border-b border-line bg-white px-5 py-4"
+                    >
                         <div>
                             <h2 class="text-lg font-bold text-ink">
                                 {{ selectedProduct.name }}
@@ -1035,7 +1041,9 @@ function switchBranch(): void {
                         </section>
 
                         <label class="block">
-                            <span class="mb-1.5 block text-sm font-medium text-ink">
+                            <span
+                                class="mb-1.5 block text-sm font-medium text-ink"
+                            >
                                 Catatan item (opsional)
                             </span>
                             <textarea
@@ -1065,7 +1073,9 @@ function switchBranch(): void {
                                 >
                                     −
                                 </button>
-                                <span class="w-10 text-center text-base font-semibold">
+                                <span
+                                    class="w-10 text-center text-base font-semibold"
+                                >
                                     {{ draftQuantity }}
                                 </span>
                                 <button
@@ -1093,7 +1103,9 @@ function switchBranch(): void {
                         </div>
                     </div>
 
-                    <div class="sticky bottom-0 border-t border-line bg-white px-5 py-4">
+                    <div
+                        class="sticky bottom-0 border-t border-line bg-white px-5 py-4"
+                    >
                         <Button class="w-full" @click="addDraftToCart">
                             Tambah ·
                             <Money :value="draftUnitPrice * draftQuantity" />

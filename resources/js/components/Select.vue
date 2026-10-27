@@ -24,7 +24,7 @@ const model = defineModel<string | number | null>();
             v-model="model"
             :required="required"
             :aria-invalid="error ? 'true' : 'false'"
-            class="min-h-12 w-full rounded-xl border border-line bg-white px-3.5 text-base text-ink outline-none transition focus:border-brand focus:ring-2 focus:ring-brand/20"
+            class="min-h-12 w-full rounded-xl border border-line bg-white px-3.5 text-base text-ink transition outline-none focus:border-brand focus:ring-2 focus:ring-brand/20"
         >
             <option v-if="placeholder" :value="null">{{ placeholder }}</option>
             <option

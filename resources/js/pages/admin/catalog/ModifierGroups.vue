@@ -203,7 +203,7 @@ function submit(): void {
                                 type="number"
                                 min="0"
                                 step="1"
-                                class="min-h-12 w-full rounded-xl border border-line bg-white px-3.5 text-base text-ink outline-none transition focus:border-brand focus:ring-2 focus:ring-brand/20"
+                                class="min-h-12 w-full rounded-xl border border-line bg-white px-3.5 text-base text-ink transition outline-none focus:border-brand focus:ring-2 focus:ring-brand/20"
                             />
                             <span
                                 v-if="form.errors.min_select"
@@ -224,7 +224,7 @@ function submit(): void {
                                 type="number"
                                 min="0"
                                 step="1"
-                                class="min-h-12 w-full rounded-xl border border-line bg-white px-3.5 text-base text-ink outline-none transition focus:border-brand focus:ring-2 focus:ring-brand/20"
+                                class="min-h-12 w-full rounded-xl border border-line bg-white px-3.5 text-base text-ink transition outline-none focus:border-brand focus:ring-2 focus:ring-brand/20"
                             />
                             <span
                                 v-if="form.errors.max_select"
@@ -298,7 +298,7 @@ function submit(): void {
                                     type="number"
                                     step="1"
                                     inputmode="numeric"
-                                    class="min-h-12 w-full rounded-xl border border-line bg-white px-3.5 text-base text-ink outline-none transition focus:border-brand focus:ring-2 focus:ring-brand/20"
+                                    class="min-h-12 w-full rounded-xl border border-line bg-white px-3.5 text-base text-ink transition outline-none focus:border-brand focus:ring-2 focus:ring-brand/20"
                                 />
                                 <span
                                     v-if="
@@ -366,7 +366,9 @@ function submit(): void {
                     :key="group.id"
                     class="rounded-2xl border border-line bg-white p-5"
                 >
-                    <div class="flex flex-wrap items-start justify-between gap-3">
+                    <div
+                        class="flex flex-wrap items-start justify-between gap-3"
+                    >
                         <div>
                             <div class="flex flex-wrap items-center gap-2">
                                 <h3 class="font-semibold text-ink">
@@ -374,13 +376,13 @@ function submit(): void {
                                 </h3>
                                 <Badge
                                     :tone="
-                                        group.is_required ? 'warning' : 'neutral'
+                                        group.is_required
+                                            ? 'warning'
+                                            : 'neutral'
                                     "
                                 >
                                     {{
-                                        group.is_required
-                                            ? 'Wajib'
-                                            : 'Opsional'
+                                        group.is_required ? 'Wajib' : 'Opsional'
                                     }}
                                 </Badge>
                             </div>
@@ -391,10 +393,7 @@ function submit(): void {
                                 · urutan {{ group.sort_order }}
                             </p>
                         </div>
-                        <Button
-                            variant="secondary"
-                            @click="startEdit(group)"
-                        >
+                        <Button variant="secondary" @click="startEdit(group)">
                             Ubah
                         </Button>
                     </div>

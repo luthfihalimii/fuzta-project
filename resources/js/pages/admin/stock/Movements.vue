@@ -81,7 +81,9 @@ function submit(): void {
     });
 }
 
-function typeTone(type: string): 'info' | 'success' | 'danger' | 'warning' | 'neutral' {
+function typeTone(
+    type: string,
+): 'info' | 'success' | 'danger' | 'warning' | 'neutral' {
     return {
         opening: 'info',
         receipt: 'success',
@@ -139,7 +141,10 @@ function signed(value: number): string {
             </div>
 
             <div class="flex flex-wrap items-center gap-3">
-                <label for="movement-branch" class="text-sm font-medium text-ink">
+                <label
+                    for="movement-branch"
+                    class="text-sm font-medium text-ink"
+                >
                     Cabang
                 </label>
                 <select
@@ -178,7 +183,10 @@ function signed(value: number): string {
                         Gunakan angka negatif hanya untuk koreksi pengurangan.
                     </p>
 
-                    <form class="mt-4 grid gap-4 sm:grid-cols-2 lg:grid-cols-5" @submit.prevent="submit">
+                    <form
+                        class="mt-4 grid gap-4 sm:grid-cols-2 lg:grid-cols-5"
+                        @submit.prevent="submit"
+                    >
                         <Select
                             v-model="form.type"
                             label="Jenis"
@@ -215,9 +223,16 @@ function signed(value: number): string {
                         <div class="sm:col-span-2 lg:col-span-5">
                             <Button
                                 type="submit"
-                                :disabled="form.processing || props.ingredients.length === 0"
+                                :disabled="
+                                    form.processing ||
+                                    props.ingredients.length === 0
+                                "
                             >
-                                {{ form.processing ? 'Menyimpan...' : 'Simpan pergerakan' }}
+                                {{
+                                    form.processing
+                                        ? 'Menyimpan...'
+                                        : 'Simpan pergerakan'
+                                }}
                             </Button>
                         </div>
                     </form>
@@ -235,7 +250,9 @@ function signed(value: number): string {
                         class="flex flex-wrap items-center justify-between gap-2 border-b border-line px-5 py-4"
                     >
                         <h2 class="font-semibold text-ink">Ledger terbaru</h2>
-                        <Badge tone="info">{{ props.movements.length }} baris</Badge>
+                        <Badge tone="info"
+                            >{{ props.movements.length }} baris</Badge
+                        >
                     </div>
 
                     <div v-if="props.movements.length === 0" class="p-5">
@@ -247,7 +264,9 @@ function signed(value: number): string {
 
                     <div v-else class="overflow-x-auto">
                         <table class="w-full min-w-[860px] text-left text-sm">
-                            <thead class="bg-canvas text-xs tracking-wide text-muted uppercase">
+                            <thead
+                                class="bg-canvas text-xs tracking-wide text-muted uppercase"
+                            >
                                 <tr>
                                     <th class="px-5 py-3">Waktu</th>
                                     <th class="px-5 py-3">Bahan</th>
@@ -258,9 +277,16 @@ function signed(value: number): string {
                                 </tr>
                             </thead>
                             <tbody class="divide-y divide-line">
-                                <tr v-for="movement in props.movements" :key="movement.id">
-                                    <td class="px-5 py-4 whitespace-nowrap text-muted">
-                                        {{ formatDateTime(movement.created_at) }}
+                                <tr
+                                    v-for="movement in props.movements"
+                                    :key="movement.id"
+                                >
+                                    <td
+                                        class="px-5 py-4 whitespace-nowrap text-muted"
+                                    >
+                                        {{
+                                            formatDateTime(movement.created_at)
+                                        }}
                                     </td>
                                     <td class="px-5 py-4 font-medium text-ink">
                                         {{ movement.ingredient_name ?? '—' }}
@@ -279,7 +305,9 @@ function signed(value: number): string {
                                         "
                                     >
                                         {{ signed(movement.quantity) }}
-                                        <span class="text-xs font-normal text-muted">
+                                        <span
+                                            class="text-xs font-normal text-muted"
+                                        >
                                             {{ movement.unit }}
                                         </span>
                                     </td>

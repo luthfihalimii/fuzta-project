@@ -170,7 +170,9 @@ function submit(): void {
 
             <template v-else>
                 <section class="rounded-2xl border border-line bg-white p-5">
-                    <div class="flex flex-wrap items-start justify-between gap-3">
+                    <div
+                        class="flex flex-wrap items-start justify-between gap-3"
+                    >
                         <div>
                             <h2 class="font-semibold text-ink">Hitung fisik</h2>
                             <p class="mt-1 text-sm text-muted">
@@ -199,7 +201,9 @@ function submit(): void {
 
                     <div v-else class="mt-4 overflow-x-auto">
                         <table class="w-full min-w-[720px] text-left text-sm">
-                            <thead class="bg-canvas text-xs tracking-wide text-muted uppercase">
+                            <thead
+                                class="bg-canvas text-xs tracking-wide text-muted uppercase"
+                            >
                                 <tr>
                                     <th class="px-4 py-3">Bahan</th>
                                     <th class="px-4 py-3 text-right">Sistem</th>
@@ -208,25 +212,36 @@ function submit(): void {
                                 </tr>
                             </thead>
                             <tbody class="divide-y divide-line">
-                                <tr v-for="ingredient in props.ingredients" :key="ingredient.ingredient_id">
+                                <tr
+                                    v-for="ingredient in props.ingredients"
+                                    :key="ingredient.ingredient_id"
+                                >
                                     <td class="px-4 py-3 font-medium text-ink">
                                         {{ ingredient.name }}
-                                        <span class="text-xs font-normal text-muted">
+                                        <span
+                                            class="text-xs font-normal text-muted"
+                                        >
                                             {{ ingredient.unit }}
                                         </span>
                                     </td>
-                                    <td class="px-4 py-3 text-right tabular-nums text-muted">
+                                    <td
+                                        class="px-4 py-3 text-right text-muted tabular-nums"
+                                    >
                                         {{ ingredient.quantity }}
                                     </td>
                                     <td class="px-4 py-3">
                                         <input
-                                            v-model="counted[ingredient.ingredient_id]"
+                                            v-model="
+                                                counted[
+                                                    ingredient.ingredient_id
+                                                ]
+                                            "
                                             type="number"
                                             min="0"
                                             step="1"
                                             inputmode="numeric"
                                             :aria-label="`Hitung ${ingredient.name}`"
-                                            class="min-h-12 w-32 rounded-xl border border-line bg-white px-3 text-base text-ink outline-none transition focus:border-brand focus:ring-2 focus:ring-brand/20"
+                                            class="min-h-12 w-32 rounded-xl border border-line bg-white px-3 text-base text-ink transition outline-none focus:border-brand focus:ring-2 focus:ring-brand/20"
                                         />
                                     </td>
                                     <td class="px-4 py-3">
@@ -259,10 +274,17 @@ function submit(): void {
                     <div class="mt-4">
                         <Button
                             type="button"
-                            :disabled="form.processing || props.ingredients.length === 0"
+                            :disabled="
+                                form.processing ||
+                                props.ingredients.length === 0
+                            "
                             @click="submit"
                         >
-                            {{ form.processing ? 'Menyimpan...' : 'Simpan opname' }}
+                            {{
+                                form.processing
+                                    ? 'Menyimpan...'
+                                    : 'Simpan opname'
+                            }}
                         </Button>
                     </div>
                 </section>
@@ -272,7 +294,9 @@ function submit(): void {
                         class="flex flex-wrap items-center justify-between gap-2 border-b border-line px-5 py-4"
                     >
                         <h2 class="font-semibold text-ink">Riwayat opname</h2>
-                        <Badge tone="info">{{ props.counts.length }} opname</Badge>
+                        <Badge tone="info"
+                            >{{ props.counts.length }} opname</Badge
+                        >
                     </div>
 
                     <div v-if="props.counts.length === 0" class="p-5">
@@ -284,7 +308,9 @@ function submit(): void {
 
                     <div v-else class="overflow-x-auto">
                         <table class="w-full min-w-[640px] text-left text-sm">
-                            <thead class="bg-canvas text-xs tracking-wide text-muted uppercase">
+                            <thead
+                                class="bg-canvas text-xs tracking-wide text-muted uppercase"
+                            >
                                 <tr>
                                     <th class="px-5 py-3">Waktu</th>
                                     <th class="px-5 py-3">Oleh</th>
@@ -293,8 +319,13 @@ function submit(): void {
                                 </tr>
                             </thead>
                             <tbody class="divide-y divide-line">
-                                <tr v-for="count in props.counts" :key="count.id">
-                                    <td class="px-5 py-4 whitespace-nowrap text-muted">
+                                <tr
+                                    v-for="count in props.counts"
+                                    :key="count.id"
+                                >
+                                    <td
+                                        class="px-5 py-4 whitespace-nowrap text-muted"
+                                    >
                                         {{ formatDateTime(count.created_at) }}
                                     </td>
                                     <td class="px-5 py-4 text-ink">
@@ -303,7 +334,9 @@ function submit(): void {
                                     <td class="px-5 py-4 text-muted">
                                         {{ count.note || '—' }}
                                     </td>
-                                    <td class="px-5 py-4 text-right tabular-nums text-ink">
+                                    <td
+                                        class="px-5 py-4 text-right text-ink tabular-nums"
+                                    >
                                         {{ count.items_count }}
                                     </td>
                                 </tr>

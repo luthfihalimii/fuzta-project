@@ -123,7 +123,9 @@ function logout(): void {
                     >
                         Pizza Fruzta
                     </Link>
-                    <h1 class="text-sm font-semibold text-white/60">Stok Dapur</h1>
+                    <h1 class="text-sm font-semibold text-white/60">
+                        Stok Dapur
+                    </h1>
                     <span
                         v-if="props.branch"
                         class="truncate text-sm font-semibold text-white/80"
@@ -133,7 +135,11 @@ function logout(): void {
                 </div>
 
                 <div class="flex flex-wrap items-center gap-2">
-                    <template v-if="props.canChooseBranch && props.branches.length > 0">
+                    <template
+                        v-if="
+                            props.canChooseBranch && props.branches.length > 0
+                        "
+                    >
                         <label for="stock-branch" class="sr-only">Cabang</label>
                         <select
                             id="stock-branch"
@@ -225,15 +231,22 @@ function logout(): void {
                         Semua stok di atas ambang minimum.
                     </div>
 
-                    <div v-else class="mt-3 grid gap-3 sm:grid-cols-2 lg:grid-cols-3">
+                    <div
+                        v-else
+                        class="mt-3 grid gap-3 sm:grid-cols-2 lg:grid-cols-3"
+                    >
                         <div
                             v-for="ingredient in props.low_stock"
                             :key="ingredient.ingredient_id"
                             class="rounded-2xl border border-brand-yellow/30 bg-brand-yellow/10 p-4"
                         >
-                            <p class="font-bold text-white">{{ ingredient.name }}</p>
+                            <p class="font-bold text-white">
+                                {{ ingredient.name }}
+                            </p>
                             <p class="mt-1 text-sm text-white/70">
-                                <span class="text-xl font-black tabular-nums text-brand-yellow">
+                                <span
+                                    class="text-xl font-black text-brand-yellow tabular-nums"
+                                >
                                     {{ ingredient.quantity }}
                                 </span>
                                 {{ ingredient.unit }} / min.
@@ -243,16 +256,25 @@ function logout(): void {
                     </div>
                 </section>
 
-                <div class="grid gap-5 lg:grid-cols-[minmax(0,380px)_minmax(0,1fr)]">
-                    <section class="rounded-2xl border border-white/10 bg-kitchen-surface p-4">
+                <div
+                    class="grid gap-5 lg:grid-cols-[minmax(0,380px)_minmax(0,1fr)]"
+                >
+                    <section
+                        class="rounded-2xl border border-white/10 bg-kitchen-surface p-4"
+                    >
                         <h2 class="text-lg font-bold">Catat stok rusak</h2>
                         <p class="mt-1 text-sm text-white/60">
                             Jumlah akan mengurangi stok cabang ini.
                         </p>
 
-                        <form class="mt-4 space-y-4" @submit.prevent="submitWaste">
+                        <form
+                            class="mt-4 space-y-4"
+                            @submit.prevent="submitWaste"
+                        >
                             <label class="block">
-                                <span class="mb-1.5 block text-sm font-medium text-white/80">
+                                <span
+                                    class="mb-1.5 block text-sm font-medium text-white/80"
+                                >
                                     Bahan
                                 </span>
                                 <select
@@ -260,7 +282,10 @@ function logout(): void {
                                     required
                                     class="min-h-12 w-full rounded-xl border border-white/15 bg-white/5 px-3 text-base text-white outline-none focus:border-brand-yellow focus:ring-2 focus:ring-brand-yellow/30"
                                 >
-                                    <option :value="null" class="bg-kitchen-surface">
+                                    <option
+                                        :value="null"
+                                        class="bg-kitchen-surface"
+                                    >
                                         Pilih bahan
                                     </option>
                                     <option
@@ -269,7 +294,8 @@ function logout(): void {
                                         :value="ingredient.ingredient_id"
                                         class="bg-kitchen-surface"
                                     >
-                                        {{ ingredient.name }} — {{ ingredient.quantity }}
+                                        {{ ingredient.name }} —
+                                        {{ ingredient.quantity }}
                                         {{ ingredient.unit }}
                                     </option>
                                 </select>
@@ -282,7 +308,9 @@ function logout(): void {
                             </label>
 
                             <label class="block">
-                                <span class="mb-1.5 block text-sm font-medium text-white/80">
+                                <span
+                                    class="mb-1.5 block text-sm font-medium text-white/80"
+                                >
                                     Jumlah
                                 </span>
                                 <input
@@ -303,7 +331,9 @@ function logout(): void {
                             </label>
 
                             <label class="block">
-                                <span class="mb-1.5 block text-sm font-medium text-white/80">
+                                <span
+                                    class="mb-1.5 block text-sm font-medium text-white/80"
+                                >
                                     Alasan
                                 </span>
                                 <input
@@ -323,7 +353,10 @@ function logout(): void {
 
                             <button
                                 type="submit"
-                                :disabled="wasteForm.processing || props.ingredients.length === 0"
+                                :disabled="
+                                    wasteForm.processing ||
+                                    props.ingredients.length === 0
+                                "
                                 class="min-h-12 w-full rounded-xl bg-brand-orange px-4 text-base font-black text-ink transition hover:bg-brand-orange/90 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-brand-orange disabled:cursor-not-allowed disabled:opacity-50"
                             >
                                 {{
@@ -335,8 +368,12 @@ function logout(): void {
                         </form>
                     </section>
 
-                    <section class="rounded-2xl border border-white/10 bg-kitchen-surface p-4">
-                        <div class="flex flex-wrap items-start justify-between gap-2">
+                    <section
+                        class="rounded-2xl border border-white/10 bg-kitchen-surface p-4"
+                    >
+                        <div
+                            class="flex flex-wrap items-start justify-between gap-2"
+                        >
                             <div>
                                 <h2 class="text-lg font-bold">Opname tutup</h2>
                                 <p class="mt-1 text-sm text-white/60">
@@ -350,7 +387,9 @@ function logout(): void {
 
                         <div class="mt-4">
                             <label class="block">
-                                <span class="mb-1.5 block text-sm font-medium text-white/80">
+                                <span
+                                    class="mb-1.5 block text-sm font-medium text-white/80"
+                                >
                                     Catatan (opsional)
                                 </span>
                                 <input
@@ -376,10 +415,14 @@ function logout(): void {
                                 class="grid grid-cols-[minmax(0,1fr)_auto] items-center gap-3 rounded-xl border border-white/10 bg-white/[0.03] px-3 py-3"
                             >
                                 <span class="min-w-0">
-                                    <span class="block truncate font-semibold text-white">
+                                    <span
+                                        class="block truncate font-semibold text-white"
+                                    >
                                         {{ ingredient.name }}
                                     </span>
-                                    <span class="mt-0.5 block text-xs text-white/55">
+                                    <span
+                                        class="mt-0.5 block text-xs text-white/55"
+                                    >
                                         Sistem: {{ ingredient.quantity }}
                                         {{ ingredient.unit }}
                                         <span
@@ -412,7 +455,10 @@ function logout(): void {
 
                         <button
                             type="button"
-                            :disabled="countForm.processing || props.ingredients.length === 0"
+                            :disabled="
+                                countForm.processing ||
+                                props.ingredients.length === 0
+                            "
                             class="mt-4 min-h-12 w-full rounded-xl bg-brand-yellow px-4 text-base font-black text-ink transition hover:bg-brand-yellow/90 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-brand-yellow disabled:cursor-not-allowed disabled:opacity-50"
                             @click="submitCount"
                         >

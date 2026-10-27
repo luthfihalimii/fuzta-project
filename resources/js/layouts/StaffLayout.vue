@@ -56,7 +56,10 @@ function logout(): void {
             <div
                 class="mx-auto flex max-w-6xl flex-wrap items-center justify-between gap-2 px-4 py-3"
             >
-                <Link href="/" class="inline-flex min-h-12 items-center text-lg font-bold text-brand">
+                <Link
+                    href="/"
+                    class="inline-flex min-h-12 items-center text-lg font-bold text-brand"
+                >
                     Pizza Fruzta
                 </Link>
 

@@ -29,7 +29,9 @@ const backUrl = computed(() =>
 <template>
     <Head :title="`Struk ${receipt.order_number}`" />
 
-    <main class="min-h-screen bg-canvas px-4 py-6 print:min-h-0 print:bg-white print:p-0">
+    <main
+        class="min-h-screen bg-canvas px-4 py-6 print:min-h-0 print:bg-white print:p-0"
+    >
         <div class="mx-auto w-full max-w-[80mm]">
             <div class="mb-4 flex flex-wrap gap-2 print:hidden">
                 <Link
@@ -59,7 +61,9 @@ const backUrl = computed(() =>
             <article
                 class="receipt-paper mx-auto w-full max-w-[80mm] bg-white px-5 py-6 font-mono text-xs leading-relaxed text-ink shadow-sm"
             >
-                <header class="border-b border-dashed border-line pb-4 text-center">
+                <header
+                    class="border-b border-dashed border-line pb-4 text-center"
+                >
                     <p class="text-base font-bold tracking-wide">
                         {{ receipt.branch?.name ?? 'Pizza Fruzta' }}
                     </p>
@@ -75,7 +79,9 @@ const backUrl = computed(() =>
                     v-if="receipt.payment_status !== 'paid'"
                     class="my-3 border-2 border-dashed border-danger px-3 py-2 text-center text-sm font-bold text-danger"
                 >
-                    {{ paymentStatusLabel(receipt.payment_status).toUpperCase() }}
+                    {{
+                        paymentStatusLabel(receipt.payment_status).toUpperCase()
+                    }}
                 </div>
 
                 <dl class="space-y-1 py-3">
@@ -106,7 +112,10 @@ const backUrl = computed(() =>
                         <dt class="text-muted">Meja</dt>
                         <dd>{{ receipt.table_number }}</dd>
                     </div>
-                    <div v-if="receipt.cashier" class="flex justify-between gap-3">
+                    <div
+                        v-if="receipt.cashier"
+                        class="flex justify-between gap-3"
+                    >
                         <dt class="text-muted">Kasir</dt>
                         <dd>{{ receipt.cashier }}</dd>
                     </div>
@@ -136,9 +145,7 @@ const backUrl = computed(() =>
                         >
                             + {{ modifier.modifier_name }}
                             <span v-if="modifier.price_delta !== 0">
-                                ({{
-                                    formatSignedRupiah(modifier.price_delta)
-                                }})
+                                ({{ formatSignedRupiah(modifier.price_delta) }})
                             </span>
                         </p>
                         <p v-if="item.note" class="text-muted italic">
@@ -168,7 +175,9 @@ const backUrl = computed(() =>
                         class="flex justify-between gap-3"
                     >
                         <span class="text-muted">Metode</span>
-                        <span>{{ paymentMethodLabel(receipt.payment_method) }}</span>
+                        <span>{{
+                            paymentMethodLabel(receipt.payment_method)
+                        }}</span>
                     </div>
                     <div
                         v-if="receipt.cash_received !== null"
@@ -190,7 +199,9 @@ const backUrl = computed(() =>
                     </div>
                 </div>
 
-                <footer class="border-t border-dashed border-line pt-4 text-center">
+                <footer
+                    class="border-t border-dashed border-line pt-4 text-center"
+                >
                     <p>Terima kasih telah memesan</p>
                     <p>di Pizza Fruzta.</p>
                     <p v-if="receipt.payment_status === 'paid'" class="mt-2">

@@ -41,11 +41,13 @@
 ### Task 1: Scaffold the Laravel app, PostgreSQL, and health check
 
 **Files:**
+
 - Create: `composer.json`, `package.json`, `vite.config.ts`, `resources/js/app.ts`, `resources/views/app.blade.php`, `routes/web.php`, `app/Http/Middleware/HandleInertiaRequests.php`, `phpunit.xml`, `.env.example`, `.env.testing`, `tests/Feature/HealthTest.php`
 - Modify: `.gitignore`, `bootstrap/app.php`
 - Test: `tests/Feature/HealthTest.php`
 
 **Interfaces:**
+
 - Consumes: nothing.
 - Produces: a running Laravel 13 app with Inertia, Vue, TypeScript, Tailwind, PostgreSQL, and a `GET /health` JSON endpoint returning `{"status":"ok"}`.
 
@@ -150,6 +152,7 @@ git commit -m "chore: scaffold Laravel, Inertia, Vue, TypeScript, and PostgreSQL
 ### Task 2: Identity, branches, roles, audit, and base UI
 
 **Files:**
+
 - Create: `app/Modules/Identity/Enums/Role.php`, `app/Modules/Identity/Actions/WriteAuditLog.php`, `app/Modules/Audit/Models/AuditLog.php`
 - Create: `app/Modules/Branches/Models/Branch.php`, `app/Modules/Branches/Http/Controllers/BranchController.php`
 - Create: `app/Http/Controllers/Auth/LoginController.php`, `app/Http/Controllers/Admin/StaffController.php`
@@ -164,15 +167,16 @@ git commit -m "chore: scaffold Laravel, Inertia, Vue, TypeScript, and PostgreSQL
 - Test: `tests/Feature/AuthTest.php`, `tests/Feature/StaffAccessTest.php`, `tests/Feature/AuditLogTest.php`
 
 **Interfaces:**
+
 - Consumes: `GET /health`, Inertia root, base layout.
 - Produces:
-  - `Role` enum values `Owner`, `Cashier`, `Kitchen`, with `label(): string` returning `Pemilik`, `Kasir`, `Dapur`.
-  - `User::role(): Role`, `User::isOwner(): bool`, `User::hasBranchAccess(int $branchId): bool`.
-  - `WriteAuditLog::__invoke(User $actor, string $action, Model $target, array $before = [], array $after = [], ?string $reason = null): AuditLog`.
-  - `EnsureRole` middleware registered as `role`.
-  - Routes: `GET/POST /login`, `POST /logout`, owner-only `/admin/staff` and `/admin/branches`.
-  - Seeded owner, one cashier and one kitchen user per branch, two branches `PF-01` and `PF-02`.
-  - Base components and tokens.
+    - `Role` enum values `Owner`, `Cashier`, `Kitchen`, with `label(): string` returning `Pemilik`, `Kasir`, `Dapur`.
+    - `User::role(): Role`, `User::isOwner(): bool`, `User::hasBranchAccess(int $branchId): bool`.
+    - `WriteAuditLog::__invoke(User $actor, string $action, Model $target, array $before = [], array $after = [], ?string $reason = null): AuditLog`.
+    - `EnsureRole` middleware registered as `role`.
+    - Routes: `GET/POST /login`, `POST /logout`, owner-only `/admin/staff` and `/admin/branches`.
+    - Seeded owner, one cashier and one kitchen user per branch, two branches `PF-01` and `PF-02`.
+    - Base components and tokens.
 
 - [ ] **Step 1: Write the failing auth and access tests**
 
@@ -314,17 +318,17 @@ Base tokens in `resources/css/app.css`:
 
 ```css
 @theme {
-  --color-brand: #056A4D;
-  --color-brand-yellow: #FFC72C;
-  --color-brand-orange: #F47B20;
-  --color-ink: #1F2421;
-  --color-muted: #5F6B65;
-  --color-line: #D8DED9;
-  --color-canvas: #F4F6F4;
-  --color-danger: #B3261E;
-  --color-warning: #9A5B00;
-  --color-success: #1E6B3A;
-  --color-info: #1F5FA8;
+    --color-brand: #056a4d;
+    --color-brand-yellow: #ffc72c;
+    --color-brand-orange: #f47b20;
+    --color-ink: #1f2421;
+    --color-muted: #5f6b65;
+    --color-line: #d8ded9;
+    --color-canvas: #f4f6f4;
+    --color-danger: #b3261e;
+    --color-warning: #9a5b00;
+    --color-success: #1e6b3a;
+    --color-info: #1f5fa8;
 }
 ```
 
@@ -349,6 +353,7 @@ git commit -m "feat: add staff roles, branch access, audit log, and base UI"
 ### Task 3: Catalog schema and admin
 
 **Files:**
+
 - Create: migrations for `categories`, `products`, `product_variants`, `modifier_groups`, `modifiers`, `product_modifier_groups`, `product_branch_availability`
 - Create: `app/Modules/Catalog/Models/Category.php`, `Product.php`, `ProductVariant.php`, `ModifierGroup.php`, `Modifier.php`
 - Create: `app/Modules/Catalog/Http/Controllers/CategoryController.php`, `ProductController.php`, `ModifierGroupController.php`
@@ -359,13 +364,14 @@ git commit -m "feat: add staff roles, branch access, audit log, and base UI"
 - Test: `tests/Feature/CatalogTest.php`
 
 **Interfaces:**
+
 - Consumes: `Role`, `Branch`, base components, `WriteAuditLog`.
 - Produces:
-  - `Product` relationships: `category()`, `variants()`, `modifierGroups()`, `branches()`.
-  - `Product::isAvailableAt(int $branchId): bool`.
-  - `ProductVariant` fields: `name`, `price` integer, `sort_order`, `is_active`.
-  - `Modifier` fields: `name`, `price_delta` integer, `sort_order`, `is_active`.
-  - Admin CRUD routes under `/admin/catalog`: categories, products, and modifier groups.
+    - `Product` relationships: `category()`, `variants()`, `modifierGroups()`, `branches()`.
+    - `Product::isAvailableAt(int $branchId): bool`.
+    - `ProductVariant` fields: `name`, `price` integer, `sort_order`, `is_active`.
+    - `Modifier` fields: `name`, `price_delta` integer, `sort_order`, `is_active`.
+    - Admin CRUD routes under `/admin/catalog`: categories, products, and modifier groups.
 
 - [ ] **Step 1: Write the failing catalog tests**
 
@@ -453,6 +459,7 @@ git commit -m "feat: add catalog, variants, modifiers, and branch availability"
 ### Task 4: Server-priced order creation with idempotency
 
 **Files:**
+
 - Create: migrations for `order_sequences`, `orders`, `order_items`, `order_item_modifiers`, `order_status_events`
 - Create: `app/Modules/Ordering/Enums/OrderStatus.php`, `OrderChannel.php`, `app/Modules/Payments/Enums/PaymentStatus.php`
 - Create: `app/Modules/Ordering/Models/Order.php`, `OrderItem.php`, `OrderItemModifier.php`, `OrderStatusEvent.php`
@@ -466,17 +473,18 @@ git commit -m "feat: add catalog, variants, modifiers, and branch availability"
 - Test: `tests/Feature/OrderCreationTest.php`
 
 **Interfaces:**
+
 - Consumes: catalog models, branch access, audit.
 - Produces:
-  - `OrderStatus` cases `Queued`, `Accepted`, `Preparing`, `Ready`, `Completed`, `Cancelled`; `label(): string`; `allowedNext(): array`.
-  - `OrderChannel` cases `DineIn`, `Takeaway`.
-  - `PaymentStatus` cases `Unpaid`, `Paid`, `Voided`.
-  - `CreateOrder::__invoke(User $actor, CreateOrderData $data): Order`.
-  - `CreateOrderData` constructor: `int $branchId, OrderChannel $channel, ?string $tableNumber, ?string $customerName, ?string $note, array $items, string $idempotencyKey`.
-  - Item input shape: `array{product_id:int, variant_id:?int, modifier_ids:list<int>, quantity:int, note:?string}`.
-  - `Order` fields: `order_number`, `branch_id`, `channel`, `table_number`, `status`, `payment_status`, `subtotal`, `total`, `idempotency_key`, `placed_by_id`.
-  - `OrderFactory` states: `unpaid()`, `paid()`, `voided()`, and `for(Branch $branch)`. The `paid()` state sets `payment_status = paid` and creates one payment in `afterCreating`; `voided()` sets both statuses to their voided values and creates a voided payment.
-  - Routes: `GET /pos` and `POST /pos/orders`. The POST always returns JSON `{"order": {...}}` because the POS screen submits with fetch and needs the order ID for payment.
+    - `OrderStatus` cases `Queued`, `Accepted`, `Preparing`, `Ready`, `Completed`, `Cancelled`; `label(): string`; `allowedNext(): array`.
+    - `OrderChannel` cases `DineIn`, `Takeaway`.
+    - `PaymentStatus` cases `Unpaid`, `Paid`, `Voided`.
+    - `CreateOrder::__invoke(User $actor, CreateOrderData $data): Order`.
+    - `CreateOrderData` constructor: `int $branchId, OrderChannel $channel, ?string $tableNumber, ?string $customerName, ?string $note, array $items, string $idempotencyKey`.
+    - Item input shape: `array{product_id:int, variant_id:?int, modifier_ids:list<int>, quantity:int, note:?string}`.
+    - `Order` fields: `order_number`, `branch_id`, `channel`, `table_number`, `status`, `payment_status`, `subtotal`, `total`, `idempotency_key`, `placed_by_id`.
+    - `OrderFactory` states: `unpaid()`, `paid()`, `voided()`, and `for(Branch $branch)`. The `paid()` state sets `payment_status = paid` and creates one payment in `afterCreating`; `voided()` sets both statuses to their voided values and creates a voided payment.
+    - Routes: `GET /pos` and `POST /pos/orders`. The POST always returns JSON `{"order": {...}}` because the POS screen submits with fetch and needs the order ID for payment.
 
 - [ ] **Step 1: Write the failing pricing and idempotency tests**
 
@@ -612,6 +620,7 @@ git commit -m "feat: add server-priced idempotent order creation"
 ### Task 5: Payment confirmation, cancel, void, and POS screen
 
 **Files:**
+
 - Create: migrations for `payments`, `payment_events`
 - Create: `app/Modules/Payments/Enums/PaymentMethod.php`, `app/Modules/Payments/Models/Payment.php`, `PaymentEvent.php`
 - Create: `app/Modules/Payments/Actions/MarkOrderPaid.php`
@@ -624,15 +633,16 @@ git commit -m "feat: add server-priced idempotent order creation"
 - Test: `tests/Feature/PaymentTest.php`, `tests/Feature/VoidOrderTest.php`
 
 **Interfaces:**
+
 - Consumes: `Order`, `CreateOrder`, catalog data, base components.
 - Produces:
-  - `PaymentMethod` cases `Cash`, `QrisStatic`.
-  - `MarkOrderPaid::__invoke(Order $order, User $actor, PaymentMethod $method, ?int $cashReceived = null): Payment`.
-  - `CancelOrder::__invoke(Order $order, User $actor, string $reason): void`.
-  - `VoidOrder::__invoke(Order $order, User $actor, string $reason): void`.
-  - `OrderPolicy` methods `view`, `pay`, `cancel`, `void`.
-  - Routes: `POST /orders/{order}/pay`, `POST /orders/{order}/cancel`, `POST /orders/{order}/void`, `GET /orders/{order}/receipt`.
-  - `formatRupiah(int $value): string` and status label maps.
+    - `PaymentMethod` cases `Cash`, `QrisStatic`.
+    - `MarkOrderPaid::__invoke(Order $order, User $actor, PaymentMethod $method, ?int $cashReceived = null): Payment`.
+    - `CancelOrder::__invoke(Order $order, User $actor, string $reason): void`.
+    - `VoidOrder::__invoke(Order $order, User $actor, string $reason): void`.
+    - `OrderPolicy` methods `view`, `pay`, `cancel`, `void`.
+    - Routes: `POST /orders/{order}/pay`, `POST /orders/{order}/cancel`, `POST /orders/{order}/void`, `GET /orders/{order}/receipt`.
+    - `formatRupiah(int $value): string` and status label maps.
 
 - [ ] **Step 1: Write the failing payment and void tests**
 
@@ -801,6 +811,7 @@ git commit -m "feat: add payment confirmation, cancel, void, and phone POS"
 ### Task 6: Kitchen display with polling and status history
 
 **Files:**
+
 - Create: `app/Modules/Kitchen/Actions/TransitionOrderStatus.php`
 - Create: `app/Modules/Kitchen/Http/Controllers/KitchenController.php`
 - Create: `resources/js/pages/kitchen/Index.vue`
@@ -808,12 +819,13 @@ git commit -m "feat: add payment confirmation, cancel, void, and phone POS"
 - Test: `tests/Feature/KitchenTest.php`
 
 **Interfaces:**
+
 - Consumes: `OrderStatus`, `OrderPolicy`, payments.
 - Produces:
-  - `TransitionOrderStatus::__invoke(Order $order, User $actor, OrderStatus $next): Order`.
-  - `GET /kitchen` Inertia page.
-  - `GET /kitchen/orders` JSON list of paid, non-cancelled orders for the user's branch.
-  - `PATCH /kitchen/orders/{order}/status` with `status`.
+    - `TransitionOrderStatus::__invoke(Order $order, User $actor, OrderStatus $next): Order`.
+    - `GET /kitchen` Inertia page.
+    - `GET /kitchen/orders` JSON list of paid, non-cancelled orders for the user's branch.
+    - `PATCH /kitchen/orders/{order}/status` with `status`.
 
 - [ ] **Step 1: Write the failing kitchen tests**
 
@@ -907,6 +919,7 @@ git commit -m "feat: add kitchen display with paid-order queue and status histor
 ### Task 7: Append-only stock ledger, stock count, and low stock
 
 **Files:**
+
 - Create: migrations for `units`, `ingredients`, `stock_movements`, `stock_balances`, `stock_counts`, `stock_count_items`
 - Create: `app/Modules/Inventory/Enums/StockMovementType.php`
 - Create: `app/Modules/Inventory/Models/Unit.php`, `Ingredient.php`, `StockMovement.php`, `StockBalance.php`, `StockCount.php`, `StockCountItem.php`
@@ -918,14 +931,15 @@ git commit -m "feat: add kitchen display with paid-order queue and status histor
 - Test: `tests/Feature/StockLedgerTest.php`, `tests/Feature/StockCountTest.php`, `tests/Feature/StockConcurrencyTest.php`
 
 **Interfaces:**
+
 - Consumes: branch access, audit.
 - Produces:
-  - `StockMovementType` cases `Opening`, `Receipt`, `Waste`, `Adjustment`, `CountCorrection`.
-  - `RecordStockMovement::__invoke(User $actor, int $branchId, int $ingredientId, int $quantity, StockMovementType $type, string $reason, ?string $referenceType = null, ?int $referenceId = null): StockMovement`.
-  - `SubmitStockCount::__invoke(User $actor, int $branchId, array $countedItems, ?string $note = null): StockCount`.
-  - `$countedItems` shape: `list<array{ingredient_id:int, counted_quantity:int}>`.
-  - `StockBalance` unique per `(branch_id, ingredient_id)`.
-  - Routes: owner `GET/POST /admin/stock/ingredients`, `POST /admin/stock/movements`, `GET/POST /admin/stock/counts`; kitchen `GET /kitchen/stock`, `POST /kitchen/stock/waste`, `POST /kitchen/stock/counts`.
+    - `StockMovementType` cases `Opening`, `Receipt`, `Waste`, `Adjustment`, `CountCorrection`.
+    - `RecordStockMovement::__invoke(User $actor, int $branchId, int $ingredientId, int $quantity, StockMovementType $type, string $reason, ?string $referenceType = null, ?int $referenceId = null): StockMovement`.
+    - `SubmitStockCount::__invoke(User $actor, int $branchId, array $countedItems, ?string $note = null): StockCount`.
+    - `$countedItems` shape: `list<array{ingredient_id:int, counted_quantity:int}>`.
+    - `StockBalance` unique per `(branch_id, ingredient_id)`.
+    - Routes: owner `GET/POST /admin/stock/ingredients`, `POST /admin/stock/movements`, `GET/POST /admin/stock/counts`; kitchen `GET /kitchen/stock`, `POST /kitchen/stock/waste`, `POST /kitchen/stock/counts`.
 
 - [ ] **Step 1: Write the failing ledger tests**
 
@@ -1142,6 +1156,7 @@ git commit -m "feat: add append-only stock ledger, stock counts, and low-stock v
 ### Task 8: Daily sales, payment split, product quantities, and audit views
 
 **Files:**
+
 - Create: `app/Modules/Reporting/Queries/DailySalesQuery.php`, `ProductSalesQuery.php`, `StockReportQuery.php`
 - Create: `app/Modules/Reporting/Http/Controllers/ReportController.php`
 - Create: `app/Modules/Audit/Http/Controllers/AuditLogController.php`
@@ -1150,12 +1165,13 @@ git commit -m "feat: add append-only stock ledger, stock counts, and low-stock v
 - Test: `tests/Feature/ReportTest.php`, `tests/Feature/AuditViewTest.php`
 
 **Interfaces:**
+
 - Consumes: paid orders, payments, order items, stock balances, audit logs.
 - Produces:
-  - `DailySalesQuery::__invoke(CarbonImmutable $from, CarbonImmutable $to, ?int $branchId): array` with keys `order_count`, `gross_sales`, `average_order_value`, `by_payment_method`.
-  - `ProductSalesQuery::__invoke(CarbonImmutable $from, CarbonImmutable $to, ?int $branchId): array`.
-  - `StockReportQuery::__invoke(?int $branchId): array` with `balances`, `low_stock`, `movements`.
-  - Routes: owner-only `GET /admin/reports/sales`, `GET /admin/reports/stock`, `GET /admin/audit`.
+    - `DailySalesQuery::__invoke(CarbonImmutable $from, CarbonImmutable $to, ?int $branchId): array` with keys `order_count`, `gross_sales`, `average_order_value`, `by_payment_method`.
+    - `ProductSalesQuery::__invoke(CarbonImmutable $from, CarbonImmutable $to, ?int $branchId): array`.
+    - `StockReportQuery::__invoke(?int $branchId): array` with `balances`, `low_stock`, `movements`.
+    - Routes: owner-only `GET /admin/reports/sales`, `GET /admin/reports/stock`, `GET /admin/audit`.
 
 - [ ] **Step 1: Write the failing report tests**
 
@@ -1231,12 +1247,14 @@ git commit -m "feat: add daily sales, stock reports, and audit views"
 ### Task 9: Design tokens, responsive polish, and accessibility
 
 **Files:**
+
 - Modify: `DESIGN.md`, `resources/css/app.css`, `resources/js/layouts/StaffLayout.vue`, all pages for responsive states
 - Create: `resources/js/lib/date.ts`, `tests/js/money.test.ts`, `tests/js/date.test.ts`, `tests/js/status.test.ts`
 - Modify: `package.json` scripts: `test:js` runs `vitest run`
 - Test: Vitest files above
 
 **Interfaces:**
+
 - Consumes: all screens.
 - Produces: consistent tokens, 48px touch targets, phone layouts from 360px, tablet POS, TV kitchen, keyboard focus, reduced motion, and JS tests for formatting.
 
@@ -1258,10 +1276,10 @@ import { describe, expect, it } from 'vitest';
 import { formatRupiah } from '../../resources/js/lib/money';
 
 describe('formatRupiah', () => {
-  it('formats integer rupiah with dot separators', () => {
-    expect(formatRupiah(85000)).toBe('Rp 85.000');
-    expect(formatRupiah(0)).toBe('Rp 0');
-  });
+    it('formats integer rupiah with dot separators', () => {
+        expect(formatRupiah(85000)).toBe('Rp 85.000');
+        expect(formatRupiah(0)).toBe('Rp 0');
+    });
 });
 ```
 
@@ -1271,9 +1289,11 @@ import { describe, expect, it } from 'vitest';
 import { formatJakartaDateTime } from '../../resources/js/lib/date';
 
 describe('formatJakartaDateTime', () => {
-  it('renders UTC input in Asia/Jakarta', () => {
-    expect(formatJakartaDateTime('2026-10-26T07:30:00Z')).toBe('26 Okt 2026, 14:30');
-  });
+    it('renders UTC input in Asia/Jakarta', () => {
+        expect(formatJakartaDateTime('2026-10-26T07:30:00Z')).toBe(
+            '26 Okt 2026, 14:30',
+        );
+    });
 });
 ```
 
@@ -1314,6 +1334,7 @@ git commit -m "feat: apply brand tokens and polish responsive accessible UI"
 ### Task 10: Receipt payload and printing adapter
 
 **Files:**
+
 - Create: `app/Modules/Payments/Receipt/ReceiptPayload.php`
 - Create: `resources/js/lib/receipt.ts`
 - Create: `resources/js/pages/pos/Receipt.vue`
@@ -1321,11 +1342,12 @@ git commit -m "feat: apply brand tokens and polish responsive accessible UI"
 - Modify: `routes/web.php`, `docs/operations/printing.md`
 
 **Interfaces:**
+
 - Consumes: order snapshots, payments, branch.
 - Produces:
-  - `ReceiptPayload::fromOrder(Order $order): array` with `branch`, `order_number`, `datetime`, `channel`, `table_number`, `items`, `total`, `payment_method`, `cashier`, `cash_received`, `change`.
-  - `toEscPos(payload): string` in TypeScript.
-  - `printViaBrowser()` and `printViaRawBt(payload)` in TypeScript.
+    - `ReceiptPayload::fromOrder(Order $order): array` with `branch`, `order_number`, `datetime`, `channel`, `table_number`, `items`, `total`, `payment_method`, `cashier`, `cash_received`, `change`.
+    - `toEscPos(payload): string` in TypeScript.
+    - `printViaBrowser()` and `printViaRawBt(payload)` in TypeScript.
 
 - [ ] **Step 1: Write the failing receipt tests**
 
@@ -1386,11 +1408,13 @@ git commit -m "feat: add receipt payload and pluggable print transport"
 ### Task 11: Security hardening, deployment, backups, and documentation
 
 **Files:**
+
 - Create: `README.md`, `docs/operations/deployment.md`, `docs/operations/backup-restore.md`, `scripts/backup-database.sh`
 - Modify: `.env.example`, `bootstrap/app.php`, `routes/console.php`, `config/session.php`
 - Test: `tests/Feature/SecurityTest.php`
 
 **Interfaces:**
+
 - Consumes: all features.
 - Produces: rate limits, HTTPS guidance, production environment checklist, nightly backup script, restore procedure, and setup documentation.
 
@@ -1458,10 +1482,12 @@ git commit -m "chore: harden security and add deployment and backup docs"
 ### Task 12: End-to-end acceptance run
 
 **Files:**
+
 - Create: `docs/operations/pilot-checklist.md`
 - Test: manual, against the seeded two-branch database.
 
 **Interfaces:**
+
 - Consumes: everything.
 - Produces: a recorded acceptance run with evidence for both branches.
 

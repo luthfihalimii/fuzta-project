@@ -220,7 +220,7 @@ function submit(): void {
                             <textarea
                                 v-model="form.description"
                                 rows="3"
-                                class="w-full rounded-xl border border-line bg-white px-3.5 py-3 text-base text-ink outline-none transition placeholder:text-muted/70 focus:border-brand focus:ring-2 focus:ring-brand/20"
+                                class="w-full rounded-xl border border-line bg-white px-3.5 py-3 text-base text-ink transition outline-none placeholder:text-muted/70 focus:border-brand focus:ring-2 focus:ring-brand/20"
                             />
                             <span
                                 v-if="form.errors.description"
@@ -242,7 +242,7 @@ function submit(): void {
                                 min="0"
                                 step="1"
                                 inputmode="numeric"
-                                class="min-h-12 w-full rounded-xl border border-line bg-white px-3.5 text-base text-ink outline-none transition focus:border-brand focus:ring-2 focus:ring-brand/20"
+                                class="min-h-12 w-full rounded-xl border border-line bg-white px-3.5 text-base text-ink transition outline-none focus:border-brand focus:ring-2 focus:ring-brand/20"
                             />
                             <span
                                 v-if="errorFor('base_price')"
@@ -269,7 +269,9 @@ function submit(): void {
                 </section>
 
                 <section class="rounded-2xl border border-line bg-white p-5">
-                    <div class="flex flex-wrap items-center justify-between gap-2">
+                    <div
+                        class="flex flex-wrap items-center justify-between gap-2"
+                    >
                         <div>
                             <h2 class="font-semibold text-ink">Varian</h2>
                             <p class="mt-1 text-sm text-muted">
@@ -312,7 +314,7 @@ function submit(): void {
                                     min="0"
                                     step="1"
                                     inputmode="numeric"
-                                    class="min-h-12 w-full rounded-xl border border-line bg-white px-3.5 text-base text-ink outline-none transition focus:border-brand focus:ring-2 focus:ring-brand/20"
+                                    class="min-h-12 w-full rounded-xl border border-line bg-white px-3.5 text-base text-ink transition outline-none focus:border-brand focus:ring-2 focus:ring-brand/20"
                                 />
                                 <span
                                     v-if="errorFor(`variants.${index}.price`)"
@@ -345,7 +347,9 @@ function submit(): void {
                 </section>
 
                 <section class="rounded-2xl border border-line bg-white p-5">
-                    <div class="flex flex-wrap items-center justify-between gap-2">
+                    <div
+                        class="flex flex-wrap items-center justify-between gap-2"
+                    >
                         <div>
                             <h2 class="font-semibold text-ink">Modifier</h2>
                             <p class="mt-1 text-sm text-muted">
@@ -399,8 +403,8 @@ function submit(): void {
                 <section class="rounded-2xl border border-line bg-white p-5">
                     <h2 class="font-semibold text-ink">Ketersediaan cabang</h2>
                     <p class="mt-1 text-sm text-muted">
-                        Centang cabang yang menjual produk ini. Cabang yang tidak
-                        dicentang dianggap tidak tersedia.
+                        Centang cabang yang menjual produk ini. Cabang yang
+                        tidak dicentang dianggap tidak tersedia.
                     </p>
 
                     <div class="mt-4 grid gap-2 sm:grid-cols-2">

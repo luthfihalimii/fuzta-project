@@ -76,7 +76,9 @@ function applyFilters(): void {
         <div class="space-y-6">
             <div class="flex flex-wrap items-end justify-between gap-3">
                 <div>
-                    <h1 class="text-2xl font-bold text-ink">Laporan penjualan</h1>
+                    <h1 class="text-2xl font-bold text-ink">
+                        Laporan penjualan
+                    </h1>
                     <p class="mt-1 text-sm text-muted">
                         Penjualan pesanan lunas dan jumlah produk terjual.
                     </p>
@@ -110,7 +112,7 @@ function applyFilters(): void {
                     </span>
                     <select
                         v-model="branch"
-                        class="min-h-12 w-full rounded-xl border border-line bg-white px-3.5 text-base text-ink outline-none transition focus:border-brand focus:ring-2 focus:ring-brand/20"
+                        class="min-h-12 w-full rounded-xl border border-line bg-white px-3.5 text-base text-ink transition outline-none focus:border-brand focus:ring-2 focus:ring-brand/20"
                     >
                         <option value="">Semua cabang</option>
                         <option
@@ -131,19 +133,19 @@ function applyFilters(): void {
             <div class="grid gap-4 sm:grid-cols-3">
                 <div class="rounded-2xl border border-line bg-white p-5">
                     <p class="text-sm text-muted">Total penjualan</p>
-                    <p class="mt-2 text-2xl font-bold tabular-nums text-ink">
+                    <p class="mt-2 text-2xl font-bold text-ink tabular-nums">
                         {{ formatRupiah(props.sales.gross_sales) }}
                     </p>
                 </div>
                 <div class="rounded-2xl border border-line bg-white p-5">
                     <p class="text-sm text-muted">Pesanan lunas</p>
-                    <p class="mt-2 text-2xl font-bold tabular-nums text-ink">
+                    <p class="mt-2 text-2xl font-bold text-ink tabular-nums">
                         {{ props.sales.order_count }}
                     </p>
                 </div>
                 <div class="rounded-2xl border border-line bg-white p-5">
                     <p class="text-sm text-muted">Rata-rata per pesanan</p>
-                    <p class="mt-2 text-2xl font-bold tabular-nums text-ink">
+                    <p class="mt-2 text-2xl font-bold text-ink tabular-nums">
                         {{ formatRupiah(props.sales.average_order_value) }}
                     </p>
                 </div>
@@ -159,15 +161,21 @@ function applyFilters(): void {
             <template v-else>
                 <section class="rounded-2xl border border-line bg-white">
                     <div class="border-b border-line px-5 py-4">
-                        <h2 class="font-semibold text-ink">Metode pembayaran</h2>
+                        <h2 class="font-semibold text-ink">
+                            Metode pembayaran
+                        </h2>
                     </div>
 
                     <div class="overflow-x-auto">
                         <table class="w-full min-w-[560px] text-left text-sm">
-                            <thead class="bg-canvas text-xs tracking-wide text-muted uppercase">
+                            <thead
+                                class="bg-canvas text-xs tracking-wide text-muted uppercase"
+                            >
                                 <tr>
                                     <th class="px-5 py-3">Metode</th>
-                                    <th class="px-5 py-3 text-right">Pesanan</th>
+                                    <th class="px-5 py-3 text-right">
+                                        Pesanan
+                                    </th>
                                     <th class="px-5 py-3 text-right">Jumlah</th>
                                 </tr>
                             </thead>
@@ -179,10 +187,14 @@ function applyFilters(): void {
                                     <td class="px-5 py-4 font-medium text-ink">
                                         {{ row.label }}
                                     </td>
-                                    <td class="px-5 py-4 text-right tabular-nums text-muted">
+                                    <td
+                                        class="px-5 py-4 text-right text-muted tabular-nums"
+                                    >
                                         {{ row.order_count }}
                                     </td>
-                                    <td class="px-5 py-4 text-right font-semibold tabular-nums text-ink">
+                                    <td
+                                        class="px-5 py-4 text-right font-semibold text-ink tabular-nums"
+                                    >
                                         {{ formatRupiah(row.amount) }}
                                     </td>
                                 </tr>
@@ -198,7 +210,9 @@ function applyFilters(): void {
 
                     <div class="overflow-x-auto">
                         <table class="w-full min-w-[560px] text-left text-sm">
-                            <thead class="bg-canvas text-xs tracking-wide text-muted uppercase">
+                            <thead
+                                class="bg-canvas text-xs tracking-wide text-muted uppercase"
+                            >
                                 <tr>
                                     <th class="px-5 py-3">Produk</th>
                                     <th class="px-5 py-3 text-right">Jumlah</th>
@@ -213,10 +227,14 @@ function applyFilters(): void {
                                     <td class="px-5 py-4 font-medium text-ink">
                                         {{ row.product_name }}
                                     </td>
-                                    <td class="px-5 py-4 text-right tabular-nums text-muted">
+                                    <td
+                                        class="px-5 py-4 text-right text-muted tabular-nums"
+                                    >
                                         {{ row.quantity }}
                                     </td>
-                                    <td class="px-5 py-4 text-right font-semibold tabular-nums text-ink">
+                                    <td
+                                        class="px-5 py-4 text-right font-semibold text-ink tabular-nums"
+                                    >
                                         {{ formatRupiah(row.line_total) }}
                                     </td>
                                 </tr>
@@ -235,7 +253,9 @@ function applyFilters(): void {
 
                     <div class="overflow-x-auto">
                         <table class="w-full min-w-[560px] text-left text-sm">
-                            <thead class="bg-canvas text-xs tracking-wide text-muted uppercase">
+                            <thead
+                                class="bg-canvas text-xs tracking-wide text-muted uppercase"
+                            >
                                 <tr>
                                     <th class="px-5 py-3">Modifier</th>
                                     <th class="px-5 py-3 text-right">Jumlah</th>
@@ -250,10 +270,14 @@ function applyFilters(): void {
                                     <td class="px-5 py-4 font-medium text-ink">
                                         {{ row.modifier_name }}
                                     </td>
-                                    <td class="px-5 py-4 text-right tabular-nums text-muted">
+                                    <td
+                                        class="px-5 py-4 text-right text-muted tabular-nums"
+                                    >
                                         {{ row.quantity }}
                                     </td>
-                                    <td class="px-5 py-4 text-right font-semibold tabular-nums text-ink">
+                                    <td
+                                        class="px-5 py-4 text-right font-semibold text-ink tabular-nums"
+                                    >
                                         {{ formatRupiah(row.revenue) }}
                                     </td>
                                 </tr>

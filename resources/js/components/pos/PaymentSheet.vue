@@ -151,7 +151,9 @@ async function pay(): Promise<void> {
                 </div>
 
                 <div class="mt-5 rounded-2xl bg-canvas p-4">
-                    <p class="text-xs font-semibold tracking-wide text-muted uppercase">
+                    <p
+                        class="text-xs font-semibold tracking-wide text-muted uppercase"
+                    >
                         Total tagihan
                     </p>
                     <p class="mt-1 text-3xl font-bold text-ink">
@@ -213,9 +215,7 @@ async function pay(): Promise<void> {
                                 : 'bg-success/10 text-success'
                         "
                     >
-                        <span>{{
-                            change < 0 ? 'Kurang' : 'Kembalian'
-                        }}</span>
+                        <span>{{ change < 0 ? 'Kurang' : 'Kembalian' }}</span>
                         <Money :value="Math.abs(change)" />
                     </div>
                 </div>
@@ -243,11 +243,7 @@ async function pay(): Promise<void> {
                     >
                         Batal
                     </Button>
-                    <Button
-                        class="flex-1"
-                        :disabled="processing"
-                        @click="pay"
-                    >
+                    <Button class="flex-1" :disabled="processing" @click="pay">
                         {{ processing ? 'Memproses…' : 'Konfirmasi' }}
                     </Button>
                 </div>

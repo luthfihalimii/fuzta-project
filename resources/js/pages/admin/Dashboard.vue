@@ -140,7 +140,7 @@ defineProps<{
                             </p>
                         </div>
                         <div class="text-right">
-                            <p class="font-bold tabular-nums text-warning">
+                            <p class="font-bold text-warning tabular-nums">
                                 {{ row.quantity }} {{ row.unit }}
                             </p>
                             <p class="text-xs text-muted">

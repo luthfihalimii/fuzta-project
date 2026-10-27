@@ -81,6 +81,8 @@ describe('rawBtIntentUrl', () => {
         const url = rawBtIntentUrl(payload);
 
         expect(url.startsWith('intent:base64,')).toBe(true);
-        expect(url).toContain('#Intent;scheme=rawbt;package=ru.a402d.rawbtprinter;end');
+        expect(url).toContain(
+            '#Intent;scheme=rawbt;package=ru.a402d.rawbtprinter;end',
+        );
     });
 });

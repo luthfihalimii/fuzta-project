@@ -139,7 +139,10 @@ function toggleActive(branch: BranchRow): void {
                     </button>
                 </div>
 
-                <form class="mt-4 grid gap-4 sm:grid-cols-2" @submit.prevent="submit">
+                <form
+                    class="mt-4 grid gap-4 sm:grid-cols-2"
+                    @submit.prevent="submit"
+                >
                     <Input
                         v-model="form.name"
                         label="Nama cabang"
@@ -223,8 +226,13 @@ function toggleActive(branch: BranchRow): void {
                             </tr>
                         </thead>
                         <tbody class="divide-y divide-line">
-                            <tr v-for="branch in props.branches" :key="branch.id">
-                                <td class="px-5 py-4 font-mono font-medium text-ink">
+                            <tr
+                                v-for="branch in props.branches"
+                                :key="branch.id"
+                            >
+                                <td
+                                    class="px-5 py-4 font-mono font-medium text-ink"
+                                >
                                     {{ branch.code }}
                                 </td>
                                 <td class="px-5 py-4 font-medium text-ink">
@@ -236,7 +244,9 @@ function toggleActive(branch: BranchRow): void {
                                 <td class="px-5 py-4 text-muted">
                                     {{ branch.phone ?? '—' }}
                                 </td>
-                                <td class="px-5 py-4">{{ branch.users_count }}</td>
+                                <td class="px-5 py-4">
+                                    {{ branch.users_count }}
+                                </td>
                                 <td class="px-5 py-4">
                                     <Badge
                                         :tone="

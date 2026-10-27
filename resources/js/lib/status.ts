@@ -19,16 +19,14 @@ export function orderStatusLabel(status: string): string {
 }
 
 export function orderStatusTone(status: string): Tone {
-    return (
-        {
-            queued: 'warning',
-            accepted: 'info',
-            preparing: 'info',
-            ready: 'success',
-            completed: 'success',
-            cancelled: 'danger',
-        }[status] ?? 'neutral'
-    ) as Tone;
+    return ({
+        queued: 'warning',
+        accepted: 'info',
+        preparing: 'info',
+        ready: 'success',
+        completed: 'success',
+        cancelled: 'danger',
+    }[status] ?? 'neutral') as Tone;
 }
 
 export function paymentStatusLabel(status: string): string {
@@ -42,13 +40,11 @@ export function paymentStatusLabel(status: string): string {
 }
 
 export function paymentStatusTone(status: string): Tone {
-    return (
-        {
-            unpaid: 'warning',
-            paid: 'success',
-            voided: 'danger',
-        }[status] ?? 'neutral'
-    ) as Tone;
+    return ({
+        unpaid: 'warning',
+        paid: 'success',
+        voided: 'danger',
+    }[status] ?? 'neutral') as Tone;
 }
 
 export function channelLabel(channel: string): string {
@@ -65,5 +61,7 @@ export function paymentMethodLabel(method: string | null): string {
         return '—';
     }
 
-    return paymentMethods.find((item) => item.value === method)?.label ?? method;
+    return (
+        paymentMethods.find((item) => item.value === method)?.label ?? method
+    );
 }

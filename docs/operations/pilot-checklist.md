@@ -13,14 +13,14 @@ First-release acceptance run for the two-branch ordering, kitchen, stock, and au
 
 `php artisan migrate --seed` created two branches (`PF-01` and `PF-02`), the owner, one cashier and one kitchen account per branch, units, and a non-production sample catalog:
 
-| Item | Data |
-|---|---|
-| Categories | Pizza, Minuman |
-| Modifier group | Tambahan |
-| Modifiers | Extra Cheese +10.000, Extra Pepperoni +15.000 |
-| Products | Pizza Margherita (Reguler 50.000, Besar 75.000), Air Mineral 5.000 |
-| Branch availability | Both products available at both branches |
-| Ingredients | Keju Mozzarella (g, threshold 500), Tepung Terigu (g, threshold 1.000), Saus Tomat (ml, threshold 800) |
+| Item                | Data                                                                                                   |
+| ------------------- | ------------------------------------------------------------------------------------------------------ |
+| Categories          | Pizza, Minuman                                                                                         |
+| Modifier group      | Tambahan                                                                                               |
+| Modifiers           | Extra Cheese +10.000, Extra Pepperoni +15.000                                                          |
+| Products            | Pizza Margherita (Reguler 50.000, Besar 75.000), Air Mineral 5.000                                     |
+| Branch availability | Both products available at both branches                                                               |
+| Ingredients         | Keju Mozzarella (g, threshold 500), Tepung Terigu (g, threshold 1.000), Saus Tomat (ml, threshold 800) |
 
 Demo seeding is skipped when `APP_ENV=production`. The dev database also contained one older `PF-TEST-44571313` order and an unused `Grup quae` modifier group from earlier work; neither is part of this acceptance run.
 
@@ -28,19 +28,19 @@ Demo seeding is skipped when `APP_ENV=production`. The dev database also contain
 
 Create each order in the POS and confirm the receipt page.
 
-| Check | Result |
-|---|---|
-| Cash order | `PF-PF-01-20261027-0001` (order id 2) |
-| Fulfillment | Dine-in, table A-01, customer Rina, order note `Meja dekat jendela` |
-| Item | 1x Pizza Margherita, Besar, Extra Cheese; item note `Potong 8, extra cheese` |
-| Total | Rp 85.000 |
-| Cash received | Rp 100.000 |
-| Change | Rp 15.000 |
-| Payment status | Paid / Tunai |
-| Receipt | Order number, branch, cashier, item/modifier, total, cash, and change all rendered correctly |
-| QRIS order | `PF-PF-01-20261027-0002` (order id 3), takeaway, customer Budi |
-| QRIS total | Rp 60.000 (Reguler + Extra Cheese), status paid, method QRIS statis |
-| Unpaid order | `PF-PF-01-20261027-0003` (order id 4), takeaway, Air Mineral, Rp 5.000, payment sheet closed without payment |
+| Check          | Result                                                                                                       |
+| -------------- | ------------------------------------------------------------------------------------------------------------ |
+| Cash order     | `PF-PF-01-20261027-0001` (order id 2)                                                                        |
+| Fulfillment    | Dine-in, table A-01, customer Rina, order note `Meja dekat jendela`                                          |
+| Item           | 1x Pizza Margherita, Besar, Extra Cheese; item note `Potong 8, extra cheese`                                 |
+| Total          | Rp 85.000                                                                                                    |
+| Cash received  | Rp 100.000                                                                                                   |
+| Change         | Rp 15.000                                                                                                    |
+| Payment status | Paid / Tunai                                                                                                 |
+| Receipt        | Order number, branch, cashier, item/modifier, total, cash, and change all rendered correctly                 |
+| QRIS order     | `PF-PF-01-20261027-0002` (order id 3), takeaway, customer Budi                                               |
+| QRIS total     | Rp 60.000 (Reguler + Extra Cheese), status paid, method QRIS statis                                          |
+| Unpaid order   | `PF-PF-01-20261027-0003` (order id 4), takeaway, Air Mineral, Rp 5.000, payment sheet closed without payment |
 
 Receipt text for the cash order:
 
@@ -96,11 +96,11 @@ PF-PF-01-20261027-0004  ready -> completed    Dapur PF-01  02:45:52
 
 Performed on Keju Mozzarella.
 
-| Step | Quantity | Reason | Actor |
-|---|---:|---|---|
-| Opening stock | +1.000 g | Stok awal pilot | Pemilik |
-| Receipt | +500 g | Penerimaan pilot | Pemilik |
-| Waste | -200 g | Rusak saat persiapan | Dapur PF-01 |
+| Step                  |        Quantity | Reason                          | Actor       |
+| --------------------- | --------------: | ------------------------------- | ----------- |
+| Opening stock         |        +1.000 g | Stok awal pilot                 | Pemilik     |
+| Receipt               |          +500 g | Penerimaan pilot                | Pemilik     |
+| Waste                 |          -200 g | Rusak saat persiapan            | Dapur PF-01 |
 | Partial closing count | counted 1.100 g | Opname tutup; correction -200 g | Dapur PF-01 |
 
 Result:
