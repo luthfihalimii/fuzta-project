@@ -1,4 +1,5 @@
 <script setup lang="ts">
+import { Link } from '@inertiajs/vue3';
 import Button from '@/components/Button.vue';
 import Money from '@/components/Money.vue';
 import { formatDateTime } from '@/lib/datetime';
@@ -187,21 +188,29 @@ const emit = defineEmits<{
                     </p>
                 </div>
 
-                <div class="flex gap-2 border-t border-line p-4">
-                    <Button
-                        v-if="allowNewOrder"
-                        class="flex-1"
-                        @click="emit('newOrder')"
+                <div class="border-t border-line p-4">
+                    <div class="flex gap-2">
+                        <Button
+                            v-if="allowNewOrder"
+                            class="flex-1"
+                            @click="emit('newOrder')"
+                        >
+                            Pesanan baru
+                        </Button>
+                        <Button
+                            variant="secondary"
+                            class="flex-1"
+                            @click="emit('close')"
+                        >
+                            Tutup
+                        </Button>
+                    </div>
+                    <Link
+                        :href="`/orders/${order.id}/receipt`"
+                        class="mt-2 inline-flex min-h-12 w-full items-center justify-center rounded-xl border border-line text-sm font-semibold text-brand transition hover:bg-canvas"
                     >
-                        Pesanan baru
-                    </Button>
-                    <Button
-                        variant="secondary"
-                        class="flex-1"
-                        @click="emit('close')"
-                    >
-                        Tutup
-                    </Button>
+                        Buka halaman struk
+                    </Link>
                 </div>
             </div>
         </div>

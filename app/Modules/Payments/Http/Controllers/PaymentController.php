@@ -9,15 +9,27 @@ use App\Modules\Ordering\Support\OrderPayload;
 use App\Modules\Payments\Actions\MarkOrderPaid;
 use App\Modules\Payments\Enums\PaymentMethod;
 use App\Modules\Payments\Enums\PaymentStatus;
+use App\Modules\Payments\Receipt\ReceiptPayload;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
+use Inertia\Inertia;
+use Inertia\Response;
 
 class PaymentController extends Controller
 {
     public function __construct(
         private readonly OrderPayload $payload,
     ) {}
+
+    public function receipt(Order $order): Response
+    {
+        $this->authorize('view', $order);
+
+        return Inertia::render('pos/Receipt', [
+            'receipt' => ReceiptPayload::fromOrder($order),
+        ]);
+    }
 
     public function store(
         StorePaymentRequest $request,
