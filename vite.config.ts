@@ -2,21 +2,28 @@ import inertia from '@inertiajs/vite';
 import { wayfinder } from '@laravel/vite-plugin-wayfinder';
 import tailwindcss from '@tailwindcss/vite';
 import vue from '@vitejs/plugin-vue';
+import { fileURLToPath, URL } from 'node:url';
 import laravel from 'laravel-vite-plugin';
 import { bunny } from 'laravel-vite-plugin/fonts';
 import { defineConfig, lazyPlugins } from 'vite-plus';
 
 export default defineConfig({
     plugins: lazyPlugins(() => [
-        laravel({
-            input: ['resources/css/app.css', 'resources/js/app.ts'],
-            refresh: true,
-            fonts: [
-                bunny('Instrument Sans', {
-                    weights: [400, 500, 600],
-                }),
-            ],
-        }),
+        // laravel() HMR plugin must not load in test runs: its env guard
+        // throws inside CI (CI=true); vitest sets process.env.VITEST.
+        ...(process.env.VITEST
+            ? []
+            : [
+                  laravel({
+                      input: ['resources/css/app.css', 'resources/js/app.ts'],
+                      refresh: true,
+                      fonts: [
+                          bunny('Instrument Sans', {
+                              weights: [400, 500, 600],
+                          }),
+                      ],
+                  }),
+              ]),
         inertia(),
         tailwindcss(),
         vue({
@@ -31,6 +38,13 @@ export default defineConfig({
             formVariants: true,
         }),
     ]),
+    resolve: {
+        alias: {
+            // Explicit mirror of laravel-vite-plugin's default alias so the
+            // alias survives when the plugin is skipped during test runs.
+            '@': fileURLToPath(new URL('./resources/js', import.meta.url)),
+        },
+    },
     server: {
         watch: {
             ignored: [
