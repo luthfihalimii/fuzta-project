@@ -17,6 +17,14 @@ class CancelStockTransfer
 
     public function __invoke(User $actor, int $transferId, string $reason): StockTransfer
     {
+        $reason = trim($reason);
+
+        if ($reason === '') {
+            throw ValidationException::withMessages([
+                'cancel_reason' => 'Alasan pembatalan wajib diisi.',
+            ]);
+        }
+
         return DB::transaction(function () use ($actor, $transferId, $reason): StockTransfer {
             $transfer = StockTransfer::query()
                 ->whereKey($transferId)

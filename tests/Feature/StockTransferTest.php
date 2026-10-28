@@ -4,6 +4,7 @@ namespace Tests\Feature;
 
 use App\Models\User;
 use App\Modules\Branches\Models\Branch;
+use App\Modules\Inventory\Actions\CancelStockTransfer;
 use App\Modules\Inventory\Actions\RecordStockMovement;
 use App\Modules\Inventory\Enums\StockMovementType;
 use App\Modules\Inventory\Enums\TransferStatus;
@@ -630,6 +631,73 @@ class StockTransferTest extends TestCase
         $transfer->refresh();
         $this->assertSame(TransferStatus::Draft, $transfer->status);
         $this->assertNull($transfer->cancel_reason);
+    }
+
+    public function test_cancel_accepts_long_reason(): void
+    {
+        [$origin, $destination] = Branch::factory()->count(2)->create();
+        $owner = User::factory()->owner()->create();
+
+        $transfer = StockTransfer::factory()->create([
+            'origin_branch_id' => $origin->id,
+            'destination_branch_id' => $destination->id,
+            'created_by' => $owner->id,
+        ]);
+
+        $this->actingAs($owner)
+            ->patch("/admin/stock/transfers/{$transfer->id}/cancel", ['cancel_reason' => str_repeat('a', 300)])
+            ->assertStatus(302);
+
+        $this->assertDatabaseHas('stock_transfers', [
+            'id' => $transfer->id,
+            'cancel_reason' => str_repeat('a', 300),
+        ]);
+    }
+
+    public function test_cancel_rejects_whitespace_reason(): void
+    {
+        [$origin, $destination] = Branch::factory()->count(2)->create();
+        $owner = User::factory()->owner()->create();
+
+        $transfer = StockTransfer::factory()->create([
+            'origin_branch_id' => $origin->id,
+            'destination_branch_id' => $destination->id,
+            'created_by' => $owner->id,
+        ]);
+
+        $this->actingAs($owner)
+            ->patch("/admin/stock/transfers/{$transfer->id}/cancel", ['cancel_reason' => '   '])
+            ->assertStatus(302)
+            ->assertSessionHasErrors('cancel_reason');
+
+        $transfer->refresh();
+        $this->assertSame(TransferStatus::Draft, $transfer->status);
+        $this->assertNull($transfer->cancel_reason);
+
+        // HTTP path is already trimmed by global middleware; the action is the authority for direct callers.
+        $this->expectException(ValidationException::class);
+
+        app(CancelStockTransfer::class)($owner, $transfer->id, '   ');
+    }
+
+    public function test_receive_accepts_long_discrepancy_reason(): void
+    {
+        [, , $owner, $transfer, $itemA, $itemB] = $this->makeDispatchedTransfer();
+
+        $this->actingAs($owner)
+            ->patch("/admin/stock/transfers/{$transfer->id}/receive", [
+                'received_items' => [
+                    ['item_id' => $itemA->id, 'received_quantity' => 30, 'discrepancy_reason' => null],
+                    ['item_id' => $itemB->id, 'received_quantity' => 9, 'discrepancy_reason' => str_repeat('b', 300)],
+                ],
+            ])
+            ->assertStatus(302);
+
+        $this->assertDatabaseHas('stock_transfer_items', [
+            'id' => $itemB->id,
+            'received_quantity' => 9,
+            'discrepancy_reason' => str_repeat('b', 300),
+        ]);
     }
 
     public function test_cancel_dispatched_is_rejected(): void
