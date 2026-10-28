@@ -30,8 +30,8 @@ Hari ini layar dapur dan daftar pesanan POS hanya baru jika seseorang menekan F5
 6. **Timer & terlambat:** dihitung **di klien**: `elapsed = now - accepted_at` (fallback `created_at` bila belum accepted); terlambat bila `elapsed > KITCHEN_LATE_MINUTES` → chip merah. Dihitung ulang tiap 30 detik dan tiap fetch ulang. Pakan angka ambang dikirim ke prop halaman dapur (bukan rahasia; satu angka menit). Helper pengujian murni `isLate(acceptedAt, now, minutes)` dites di Vitest.
 7. **Reconnect:**pusher-js (via `laravel-echo`) otomatis reconnect; saat event `reconnected` → fetch ulang list aktif (dapur dan/atau POS). Tombol refresh manual **tetap** ada. Notifikasi memang bukan single source of truth (PRD §7.11).
 8. **CI tidak menguji koneksi WS nyata.** CI menguji: (a) event ter-broadcast ke channel benar dengan payload benar, (b) otorisasi channel lintas-cabang DITOLAK dan lokal LULUS, (c) `accepted_at` ter-set persis sekali, (d) payload bebas PII (assert daftar key), (e) helper `isLate` (Vitest). Uji koneksi WS nyata = disaat dev-deploy (tercatat di seksi deployment).
-9. **Dependensi baru** (sudah dapat iya owner via ChatGPT-saran + diperkenankan): `centrifuge/laravel-reverb` (composer), `laravel-echo` + `pusher-js` (npm). Tidak ada Redis untuk ini (Reverb bukan Redis; Redis tetap opsional untuk queue).
-10. **Tanpa Reverb server di CI.** Dev menjalankan `php artisan reverb:start --dev` sebagai proses kedua (dicatat di README + AGENTS). Produksi (VPS): binari Reverb via supervisor + nginx `Upgrade: websocket` ke port 8080 — **hanya didokumentasikan** di deployment checklist; production deploy sendiri masih item ops terpisah.
+9. **Dependensi baru** (sudah dapat iya owner via ChatGPT-saran + diperkenankan): `laravel/reverb` (composer), `laravel-echo` + `pusher-js` (npm). Tidak ada Redis untuk ini (Reverb bukan Redis; Redis tetap opsional untuk queue).
+10. **Tanpa Reverb server di CI.** Dev menjalankan `php artisan reverb:start --debug` sebagai proses kedua (dicatat di README + AGENTS). Produksi (VPS): binari Reverb via supervisor + nginx `Upgrade: websocket` ke port 8080 — **hanya didokumentasikan** di deployment checklist; production deploy sendiri masih item ops terpisah.
 
 ## Luas & batas (scope)
 
@@ -55,7 +55,7 @@ Hanya key-key di atas (test mengunci). Tidak ada `user_id` pelanggan, `phone`, `
 
 ## Deployment notes (produksi, dikerjakan di item deploy — bukan sekarang)
 
-1. `composer show centrifuge/laravel-reverb` menyediakan binari via `php artisan reverb:start` (paket bundel Go-binary, `vendor/bin/reverb` atau via composer platform note). Jalankan di supervisor: `php artisan reverb:start` (bukan `--dev`).
+1. `composer show laravel/reverb` menyediakan binari via `php artisan reverb:start` (paket bundel Go-binary, `vendor/bin/reverb` atau via composer platform note). Jalankan di supervisor: `php artisan reverb:start` (tanpa `--debug`).
 2. Nginx: block `location /app` (atau khusus `/ws`) → `proxy_pass http://127.0.0.1:8080` + header `Upgrade`/`Connection` + `Authorization` (Echo mengirim token Bearer di query — sudah dibantu reverb config di klien melalui `Echo` option).
 3. HTTPS wss otomatis bila nginx terminasi TLS.
 4. Uji smoke dev-→-prod: buka dapur, buat order dari POS, dengar bunyi; cabut proses Reverb secara sengaja → Echo reconnect + fetch ulang terjadi.
@@ -71,7 +71,7 @@ Feature (PHP):
 
 ## Advertorial/ulur dokumen
 
-- README: seksi "Realtime (Reverb)" + perintah dev (`reverb:start --dev`).
+- README: seksi "Realtime (Reverb)" + perintah dev (`reverb:start --debug`).
 - AGENTS.md: ada di perintah dev.
 - PRD §7.7: catatan satu baris "Diimplementasikan di rilis ini: …" (pola soal shift yang ada) — pada task terakhir.
 

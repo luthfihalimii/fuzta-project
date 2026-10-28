@@ -6,7 +6,7 @@
 
 **Architecture:** Event = isyarat, data = fetch ulang. Tiap perubahan domain (create/pay/status/void) broadcast event privat kecil (tanpa PII) ke channel `kitchen.{branch_id}` / `pos.{branch_id}`; klien subscribes channel cabangnya, lalu memfetch ulang list yang sudah ada (dapur JSON endpoint, POS `router.reload({ only: ['orders'] })`). Dapur 5-detik polling tetap hidup sebagai fallback (notifikasi bukan single source of truth). Timer dihitung di klien dari `orders.accepted_at` (fallback `created_at`) vs ambang `KITCHEN_LATE_MINUTES`.
 
-**Tech Stack:** Laravel 13, `centrifuge/laravel-reverb`, `laravel-echo` + `pusher-js`, Vue 3 + TypeScript (Inertia), Vitest, bun (package manager), PostgreSQL.
+**Tech Stack:** Laravel 13, `laravel/reverb`, `laravel-echo` + `pusher-js`, Vue 3 + TypeScript (Inertia), Vitest, bun (package manager), PostgreSQL.
 
 **Spec:** `docs/superpowers/specs/2026-10-29-realtime-kitchen-pos-design.md` (sumber benar; baca dulu).
 
@@ -19,7 +19,7 @@
 - Akses cabang = `User::hasBranchAccess()` (+ owner lintas-cabang); peran yang ada: `owner` / `cashier` / `kitchen` (tidak ada "manager").
 - UI: string Bahasa Indonesia, desain netral mengikuti halaman yang ada, tanpa elemen brand baru.
 - Per task: gerbang `CI=true composer ci:check` hijau sebelum commit. Frontend pakai `bun run …`.
-- Dependensi baru **hanya**: `centrifuge/laravel-reverb` (composer), `laravel-echo` + `pusher-js` (bun). Tidak ada Redis/FCM/push di rilis ini.
+- Dependensi baru **hanya**: `laravel/reverb` (composer), `laravel-echo` + `pusher-js` (bun). Tidak ada Redis/FCM/push di rilis ini.
 
 ## Review Focus
 
@@ -35,7 +35,7 @@
 
 **Files:**
 
-- Modify: `composer.json` (require `centrifuge/laravel-reverb`), `bun.lock`
+- Modify: `composer.json` (require `laravel/reverb`), `bun.lock`
 - Create: `config/reverb.php`, `config/broadcasting.php` (hasil `reverb:install`)
 - Modify: `.env.example`, README.md, AGENTS.md
 - Test: n/a (verifikasi lewat `ci:check` + boot app)
@@ -53,7 +53,7 @@
 
 - [ ] **Step 1: Tambah dependensi**
 
-Run: `composer require centrifuge/laravel-reverb && bun add laravel-echo pusher-js`
+Run: `composer require laravel/reverb && bun add laravel-echo pusher-js`
 Check: `composer.json` + `bun.lock` ter-update; `bun install` bersih.
 
 - [ ] **Step 2: Publikasi konfigurasi Reverb**
@@ -74,7 +74,7 @@ Check: `grep BROADCAST_CONNECTION phpunit.xml` menampilkan `value="null"` — ja
 
 - [ ] **Step 5: Docs**
 
-README.md: seksi baru "**Realtime (Reverb)**" (setelah "Tests and checks"): 2 baris — dev butuh proses kedua `php artisan reverb:start --dev`; deploy produksi = checklist di spec (satu link ke path spec). AGENTS.md: tambah `php artisan reverb:start --dev  # proses kedua (realtime dev)` ke blok perintah Web UI.
+README.md: seksi baru "**Realtime (Reverb)**" (setelah "Tests and checks"): 2 baris — dev butuh proses kedua `php artisan reverb:start --debug`; deploy produksi = checklist di spec (satu link ke path spec). AGENTS.md: tambah `php artisan reverb:start --debug  # proses kedua (realtime dev)` ke blok perintah Web UI.
 
 - [ ] **Step 6: Gerbang**
 
@@ -387,7 +387,7 @@ Expected: green — **termasuk** `bun run build` tanpa `VITE_REVERB_*` di env (g
 
 - [ ] **Step 7: Smoke dev manual (bukan CI; catat di PR-nya)**
 
-Terminal 1 `php artisan reverb:start --dev`, terminal 2 app. POS: buat order → bayar → pastikan: layar dapur update < 3 detik + bunyi (setelah klik pertama/mute-off); tombol mute membisukan; kill Reverb → polling 5-detik tetap berfungsi; buka dapur cabang B (owner) → tidak mendengar/mendapat event cabang A.
+Terminal 1 `php artisan reverb:start --debug`, terminal 2 app. POS: buat order → bayar → pastikan: layar dapur update < 3 detik + bunyi (setelah klik pertama/mute-off); tombol mute membisukan; kill Reverb → polling 5-detik tetap berfungsi; buka dapur cabang B (owner) → tidak mendengar/mendapat event cabang A.
 
 - [ ] **Step 8: Commit**
 
