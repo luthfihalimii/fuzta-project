@@ -14,6 +14,7 @@ use App\Modules\Ordering\Actions\CreateOrder;
 use App\Modules\Ordering\Actions\ResolvePosBranch;
 use App\Modules\Ordering\Data\CreateOrderData;
 use App\Modules\Ordering\Enums\OrderChannel;
+use App\Modules\Ordering\Models\Order;
 use App\Modules\Ordering\Support\OrderPayload;
 use App\Modules\Shifts\Actions\BuildShiftReminder;
 use App\Modules\Shifts\Actions\ResolveShiftWindow;
@@ -124,6 +125,13 @@ class PosController extends Controller
             (int) config('shifts.auto_close_grace_minutes', 15),
         );
 
+        $staleUnpaidCount = $branch === null ? 0 : Order::query()
+            ->where('branch_id', $branch->id)
+            ->whereNotNull('shift_id')
+            ->where('payment_status', 'unpaid')
+            ->where('status', '!=', 'cancelled')
+            ->count();
+
         $unreconciled = CashierShift::query()
             ->where('user_id', $user->id)
             ->where('close_type', 'auto')
@@ -151,6 +159,7 @@ class PosController extends Controller
             'unreconciled_shift' => $unreconciled ? ShiftPresenter::summary($unreconciled) : null,
             'orders_cutoff_at' => $cutoff?->toIso8601String(),
             'can_create_orders' => $shift !== null && ($cutoff === null || now()->lessThan($cutoff)),
+            'stale_unpaid_count' => $staleUnpaidCount,
         ]);
     }
 

@@ -77,6 +77,7 @@ const props = defineProps<{
     unreconciled_shift: ShiftSummaryData | null;
     orders_cutoff_at: string | null;
     can_create_orders: boolean;
+    stale_unpaid_count: number;
 }>();
 
 const page = usePage();
@@ -580,6 +581,19 @@ function switchBranch(): void {
                 class="rounded-xl border border-warning/20 bg-warning/10 px-4 py-3 text-sm text-warning"
             >
                 {{ props.shift_reminder.message }}
+            </div>
+
+            <div
+                v-if="props.stale_unpaid_count > 0"
+                class="flex flex-wrap items-center justify-between gap-2 rounded-xl border border-warning/20 bg-warning/10 px-4 py-3 text-sm text-warning"
+            >
+                <span
+                    >{{ props.stale_unpaid_count }} pesanan belum dibayar perlu
+                    diselesaikan.</span
+                >
+                <Link :href="props.ordersUrl" class="font-semibold underline"
+                    >Lihat pesanan</Link
+                >
             </div>
 
             <ShiftGate
