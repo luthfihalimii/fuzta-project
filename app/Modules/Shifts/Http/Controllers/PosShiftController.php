@@ -3,7 +3,10 @@
 namespace App\Modules\Shifts\Http\Controllers;
 
 use App\Http\Controllers\Controller;
+use App\Modules\Shifts\Actions\CloseShift;
 use App\Modules\Shifts\Actions\OpenShift;
+use App\Modules\Shifts\Actions\ResolveShiftForClose;
+use App\Modules\Shifts\Http\Requests\CloseShiftRequest;
 use App\Modules\Shifts\Http\Requests\OpenShiftRequest;
 use App\Modules\Shifts\Models\CashierShift;
 use Illuminate\Http\RedirectResponse;
@@ -30,5 +33,36 @@ class PosShiftController extends Controller
         $openShift($user, $branchId);
 
         return back()->with('success', 'Shift berhasil dibuka.');
+    }
+
+    public function close(
+        CloseShiftRequest $request,
+        CloseShift $closeShift,
+        ResolveShiftForClose $resolveShift,
+    ): RedirectResponse {
+        $user = $request->user();
+        $validated = $request->validated();
+        $branchId = $user->isOwner()
+            ? (int) $validated['branch_id']
+            : (int) $user->branch_id;
+
+        if ($branchId === 0) {
+            throw ValidationException::withMessages([
+                'branch_id' => 'Cabang kasir belum diatur.',
+            ]);
+        }
+
+        $shift = $resolveShift($user, $branchId);
+        $this->authorize('close', $shift);
+
+        $closeShift(
+            $shift,
+            $user,
+            (int) $validated['counted_cash'],
+            (int) $validated['cash_deposited'],
+            $validated['closing_note'] ?? null,
+        );
+
+        return back()->with('success', 'Shift berhasil ditutup.');
     }
 }

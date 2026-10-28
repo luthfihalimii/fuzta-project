@@ -49,6 +49,7 @@ Route::post('/logout', [LoginController::class, 'destroy'])
 Route::middleware(['auth', 'role:cashier,owner'])->group(function () {
     Route::get('/pos', [PosController::class, 'index'])->name('pos.index');
     Route::post('/pos/shift/open', [PosShiftController::class, 'open'])->middleware('throttle:shifts')->name('pos.shift.open');
+    Route::post('/pos/shift/close', [PosShiftController::class, 'close'])->middleware('throttle:shifts')->name('pos.shift.close');
     Route::post('/pos/orders', [PosController::class, 'store'])->middleware('throttle:orders')->name('pos.orders.store');
     Route::get('/pos/orders', [OrderController::class, 'index'])->name('pos.orders.index');
 
@@ -70,6 +71,10 @@ Route::middleware(['auth', 'role:kitchen,owner'])->group(function () {
 
 Route::middleware(['auth', 'role:owner'])->prefix('admin')->group(function () {
     Route::get('/', [DashboardController::class, 'index'])->name('admin.dashboard');
+
+    Route::post('/shifts/{shift}/close', [AdminShiftController::class, 'close'])
+        ->middleware('throttle:shifts')
+        ->name('admin.shifts.close');
 
     Route::post('/shifts/{shift}/cash-movements', [AdminShiftController::class, 'storeCashMovement'])
         ->middleware('throttle:shifts')
