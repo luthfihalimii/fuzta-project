@@ -50,6 +50,30 @@ class StockLedgerTest extends TestCase
         app(RecordStockMovement::class)($owner, $branch->id, $ingredient->id, -1, StockMovementType::Waste, 'Tes');
     }
 
+    public function test_positive_consumption_movement_is_rejected(): void
+    {
+        $branch = Branch::factory()->create();
+        $owner = User::factory()->owner()->create();
+        $ingredient = Ingredient::factory()->create();
+
+        $this->expectException(ValidationException::class);
+        $this->expectExceptionMessage('Jumlah konsumsi harus mengurangi stok.');
+
+        app(RecordStockMovement::class)($owner, $branch->id, $ingredient->id, 10, StockMovementType::Consumption, 'Tes');
+    }
+
+    public function test_negative_consumption_reversal_movement_is_rejected(): void
+    {
+        $branch = Branch::factory()->create();
+        $owner = User::factory()->owner()->create();
+        $ingredient = Ingredient::factory()->create();
+
+        $this->expectException(ValidationException::class);
+        $this->expectExceptionMessage('Jumlah pembalikan konsumsi harus menambah stok.');
+
+        app(RecordStockMovement::class)($owner, $branch->id, $ingredient->id, -10, StockMovementType::ConsumptionReversal, 'Tes');
+    }
+
     public function test_balance_equals_sum_of_ledger(): void
     {
         $branch = Branch::factory()->create();

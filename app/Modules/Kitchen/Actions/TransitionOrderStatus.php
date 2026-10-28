@@ -3,6 +3,7 @@
 namespace App\Modules\Kitchen\Actions;
 
 use App\Models\User;
+use App\Modules\Inventory\Actions\ConsumeOrderIngredients;
 use App\Modules\Ordering\Enums\OrderStatus;
 use App\Modules\Ordering\Models\Order;
 use App\Modules\Ordering\Models\OrderStatusEvent;
@@ -11,6 +12,10 @@ use Illuminate\Support\Facades\DB;
 
 class TransitionOrderStatus
 {
+    public function __construct(
+        private readonly ConsumeOrderIngredients $consumeOrderIngredients,
+    ) {}
+
     public function __invoke(Order $order, User $actor, OrderStatus $next): Order
     {
         return DB::transaction(function () use ($order, $actor, $next): Order {
@@ -32,6 +37,10 @@ class TransitionOrderStatus
             $from = $locked->status;
             $locked->status = $next;
             $locked->save();
+
+            if ($next === OrderStatus::Preparing && config('inventory.deduct_on', 'preparing') === 'preparing') {
+                ($this->consumeOrderIngredients)($locked, $actor);
+            }
 
             OrderStatusEvent::create([
                 'order_id' => $locked->id,

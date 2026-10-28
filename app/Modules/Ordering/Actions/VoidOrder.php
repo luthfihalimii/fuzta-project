@@ -4,6 +4,7 @@ namespace App\Modules\Ordering\Actions;
 
 use App\Models\User;
 use App\Modules\Identity\Actions\WriteAuditLog;
+use App\Modules\Inventory\Actions\ReverseOrderConsumption;
 use App\Modules\Ordering\Enums\OrderStatus;
 use App\Modules\Ordering\Models\Order;
 use App\Modules\Payments\Enums\PaymentEventType;
@@ -15,6 +16,7 @@ class VoidOrder
 {
     public function __construct(
         private readonly WriteAuditLog $writeAuditLog,
+        private readonly ReverseOrderConsumption $reverseOrderConsumption,
     ) {}
 
     public function __invoke(Order $order, User $actor, string $reason): void
@@ -64,6 +66,13 @@ class VoidOrder
                     'actor_id' => $actor->id,
                     'note' => $reason,
                 ]);
+            }
+
+            if (
+                in_array($from, [OrderStatus::Preparing, OrderStatus::Ready, OrderStatus::Completed], true)
+                && config('inventory.deduct_on', 'preparing') === 'preparing'
+            ) {
+                ($this->reverseOrderConsumption)($locked, $actor);
             }
 
             ($this->writeAuditLog)(
