@@ -73,6 +73,9 @@ Route::middleware(['auth', 'role:kitchen,owner'])->group(function () {
 Route::middleware(['auth', 'role:owner'])->prefix('admin')->group(function () {
     Route::get('/', [DashboardController::class, 'index'])->name('admin.dashboard');
 
+    Route::get('/shifts', [AdminShiftController::class, 'index'])->name('admin.shifts.index');
+    Route::get('/shifts/{shift}', [AdminShiftController::class, 'show'])->name('admin.shifts.show');
+
     Route::post('/shifts/{shift}/close', [AdminShiftController::class, 'close'])
         ->middleware('throttle:shifts')
         ->name('admin.shifts.close');

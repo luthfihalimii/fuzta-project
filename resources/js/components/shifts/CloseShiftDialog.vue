@@ -8,6 +8,7 @@ import { suggestedDeposit, type ShiftSummaryData } from '@/lib/shift';
 const props = defineProps<{
     open: boolean;
     shift: ShiftSummaryData | null;
+    endpoint?: string;
 }>();
 
 const emit = defineEmits<{ close: [] }>();
@@ -18,6 +19,10 @@ const form = useForm({
     cash_deposited: '',
     closing_note: '',
 });
+
+const shiftError = computed(
+    () => (form.errors as Record<string, string>).shift,
+);
 
 watch(
     () => props.open,
@@ -54,7 +59,7 @@ const deposit = computed(() => {
 });
 
 function submit(): void {
-    form.post('/pos/shift/close', {
+    form.post(props.endpoint ?? '/pos/shift/close', {
         preserveScroll: true,
         onSuccess: () => emit('close'),
     });
@@ -71,16 +76,20 @@ function submit(): void {
             aria-label="Tutup shift"
             @click.self="emit('close')"
         >
-            <div class="max-h-[90vh] w-full max-w-md overflow-y-auto rounded-2xl bg-white p-5 shadow-xl">
+            <div
+                class="max-h-[90vh] w-full max-w-md overflow-y-auto rounded-2xl bg-white p-5 shadow-xl"
+            >
                 <h2 class="text-lg font-semibold text-ink">Tutup shift</h2>
                 <p class="mt-1 text-sm text-muted">
                     Kas seharusnya
-                    <Money :value="shift.expected_cash ?? 0" />. Masukkan uang fisik
-                    sebelum setoran.
+                    <Money :value="shift.expected_cash ?? 0" />. Masukkan uang
+                    fisik sebelum setoran.
                 </p>
 
                 <label class="mt-4 block">
-                    <span class="mb-1.5 block text-sm font-medium text-ink">Kas dihitung</span>
+                    <span class="mb-1.5 block text-sm font-medium text-ink"
+                        >Kas dihitung</span
+                    >
                     <input
                         v-model="form.counted_cash"
                         type="number"
@@ -88,13 +97,18 @@ function submit(): void {
                         step="1"
                         class="min-h-12 w-full rounded-xl border border-line px-3.5 text-right text-lg font-semibold text-ink outline-none focus:border-brand focus:ring-2 focus:ring-brand/20"
                     />
-                    <span v-if="form.errors.counted_cash" class="mt-1 block text-sm text-danger">
+                    <span
+                        v-if="form.errors.counted_cash"
+                        class="mt-1 block text-sm text-danger"
+                    >
                         {{ form.errors.counted_cash }}
                     </span>
                 </label>
 
                 <label class="mt-3 block">
-                    <span class="mb-1.5 block text-sm font-medium text-ink">Setoran</span>
+                    <span class="mb-1.5 block text-sm font-medium text-ink"
+                        >Setoran</span
+                    >
                     <input
                         v-model="form.cash_deposited"
                         type="number"
@@ -103,16 +117,29 @@ function submit(): void {
                         class="min-h-12 w-full rounded-xl border border-line px-3.5 text-right text-lg font-semibold text-ink outline-none focus:border-brand focus:ring-2 focus:ring-brand/20"
                     />
                     <span class="mt-1 block text-xs text-muted">
-                        Saran: <Money :value="suggestedDeposit(counted, shift.opening_cash)" />
+                        Saran:
+                        <Money
+                            :value="
+                                suggestedDeposit(counted, shift.opening_cash)
+                            "
+                        />
                     </span>
-                    <span v-if="form.errors.cash_deposited" class="mt-1 block text-sm text-danger">
+                    <span
+                        v-if="form.errors.cash_deposited"
+                        class="mt-1 block text-sm text-danger"
+                    >
                         {{ form.errors.cash_deposited }}
                     </span>
                 </label>
 
-                <div class="mt-3 flex items-center justify-between rounded-xl bg-canvas px-3 py-2 text-sm">
+                <div
+                    class="mt-3 flex items-center justify-between rounded-xl bg-canvas px-3 py-2 text-sm"
+                >
                     <span class="text-muted">Selisih</span>
-                    <span class="font-semibold" :class="variance === 0 ? 'text-success' : 'text-danger'">
+                    <span
+                        class="font-semibold"
+                        :class="variance === 0 ? 'text-success' : 'text-danger'"
+                    >
                         <Money :value="variance" />
                     </span>
                 </div>
@@ -130,19 +157,31 @@ function submit(): void {
                         class="w-full rounded-xl border border-line px-3.5 py-3 text-base text-ink outline-none focus:border-brand focus:ring-2 focus:ring-brand/20"
                         placeholder="Contoh: selisih kurang Rp5.000"
                     />
-                    <span v-if="form.errors.closing_note" class="mt-1 block text-sm text-danger">
+                    <span
+                        v-if="form.errors.closing_note"
+                        class="mt-1 block text-sm text-danger"
+                    >
                         {{ form.errors.closing_note }}
                     </span>
                 </label>
-                <p v-if="(form.errors as Record<string, string>).shift" class="mt-2 text-sm text-danger">
-                    {{ (form.errors as Record<string, string>).shift }}
+                <p v-if="shiftError" class="mt-2 text-sm text-danger">
+                    {{ shiftError }}
                 </p>
 
                 <div class="mt-5 flex gap-2">
-                    <Button variant="secondary" class="flex-1" :disabled="form.processing" @click="emit('close')">
+                    <Button
+                        variant="secondary"
+                        class="flex-1"
+                        :disabled="form.processing"
+                        @click="emit('close')"
+                    >
                         Batal
                     </Button>
-                    <Button class="flex-1" :disabled="form.processing" @click="submit">
+                    <Button
+                        class="flex-1"
+                        :disabled="form.processing"
+                        @click="submit"
+                    >
                         {{ form.processing ? 'Menutup…' : 'Tutup shift' }}
                     </Button>
                 </div>

@@ -1,6 +1,6 @@
 # Pizza Fruzta
 
-Digital ordering and branch operations for two Pizza Fruzta branches: POS, kitchen display, catalog, inventory ledger, reports, and audit. One Laravel application serves the Inertia/Vue staff UI; the same domain actions are intended to back the future `/api/v1` and mobile clients.
+Digital ordering and branch operations for two Pizza Fruzta branches: POS with cashier shifts, kitchen display, catalog, inventory ledger, reports, and audit. One Laravel application serves the Inertia/Vue staff UI; the same domain actions are intended to back the future `/api/v1` and mobile clients.
 
 This repository is the first-release MVP. Payment is recorded in the app (cash or static QRIS); there is no payment gateway integration, delivery, loyalty, or customer mobile app yet.
 
@@ -86,6 +86,20 @@ tests/Feature/             PHP feature tests
 tests/js/                  Vitest unit tests
 docs/operations/           Deployment, backups, printing, and pilot checklists
 ```
+
+## Cashier shifts
+
+Every new POS order and payment must belong to an open cashier shift.
+
+- Shift windows are `09:00–15:00` and `15:00–21:00` Asia/Jakarta, configured in `config/shifts.php`.
+- A cashier may open one shift per branch per window. Owners may hold one open shift per branch.
+- The opening float comes from the branch `Float kas` field on `/admin/branches`; the cashier only confirms the physical count.
+- Owner-only cash in/out is recorded on the shift detail page. Cash out cannot exceed cash available.
+- A shift cannot close while it still has unpaid orders. Close records counted cash, deposit, variance, and a mandatory note when the variance is not zero.
+- Shifts past the window end plus 15 minutes are auto-closed by `php artisan shifts:auto-close`. The scheduler entry in `routes/console.php` runs it every five minutes, so `php artisan schedule:work` (or cron `schedule:run`) must be running.
+- Auto-closed shifts have no counted cash. The owner or the shift's cashier reconciles them from the POS or `/admin/shifts`.
+- Closed shifts are immutable; voiding a payment from a closed shift is blocked until the refund module exists.
+- Owner reports live at `/admin/shifts`: per-shift list and a daily summary per branch and cashier.
 
 ## Operations
 

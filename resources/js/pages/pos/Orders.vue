@@ -160,7 +160,10 @@ function switchBranch(): void {
                             · {{ props.branch.name }} ({{ props.branch.code }})
                         </template>
                     </p>
-                    <div v-if="props.shift" class="mt-2 flex flex-wrap items-center gap-2">
+                    <div
+                        v-if="props.shift"
+                        class="mt-2 flex flex-wrap items-center gap-2"
+                    >
                         <ShiftStatusBadge :shift="props.shift" />
                         <span class="text-xs text-muted">
                             {{ props.shift.window_key }}
@@ -200,7 +203,8 @@ function switchBranch(): void {
                 v-if="!props.can_create_orders && props.shift"
                 class="rounded-xl border border-warning/20 bg-warning/10 px-4 py-3 text-sm text-warning"
             >
-                Batas pesanan shift ini sudah lewat. Pembayaran masih bisa dilakukan sampai shift ditutup.
+                Batas pesanan shift ini sudah lewat. Pembayaran masih bisa
+                dilakukan sampai shift ditutup.
             </div>
 
             <div

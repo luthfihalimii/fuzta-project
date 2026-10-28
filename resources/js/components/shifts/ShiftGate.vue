@@ -1,4 +1,5 @@
 <script setup lang="ts">
+import { computed } from 'vue';
 import { useForm } from '@inertiajs/vue3';
 import Button from '@/components/Button.vue';
 import Money from '@/components/Money.vue';
@@ -15,6 +16,10 @@ const form = useForm({
     opening_cash_confirmed: false,
 });
 
+const shiftError = computed(
+    () => (form.errors as Record<string, string>).shift,
+);
+
 function submit(): void {
     form.post('/pos/shift/open', { preserveScroll: true });
 }
@@ -27,7 +32,10 @@ function submit(): void {
             Buat pesanan dan terima pembayaran hanya setelah shift dibuka.
         </p>
 
-        <div v-if="!props.branch" class="mt-4 rounded-xl bg-warning/10 p-4 text-sm text-warning">
+        <div
+            v-if="!props.branch"
+            class="mt-4 rounded-xl bg-warning/10 p-4 text-sm text-warning"
+        >
             Pilih cabang terlebih dahulu.
         </div>
         <div
@@ -38,9 +46,15 @@ function submit(): void {
         </div>
         <div v-else class="mt-4 space-y-4">
             <div class="rounded-xl bg-canvas p-4">
-                <p class="text-sm text-muted">{{ props.branch.name }} · {{ props.branch.code }}</p>
+                <p class="text-sm text-muted">
+                    {{ props.branch.name }} · {{ props.branch.code }}
+                </p>
                 <p class="mt-1 text-sm text-muted">
-                    {{ props.window ? `${props.window.label} · ${props.window.start}–${props.window.end}` : 'Di luar jam shift' }}
+                    {{
+                        props.window
+                            ? `${props.window.label} · ${props.window.start}–${props.window.end}`
+                            : 'Di luar jam shift'
+                    }}
                 </p>
                 <p class="mt-3 text-sm text-muted">Float kas awal</p>
                 <p class="text-xl font-bold text-ink">
@@ -54,16 +68,21 @@ function submit(): void {
                     type="checkbox"
                     class="mt-0.5 h-4 w-4 rounded border-line text-brand focus:ring-brand"
                 />
-                <span> Saya sudah menghitung uang fisik dan jumlahnya sesuai float. </span>
+                <span>
+                    Saya sudah menghitung uang fisik dan jumlahnya sesuai float.
+                </span>
             </label>
-            <p v-if="form.errors.opening_cash_confirmed" class="text-sm text-danger">
+            <p
+                v-if="form.errors.opening_cash_confirmed"
+                class="text-sm text-danger"
+            >
                 {{ form.errors.opening_cash_confirmed }}
             </p>
             <p v-if="form.errors.branch_id" class="text-sm text-danger">
                 {{ form.errors.branch_id }}
             </p>
-            <p v-if="(form.errors as Record<string, string>).shift" class="text-sm text-danger">
-                {{ (form.errors as Record<string, string>).shift }}
+            <p v-if="shiftError" class="text-sm text-danger">
+                {{ shiftError }}
             </p>
 
             <Button

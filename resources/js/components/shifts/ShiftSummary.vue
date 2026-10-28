@@ -61,10 +61,7 @@ defineProps<{ shift: ShiftSummaryData }>();
             </span>
         </div>
 
-        <div
-            v-if="shift.counted_cash !== null"
-            class="mt-3 space-y-1 text-sm"
-        >
+        <div v-if="shift.counted_cash !== null" class="mt-3 space-y-1 text-sm">
             <div class="flex justify-between">
                 <span class="text-muted">Kas dihitung</span>
                 <span class="font-semibold text-ink">

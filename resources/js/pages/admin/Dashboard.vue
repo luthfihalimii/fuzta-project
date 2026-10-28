@@ -16,6 +16,11 @@ type LowStockRow = {
 
 defineProps<{
     low_stock: LowStockRow[];
+    shift_attention: {
+        overdue: number;
+        unreconciled: number;
+        unpaid: number;
+    };
 }>();
 </script>
 
@@ -69,6 +74,20 @@ defineProps<{
                     <h2 class="font-semibold text-ink">Laporan stok</h2>
                     <p class="mt-1 text-sm text-muted">
                         Saldo bahan, stok menipis, dan pergerakan.
+                    </p>
+                </Link>
+
+                <Link
+                    href="/admin/shifts?status=unreconciled"
+                    class="rounded-2xl border border-line bg-white p-5 transition hover:border-brand/40 hover:shadow-sm"
+                >
+                    <h2 class="font-semibold text-ink">
+                        Shift perlu perhatian
+                    </h2>
+                    <p class="mt-1 text-sm text-muted">
+                        {{ shift_attention.unreconciled }} perlu rekonsiliasi ·
+                        {{ shift_attention.overdue }} lewat jadwal ·
+                        {{ shift_attention.unpaid }} pesanan tertunda.
                     </p>
                 </Link>
 

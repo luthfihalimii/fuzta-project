@@ -2,6 +2,7 @@
 
 namespace App\Http\Controllers\Admin;
 
+use App\Modules\Shifts\Models\CashierShift;
 use Illuminate\Support\Facades\DB;
 use Inertia\Inertia;
 use Inertia\Response;
@@ -44,8 +45,30 @@ class DashboardController
             ->values()
             ->all();
 
+        $grace = (int) config('shifts.auto_close_grace_minutes', 15);
+        $cutoff = now()->subMinutes($grace);
+
+        $shiftAttention = [
+            'overdue' => CashierShift::query()
+                ->whereNull('closed_at')
+                ->where('scheduled_end_at', '<=', now())
+                ->count(),
+            'unreconciled' => CashierShift::query()
+                ->where('close_type', 'auto')
+                ->whereNull('reconciled_at')
+                ->count(),
+            'unpaid' => CashierShift::query()
+                ->whereNull('closed_at')
+                ->where('scheduled_end_at', '<=', $cutoff)
+                ->whereHas('orders', fn ($query) => $query
+                    ->where('payment_status', 'unpaid')
+                    ->where('status', '!=', 'cancelled'))
+                ->count(),
+        ];
+
         return Inertia::render('admin/Dashboard', [
             'low_stock' => $lowStock,
+            'shift_attention' => $shiftAttention,
         ]);
     }
 }

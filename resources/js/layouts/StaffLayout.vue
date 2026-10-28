@@ -20,6 +20,7 @@ const nav = computed(() => {
             { label: 'Dapur', href: '/kitchen' },
             { label: 'Katalog', href: '/admin/catalog/products' },
             { label: 'Stok', href: '/admin/stock/ingredients' },
+            { label: 'Shift', href: '/admin/shifts' },
             { label: 'Staf', href: '/admin/staff' },
             { label: 'Cabang', href: '/admin/branches' },
         ];

@@ -106,7 +106,7 @@ function hasDetails(values: Record<string, unknown>): boolean {
                                     {{ formatDateTime(log.created_at) }}
                                 </td>
                                 <td class="px-5 py-4 font-medium text-ink">
-                                    {{ log.actor_name ?? '—' }}
+                                    {{ log.actor_name ?? 'Sistem' }}
                                 </td>
                                 <td
                                     class="px-5 py-4 font-mono text-xs text-ink"

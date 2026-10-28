@@ -38,6 +38,7 @@
 ### Task 1: Schema and module scaffolding
 
 **Files:**
+
 - Create: `database/migrations/2026_10_28_000001_add_cash_float_to_branches.php`
 - Create: `database/migrations/2026_10_28_000002_create_cashier_shifts_table.php`
 - Create: `database/migrations/2026_10_28_000003_create_cash_movements_table.php`
@@ -56,6 +57,7 @@
 - Test: `tests/Feature/ShiftSchemaTest.php`
 
 **Interfaces:**
+
 - Consumes: existing `branches`, `users`, `orders`, `payments`, `audit_logs` tables.
 - Produces: `CashierShift` model with relations `branch()`, `user()`, `closedBy()`, `reconciledBy()`, `cashMovements()`, `orders()`, `payments()`; `CashMovement` with `shift()`, `actor()`; enums `CashMovementDirection::In/Out` and `ShiftCloseType::Manual/Auto`; `CashierShiftFactory` states `open()`, `closed()`, `autoClosed()`; `CashMovementFactory`.
 
@@ -217,12 +219,14 @@ git commit -m "feat: add cashier shift schema and models"
 ### Task 2: Shift window config and resolver
 
 **Files:**
+
 - Create: `config/shifts.php`
 - Create: `app/Modules/Shifts/Data/ShiftWindowData.php`
 - Create: `app/Modules/Shifts/Actions/ResolveShiftWindow.php`
 - Test: `tests/Feature/ShiftWindowTest.php`
 
 **Interfaces:**
+
 - Produces: `ShiftWindowData` readonly class with `string $key, string $label, CarbonImmutable $startUtc, CarbonImmutable $endUtc`. `ResolveShiftWindow::__invoke(?CarbonImmutable $now = null): ?ShiftWindowData` returns null outside windows.
 - Config keys: `timezone`, `early_open_minutes`, `reminder_minutes`, `auto_close_grace_minutes`, `windows`.
 
@@ -318,11 +322,13 @@ git commit -m "feat: resolve cashier shift windows"
 ### Task 3: Shift totals and open shift resolution
 
 **Files:**
+
 - Create: `app/Modules/Shifts/Actions/CalculateShiftTotals.php`
 - Create: `app/Modules/Shifts/Actions/ResolveOpenShift.php`
 - Test: `tests/Feature/ShiftTotalsTest.php`
 
 **Interfaces:**
+
 - Produces: `CalculateShiftTotals::__invoke(CashierShift $shift): array{cash_sales_total:int,qris_sales_total:int,cash_in_total:int,cash_out_total:int,expected_cash:int}`. `ResolveOpenShift::__invoke(User $actor, int $branchId, bool $lockForShare = false): CashierShift`; throws `ValidationException` with key `shift` and message `Buka shift terlebih dahulu.` when absent.
 
 - [ ] **Step 1: Write the failing test**
@@ -451,6 +457,7 @@ git commit -m "feat: calculate shift totals and resolve open shift"
 ### Task 4: Open shift endpoint and POS gate
 
 **Files:**
+
 - Create: `app/Modules/Shifts/Http/Requests/OpenShiftRequest.php`
 - Create: `app/Modules/Shifts/Actions/OpenShift.php`
 - Create: `app/Modules/Shifts/Policies/CashierShiftPolicy.php`
@@ -464,6 +471,7 @@ git commit -m "feat: calculate shift totals and resolve open shift"
 - Test: `tests/Feature/OpenShiftTest.php`
 
 **Interfaces:**
+
 - Produces: `OpenShift::__invoke(User $actor, int $branchId): CashierShift`; route `POST /pos/shift/open` name `pos.shift.open`; `ShiftPresenter::summary(CashierShift $shift): array`; branch payload gains `cash_float`.
 - Policy abilities: `open`, `view`, `close`, `reconcile`, `recordCashMovement`, `viewAny`.
 
@@ -641,6 +649,7 @@ git commit -m "feat: add shift opening and branch cash float"
 ### Task 5: Gate order creation on an open shift
 
 **Files:**
+
 - Modify: `app/Modules/Ordering/Actions/CreateOrder.php`
 - Modify: `app/Modules/Ordering/Http/Controllers/PosController.php`
 - Modify: `app/Modules/Ordering/Http/Controllers/OrderController.php`
@@ -650,6 +659,7 @@ git commit -m "feat: add shift opening and branch cash float"
 - Modify: `tests/Feature/PaymentTest.php` (open shift before paying)
 
 **Interfaces:**
+
 - Consumes: `ResolveOpenShift`, `CashierShift`.
 - Produces: every new POS order has `shift_id`; orders list payload includes `shift` id and orders from the active shift across dates; query `shift=<id>` for owner.
 
@@ -812,11 +822,13 @@ git commit -m "feat: require an open shift for POS orders"
 ### Task 6: Gate payments and protect closed-shift payments
 
 **Files:**
+
 - Modify: `app/Modules/Payments/Actions/MarkOrderPaid.php`
 - Modify: `app/Modules/Ordering/Actions/VoidOrder.php`
 - Test: `tests/Feature/PaymentShiftGateTest.php`
 
 **Interfaces:**
+
 - Produces: `payments.shift_id` on every new payment; void rejected when the payment's shift is closed with the spec message.
 
 - [ ] **Step 1: Write the failing test**
@@ -929,6 +941,7 @@ git commit -m "feat: require an open shift for payments"
 ### Task 7: Cash movements
 
 **Files:**
+
 - Create: `app/Modules/Shifts/Http/Requests/RecordCashMovementRequest.php`
 - Create: `app/Modules/Shifts/Actions/RecordCashMovement.php`
 - Create: `app/Modules/Shifts/Http/Controllers/AdminShiftController.php`
@@ -936,6 +949,7 @@ git commit -m "feat: require an open shift for payments"
 - Test: `tests/Feature/CashMovementTest.php`
 
 **Interfaces:**
+
 - Produces: `RecordCashMovement::__invoke(CashierShift $shift, User $owner, string $direction, int $amount, string $reason, string $key): CashMovement`; route `POST /admin/shifts/{shift}/cash-movements`.
 
 - [ ] **Step 1: Write the failing test**
@@ -1048,6 +1062,7 @@ git commit -m "feat: record owner cash movements per shift"
 ### Task 8: Manual close shift
 
 **Files:**
+
 - Create: `app/Modules/Shifts/Http/Requests/CloseShiftRequest.php`
 - Create: `app/Modules/Shifts/Actions/ResolveShiftForClose.php`
 - Create: `app/Modules/Shifts/Actions/CloseShift.php`
@@ -1057,6 +1072,7 @@ git commit -m "feat: record owner cash movements per shift"
 - Test: `tests/Feature/CloseShiftTest.php`
 
 **Interfaces:**
+
 - Produces: `CloseShift::__invoke(CashierShift $shift, User $actor, int $countedCash, int $cashDeposited, ?string $note): CashierShift`; routes `POST /pos/shift/close` and `POST /admin/shifts/{shift}/close`.
 
 - [ ] **Step 1: Write the failing test**
@@ -1229,6 +1245,7 @@ git commit -m "feat: close shift with cash reconciliation"
 ### Task 9: Auto-close, reminder payload, and reconciliation
 
 **Files:**
+
 - Create: `app/Modules/Shifts/Actions/AutoCloseShift.php`
 - Create: `app/Modules/Shifts/Actions/ReconcileShift.php`
 - Create: `app/Modules/Shifts/Actions/BuildShiftReminder.php`
@@ -1242,6 +1259,7 @@ git commit -m "feat: close shift with cash reconciliation"
 - Test: `tests/Feature/ReconcileShiftTest.php`
 
 **Interfaces:**
+
 - Produces: `AutoCloseShift::__invoke(): int` returns number closed; `ReconcileShift::__invoke(CashierShift $shift, User $actor, int $counted, int $deposited, ?string $note): CashierShift`; `BuildShiftReminder::__invoke(?CashierShift $shift, ?CarbonImmutable $now = null): ?array{level:string,message:string}`; command `shifts:auto-close`; routes `POST /admin/shifts/{shift}/reconcile` and `POST /pos/shifts/{shift}/reconcile`.
 
 - [ ] **Step 1: Write the failing tests**
@@ -1418,6 +1436,7 @@ git commit -m "feat: auto-close stale shifts and reconcile cash"
 ### Task 10: POS shift UI
 
 **Files:**
+
 - Create: `resources/js/components/shifts/ShiftGate.vue`
 - Create: `resources/js/components/shifts/ShiftSummary.vue`
 - Create: `resources/js/components/shifts/CloseShiftDialog.vue`
@@ -1430,6 +1449,7 @@ git commit -m "feat: auto-close stale shifts and reconcile cash"
 - Test: `tests/js/shift.test.ts`
 
 **Interfaces:**
+
 - Consumes: POS payload `shift`, `shift_window`, `shift_reminder`, `unreconciled_shift`, `orders_cutoff_at`, `can_create_orders`.
 - Produces: typed `ShiftSummaryData`, `ShiftReminder`, helper `shiftStatusLabel`.
 
@@ -1446,10 +1466,34 @@ describe('shift helpers', () => {
     });
 
     it('labels shift status', () => {
-        expect(shiftStatusLabel({ closed_at: null, close_type: null, reconciled_at: null })).toBe('Terbuka');
-        expect(shiftStatusLabel({ closed_at: 'x', close_type: 'auto', reconciled_at: null })).toBe('Perlu rekonsiliasi');
-        expect(shiftStatusLabel({ closed_at: 'x', close_type: 'auto', reconciled_at: 'y' })).toBe('Ditutup');
-        expect(shiftStatusLabel({ closed_at: 'x', close_type: 'manual', reconciled_at: 'y' })).toBe('Ditutup');
+        expect(
+            shiftStatusLabel({
+                closed_at: null,
+                close_type: null,
+                reconciled_at: null,
+            }),
+        ).toBe('Terbuka');
+        expect(
+            shiftStatusLabel({
+                closed_at: 'x',
+                close_type: 'auto',
+                reconciled_at: null,
+            }),
+        ).toBe('Perlu rekonsiliasi');
+        expect(
+            shiftStatusLabel({
+                closed_at: 'x',
+                close_type: 'auto',
+                reconciled_at: 'y',
+            }),
+        ).toBe('Ditutup');
+        expect(
+            shiftStatusLabel({
+                closed_at: 'x',
+                close_type: 'manual',
+                reconciled_at: 'y',
+            }),
+        ).toBe('Ditutup');
     });
 });
 ```
@@ -1496,6 +1540,7 @@ git commit -m "feat: add shift gate and cash dialogs to POS"
 ### Task 11: Admin shift reports and daily summary
 
 **Files:**
+
 - Create: `app/Modules/Shifts/Queries/ShiftReportQuery.php`
 - Create: `app/Modules/Shifts/Queries/ShiftDailySummaryQuery.php`
 - Modify: `app/Modules/Shifts/Http/Controllers/AdminShiftController.php`
@@ -1511,6 +1556,7 @@ git commit -m "feat: add shift gate and cash dialogs to POS"
 - Test: `tests/Feature/ShiftDailySummaryTest.php`
 
 **Interfaces:**
+
 - Produces: owner routes `GET /admin/shifts` (`view=shifts|daily`), `GET /admin/shifts/{shift}`; dashboard prop `shift_attention` with `overdue`, `unreconciled`, `unpaid`.
 
 - [ ] **Step 1: Write the failing tests**

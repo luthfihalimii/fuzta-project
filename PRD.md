@@ -315,6 +315,8 @@ Payment provider, fees, settlement schedule, and supported methods must be confi
 - **P0** Receipt or order confirmation can be printed or displayed.
 - **P1** Cashier performance and shift discrepancy reports.
 
+Implemented in the current release: per-cashier shifts with windows, branch float, owner cash in/out, manual close with counted cash/deposit/variance/note, auto-close with cash reconciliation, immutable closed shifts, per-shift reports, and daily summary per branch and cashier. Cashier performance metrics remain open.
+
 ### 7.7 Kitchen Operations
 
 - **P0** New accepted orders appear in the correct branch queue.

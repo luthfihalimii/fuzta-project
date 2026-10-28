@@ -49,6 +49,15 @@ class CashierShiftFactory extends Factory
         ];
     }
 
+    public function configure(): static
+    {
+        return $this->afterCreating(function (CashierShift $shift): void {
+            if ($shift->user !== null && $shift->user->branch_id !== $shift->branch_id) {
+                $shift->user->forceFill(['branch_id' => $shift->branch_id])->save();
+            }
+        });
+    }
+
     public function open(): static
     {
         return $this->state(fn (array $attributes) => [

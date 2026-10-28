@@ -5,7 +5,7 @@ import Button from '@/components/Button.vue';
 import Money from '@/components/Money.vue';
 import { suggestedDeposit, type ShiftSummaryData } from '@/lib/shift';
 
-const props = defineProps<{ shift: ShiftSummaryData }>();
+const props = defineProps<{ shift: ShiftSummaryData; endpoint?: string }>();
 
 const form = useForm({
     counted_cash: String(props.shift.expected_cash ?? 0),
@@ -17,6 +17,10 @@ const form = useForm({
     ),
     reconciliation_note: '',
 });
+
+const shiftError = computed(
+    () => (form.errors as Record<string, string>).shift,
+);
 
 const counted = computed(() => {
     const value = Number(form.counted_cash);
@@ -33,7 +37,7 @@ const deposit = computed(() => {
 });
 
 function submit(): void {
-    form.post(`/pos/shifts/${props.shift.id}/reconcile`, {
+    form.post(props.endpoint ?? `/pos/shifts/${props.shift.id}/reconcile`, {
         preserveScroll: true,
         onSuccess: () => router.reload(),
     });
@@ -48,12 +52,17 @@ function submit(): void {
             rekonsiliasi.
         </p>
         <p class="mt-2 text-sm text-muted">
-            Kas seharusnya: <span class="font-semibold text-ink"><Money :value="shift.expected_cash ?? 0" /></span>
+            Kas seharusnya:
+            <span class="font-semibold text-ink"
+                ><Money :value="shift.expected_cash ?? 0"
+            /></span>
         </p>
 
         <div class="mt-4 grid gap-3 sm:grid-cols-2">
             <label class="block">
-                <span class="mb-1.5 block text-sm font-medium text-ink">Kas dihitung</span>
+                <span class="mb-1.5 block text-sm font-medium text-ink"
+                    >Kas dihitung</span
+                >
                 <input
                     v-model="form.counted_cash"
                     type="number"
@@ -63,7 +72,9 @@ function submit(): void {
                 />
             </label>
             <label class="block">
-                <span class="mb-1.5 block text-sm font-medium text-ink">Setoran</span>
+                <span class="mb-1.5 block text-sm font-medium text-ink"
+                    >Setoran</span
+                >
                 <input
                     v-model="form.cash_deposited"
                     type="number"
@@ -72,7 +83,10 @@ function submit(): void {
                     class="min-h-12 w-full rounded-xl border border-line bg-white px-3.5 text-right text-lg font-semibold text-ink outline-none focus:border-brand focus:ring-2 focus:ring-brand/20"
                 />
                 <span class="mt-1 block text-xs text-muted">
-                    Saran: <Money :value="suggestedDeposit(counted, shift.opening_cash)" />
+                    Saran:
+                    <Money
+                        :value="suggestedDeposit(counted, shift.opening_cash)"
+                    />
                 </span>
             </label>
             <label class="block sm:col-span-2">
@@ -90,17 +104,31 @@ function submit(): void {
 
         <div class="mt-3 flex items-center justify-between text-sm">
             <span class="text-muted">Selisih</span>
-            <span class="font-semibold" :class="variance === 0 ? 'text-success' : 'text-danger'">
+            <span
+                class="font-semibold"
+                :class="variance === 0 ? 'text-success' : 'text-danger'"
+            >
                 <Money :value="variance" />
             </span>
         </div>
         <p class="mt-1 text-xs text-muted">
             Float dipertahankan: <Money :value="counted - deposit" />
         </p>
-        <p v-if="form.errors.counted_cash" class="mt-1 text-sm text-danger">{{ form.errors.counted_cash }}</p>
-        <p v-if="form.errors.cash_deposited" class="mt-1 text-sm text-danger">{{ form.errors.cash_deposited }}</p>
-        <p v-if="form.errors.reconciliation_note" class="mt-1 text-sm text-danger">{{ form.errors.reconciliation_note }}</p>
-        <p v-if="(form.errors as Record<string, string>).shift" class="mt-1 text-sm text-danger">{{ (form.errors as Record<string, string>).shift }}</p>
+        <p v-if="form.errors.counted_cash" class="mt-1 text-sm text-danger">
+            {{ form.errors.counted_cash }}
+        </p>
+        <p v-if="form.errors.cash_deposited" class="mt-1 text-sm text-danger">
+            {{ form.errors.cash_deposited }}
+        </p>
+        <p
+            v-if="form.errors.reconciliation_note"
+            class="mt-1 text-sm text-danger"
+        >
+            {{ form.errors.reconciliation_note }}
+        </p>
+        <p v-if="shiftError" class="mt-1 text-sm text-danger">
+            {{ shiftError }}
+        </p>
 
         <Button class="mt-4 w-full" :disabled="form.processing" @click="submit">
             {{ form.processing ? 'Menyimpan…' : 'Rekonsiliasi' }}
