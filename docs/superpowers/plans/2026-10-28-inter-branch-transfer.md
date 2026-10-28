@@ -123,6 +123,7 @@
 **Files:**
 - Create: `app/Modules/Inventory/Actions/DispatchStockTransfer.php`
 - Create: `app/Http/Requests/DispatchStockTransferRequest.php`
+- Create: `tests/Feature/TransferConcurrencyTest.php`
 - Modify: `app/Modules/Inventory/Http/Controllers/StockTransferController.php` (add `dispatch`)
 - Modify: `routes/web.php` (one line in the stock group)
 - Test: `tests/Feature/StockTransferTest.php` (append)
@@ -145,14 +146,14 @@
   - `test_dispatch_reduces_origin_stock_and_writes_transfer_out_movements`: origin balances 100 and 50 for two ingredients; 2-item draft (30, 10) → owner `patch("/admin/stock/transfers/{$id}/dispatch")` → 302; origin balances 70 and 40; exactly two movements `type = 'transfer_out'` with quantities -30 and -10, `reference_type` = `StockTransfer::class`, `reference_id` = id, `actor_id` = owner; transfer `dispatched`, `dispatched_at` non-null; audit `transfer.dispatched` row exists.
   - `test_dispatch_shortfall_rejects_and_changes_nothing`: origin balance 20; draft item qty 30 → patch → 422 + `assertSessionHasErrors('stock')` containing the ingredient name; balance still 20; movement count 0; status still `draft`; `dispatched_at` null.
   - `test_second_dispatch_is_rejected`: after a successful dispatch, patch again → 422 + `errors('status')`; movement set unchanged (still exactly one `transfer_out` per item).
-  - `test_concurrent_dispatch_and_consumption_do_not_lose_updates` (fork, pattern = `StockConcurrencyTest`): origin balance 100; draft of one item qty 60. Fork A: `app(DispatchStockTransfer::class)(User::find($owner->id), $transfer->id)`; Fork B: `app(RecordStockMovement::class)(User::find($owner->id), $branch->id, $ingredient->id, -30, StockMovementType::Consumption, 'Konsumsi pesanan TEST')`. Both children `DB::purge(); DB::reconnect();` first; each exits 0 on success, 1 on any exception. Since 100−60−30 = 10 ≥ 0 in either lock order, both children must succeed: assert exit codes `[0, 0]`; final origin balance 10; exactly one `consumption` and one `transfer_out` movement.
+  - `test_concurrent_dispatch_and_consumption_do_not_lose_updates` — lives in the NEW class `tests/Feature/TransferConcurrencyTest.php` (uses `DatabaseMigrations`, mirroring `StockConcurrencyTest`): forked children COMMIT outside the parent's transaction, so a `RefreshDatabase` class would leak their rows into later tests. Origin balance 100; draft of one item qty 60. Fork A: `app(DispatchStockTransfer::class)(User::find($owner->id), $transfer->id)`; Fork B: `app(RecordStockMovement::class)(User::find($owner->id), $branch->id, $ingredient->id, -30, StockMovementType::Consumption, 'Konsumsi pesanan TEST')`. Both children `DB::purge(); DB::reconnect();` first; each exits 0 on success, 1 on any exception. Since 100−60−30 = 10 ≥ 0 in either lock order, both children must succeed: assert exit codes `[0, 0]`; final origin balance 10; exactly one `consumption` and one `transfer_out` movement.
 - [ ] **Step 2: Run tests to verify they fail** — Run: `php artisan test tests/Feature/StockTransferTest.php --filter "dispatch"` ; Expected: FAIL (route 404).
 - [ ] **Step 3: Implement** request, action (exact lock order and messages from the interface block), controller method, route line.
-- [ ] **Step 4: Run tests to verify they pass** — Run: `php artisan test tests/Feature/StockTransferTest.php` ; Expected: PASS (all).
+- [ ] **Step 4: Run tests to verify they pass** — Run: `php artisan test tests/Feature/StockTransferTest.php tests/Feature/TransferConcurrencyTest.php` ; Expected: PASS (all).
 - [ ] **Step 5: Lint + commit**
 
   ```bash
-  ./vendor/bin/pint app/Modules/Inventory app/Http/Requests/DispatchStockTransferRequest.php routes/web.php tests/Feature/StockTransferTest.php
+  ./vendor/bin/pint app/Modules/Inventory app/Http/Requests/DispatchStockTransferRequest.php routes/web.php tests/Feature/StockTransferTest.php tests/Feature/TransferConcurrencyTest.php
   git add -A && git commit -m "feat: dispatch stock transfer with origin deduction"
   ```
 
