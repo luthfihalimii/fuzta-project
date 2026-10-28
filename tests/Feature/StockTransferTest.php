@@ -13,6 +13,7 @@ use App\Modules\Inventory\Models\StockMovement;
 use App\Modules\Inventory\Models\StockTransfer;
 use App\Modules\Inventory\Models\StockTransferItem;
 use Illuminate\Foundation\Testing\RefreshDatabase;
+use Illuminate\Support\Facades\DB;
 use Illuminate\Validation\ValidationException;
 use Tests\TestCase;
 
@@ -326,5 +327,274 @@ class StockTransferTest extends TestCase
         $this->assertDatabaseHas('stock_balances', ['branch_id' => $origin->id, 'ingredient_id' => $ingredient->id, 'quantity' => 60]);
 
         $this->assertSame(TransferStatus::Dispatched, $transfer->fresh()->status);
+    }
+
+    public function test_receive_at_sent_quantity_increments_destination(): void
+    {
+        [$origin, $destination, $owner, $transfer, $itemA, $itemB] = $this->makeDispatchedTransfer();
+
+        $this->actingAs($owner)
+            ->patch("/admin/stock/transfers/{$transfer->id}/receive", [
+                'received_items' => [
+                    ['item_id' => $itemA->id, 'received_quantity' => 30, 'discrepancy_reason' => null],
+                    ['item_id' => $itemB->id, 'received_quantity' => 10, 'discrepancy_reason' => null],
+                ],
+            ])
+            ->assertStatus(302);
+
+        $this->assertDatabaseHas('stock_balances', ['branch_id' => $destination->id, 'ingredient_id' => $itemA->ingredient_id, 'quantity' => 30]);
+        $this->assertDatabaseHas('stock_balances', ['branch_id' => $destination->id, 'ingredient_id' => $itemB->ingredient_id, 'quantity' => 10]);
+
+        $this->assertSame(2, StockMovement::query()->where('type', StockMovementType::TransferIn->value)->count());
+
+        foreach ([[$itemA, 30], [$itemB, 10]] as [$item, $quantity]) {
+            $this->assertDatabaseHas('stock_movements', [
+                'branch_id' => $destination->id,
+                'ingredient_id' => $item->ingredient_id,
+                'unit_id' => $item->ingredient->base_unit_id,
+                'type' => StockMovementType::TransferIn->value,
+                'quantity' => $quantity,
+                'reference_type' => StockTransfer::class,
+                'reference_id' => $transfer->id,
+                'actor_id' => $owner->id,
+            ]);
+        }
+
+        $transfer->refresh();
+        $this->assertSame(TransferStatus::Received, $transfer->status);
+        $this->assertNotNull($transfer->received_at);
+
+        $this->assertDatabaseHas('stock_transfer_items', ['id' => $itemA->id, 'received_quantity' => 30, 'discrepancy_reason' => null]);
+        $this->assertDatabaseHas('stock_transfer_items', ['id' => $itemB->id, 'received_quantity' => 10, 'discrepancy_reason' => null]);
+
+        $this->assertDatabaseHas('audit_logs', [
+            'action' => 'transfer.received',
+            'target_type' => StockTransfer::class,
+            'target_id' => $transfer->id,
+        ]);
+    }
+
+    public function test_receive_shortfall_without_reason_is_rejected(): void
+    {
+        [$origin, $destination, $owner, $transfer, $itemA, $itemB] = $this->makeDispatchedTransfer();
+
+        $this->actingAs($owner)
+            ->patch("/admin/stock/transfers/{$transfer->id}/receive", [
+                'received_items' => [
+                    ['item_id' => $itemB->id, 'received_quantity' => 9, 'discrepancy_reason' => null],
+                    ['item_id' => $itemA->id, 'received_quantity' => 30, 'discrepancy_reason' => null],
+                ],
+            ])
+            ->assertSessionHasErrors('received_items.0.discrepancy_reason');
+
+        $this->assertSame(TransferStatus::Dispatched, $transfer->fresh()->status);
+        $this->assertSame(0, StockMovement::query()->where('type', StockMovementType::TransferIn->value)->count());
+        $this->assertDatabaseCount('stock_balances', 0);
+    }
+
+    public function test_receive_shortfall_with_reason_records_discrepancy(): void
+    {
+        [$origin, $destination, $owner, $transfer, $itemA, $itemB] = $this->makeDispatchedTransfer();
+
+        $this->actingAs($owner)
+            ->patch("/admin/stock/transfers/{$transfer->id}/receive", [
+                'received_items' => [
+                    ['item_id' => $itemA->id, 'received_quantity' => 30, 'discrepancy_reason' => null],
+                    ['item_id' => $itemB->id, 'received_quantity' => 9, 'discrepancy_reason' => 'leps hilang 1'],
+                ],
+            ])
+            ->assertStatus(302);
+
+        $this->assertDatabaseHas('stock_transfer_items', [
+            'id' => $itemB->id,
+            'received_quantity' => 9,
+            'discrepancy_reason' => 'leps hilang 1',
+        ]);
+
+        $this->assertDatabaseHas('stock_movements', [
+            'branch_id' => $destination->id,
+            'ingredient_id' => $itemB->ingredient_id,
+            'type' => StockMovementType::TransferIn->value,
+            'quantity' => 9,
+            'reason' => "Penerimaan transfer #{$transfer->id} (selisih: leps hilang 1)",
+        ]);
+
+        $row = DB::table('audit_logs')
+            ->where('action', 'transfer.received')
+            ->where('target_id', $transfer->id)
+            ->first();
+
+        $this->assertNotNull($row);
+        $this->assertStringContainsString('leps hilang 1', json_encode($row->after));
+    }
+
+    public function test_receive_more_than_sent_is_allowed(): void
+    {
+        [$origin, $destination, $owner, $transfer, $itemA, $itemB] = $this->makeDispatchedTransfer();
+
+        $this->actingAs($owner)
+            ->patch("/admin/stock/transfers/{$transfer->id}/receive", [
+                'received_items' => [
+                    ['item_id' => $itemA->id, 'received_quantity' => 30, 'discrepancy_reason' => null],
+                    ['item_id' => $itemB->id, 'received_quantity' => 12, 'discrepancy_reason' => null],
+                ],
+            ])
+            ->assertStatus(302);
+
+        $this->assertDatabaseHas('stock_movements', [
+            'branch_id' => $destination->id,
+            'ingredient_id' => $itemB->ingredient_id,
+            'type' => StockMovementType::TransferIn->value,
+            'quantity' => 12,
+        ]);
+
+        $this->assertDatabaseHas('stock_balances', ['branch_id' => $destination->id, 'ingredient_id' => $itemB->ingredient_id, 'quantity' => 12]);
+    }
+
+    public function test_receive_all_zero_closes_without_movements(): void
+    {
+        [$origin, $destination, $owner, $transfer, $itemA, $itemB] = $this->makeDispatchedTransfer();
+
+        $this->actingAs($owner)
+            ->patch("/admin/stock/transfers/{$transfer->id}/receive", [
+                'received_items' => [
+                    ['item_id' => $itemA->id, 'received_quantity' => 0, 'discrepancy_reason' => 'habis di jalan'],
+                    ['item_id' => $itemB->id, 'received_quantity' => 0, 'discrepancy_reason' => 'rusak semua'],
+                ],
+            ])
+            ->assertStatus(302);
+
+        $this->assertSame(TransferStatus::Received, $transfer->fresh()->status);
+        $this->assertSame(0, StockMovement::query()->where('type', StockMovementType::TransferIn->value)->count());
+
+        $this->assertDatabaseHas('stock_transfer_items', ['id' => $itemA->id, 'received_quantity' => 0, 'discrepancy_reason' => 'habis di jalan']);
+        $this->assertDatabaseHas('stock_transfer_items', ['id' => $itemB->id, 'received_quantity' => 0, 'discrepancy_reason' => 'rusak semua']);
+
+        $this->assertDatabaseCount('stock_balances', 0);
+    }
+
+    public function test_receive_rejects_items_from_other_transfer(): void
+    {
+        $origin = Branch::factory()->create();
+        $destination = Branch::factory()->create();
+        $owner = User::factory()->owner()->create();
+        $ingredient = Ingredient::factory()->create();
+
+        $transferA = StockTransfer::factory()->dispatched()->create([
+            'origin_branch_id' => $origin->id,
+            'destination_branch_id' => $destination->id,
+            'created_by' => $owner->id,
+        ]);
+        StockTransferItem::factory()->for($transferA, 'transfer')->for($ingredient, 'ingredient')->create(['quantity' => 10]);
+
+        $transferB = StockTransfer::factory()->dispatched()->create([
+            'origin_branch_id' => $origin->id,
+            'destination_branch_id' => $destination->id,
+            'created_by' => $owner->id,
+        ]);
+        $itemB = StockTransferItem::factory()->for($transferB, 'transfer')->for($ingredient, 'ingredient')->create(['quantity' => 5]);
+
+        $this->actingAs($owner)
+            ->patch("/admin/stock/transfers/{$transferA->id}/receive", [
+                'received_items' => [
+                    ['item_id' => $itemB->id, 'received_quantity' => 5, 'discrepancy_reason' => null],
+                ],
+            ])
+            ->assertSessionHasErrors('received_items');
+
+        $this->assertSame(TransferStatus::Dispatched, $transferA->fresh()->status);
+        $this->assertSame(0, StockMovement::query()->where('type', StockMovementType::TransferIn->value)->count());
+    }
+
+    public function test_receive_rejects_missing_or_duplicate_rows(): void
+    {
+        [$origin, $destination, $owner, $transfer, $itemA, $itemB] = $this->makeDispatchedTransfer();
+
+        $this->actingAs($owner)
+            ->patch("/admin/stock/transfers/{$transfer->id}/receive", [
+                'received_items' => [
+                    ['item_id' => $itemA->id, 'received_quantity' => 30, 'discrepancy_reason' => null],
+                ],
+            ])
+            ->assertSessionHasErrors('received_items');
+
+        $this->actingAs($owner)
+            ->patch("/admin/stock/transfers/{$transfer->id}/receive", [
+                'received_items' => [
+                    ['item_id' => $itemA->id, 'received_quantity' => 30, 'discrepancy_reason' => null],
+                    ['item_id' => $itemA->id, 'received_quantity' => 10, 'discrepancy_reason' => null],
+                ],
+            ])
+            ->assertSessionHasErrors('received_items.1.item_id');
+
+        $this->assertSame(TransferStatus::Dispatched, $transfer->fresh()->status);
+        $this->assertSame(0, StockMovement::query()->where('type', StockMovementType::TransferIn->value)->count());
+    }
+
+    public function test_receive_from_wrong_status_is_rejected(): void
+    {
+        $origin = Branch::factory()->create();
+        $destination = Branch::factory()->create();
+        $owner = User::factory()->owner()->create();
+        $ingredient = Ingredient::factory()->create();
+
+        $draft = StockTransfer::factory()->create([
+            'origin_branch_id' => $origin->id,
+            'destination_branch_id' => $destination->id,
+            'created_by' => $owner->id,
+        ]);
+        $draftItem = StockTransferItem::factory()->for($draft, 'transfer')->for($ingredient, 'ingredient')->create(['quantity' => 10]);
+
+        $this->actingAs($owner)
+            ->patch("/admin/stock/transfers/{$draft->id}/receive", [
+                'received_items' => [
+                    ['item_id' => $draftItem->id, 'received_quantity' => 10, 'discrepancy_reason' => null],
+                ],
+            ])
+            ->assertSessionHasErrors('status');
+
+        $this->assertSame(TransferStatus::Draft, $draft->fresh()->status);
+        $this->assertSame(0, StockMovement::query()->count());
+
+        [, , , $transfer, $itemA, $itemB] = $this->makeDispatchedTransfer();
+
+        $payload = [
+            'received_items' => [
+                ['item_id' => $itemA->id, 'received_quantity' => 30, 'discrepancy_reason' => null],
+                ['item_id' => $itemB->id, 'received_quantity' => 10, 'discrepancy_reason' => null],
+            ],
+        ];
+
+        $this->actingAs($owner)
+            ->patch("/admin/stock/transfers/{$transfer->id}/receive", $payload)
+            ->assertStatus(302);
+
+        $this->actingAs($owner)
+            ->patch("/admin/stock/transfers/{$transfer->id}/receive", $payload)
+            ->assertSessionHasErrors('status');
+
+        $this->assertSame(TransferStatus::Received, $transfer->fresh()->status);
+        $this->assertSame(2, StockMovement::query()->where('type', StockMovementType::TransferIn->value)->count());
+    }
+
+    /**
+     * @return array{Branch, Branch, User, StockTransfer, StockTransferItem, StockTransferItem}
+     */
+    private function makeDispatchedTransfer(int $quantityA = 30, int $quantityB = 10): array
+    {
+        $origin = Branch::factory()->create();
+        $destination = Branch::factory()->create();
+        $owner = User::factory()->owner()->create();
+        [$ingA, $ingB] = Ingredient::factory()->count(2)->create();
+
+        $transfer = StockTransfer::factory()->dispatched()->create([
+            'origin_branch_id' => $origin->id,
+            'destination_branch_id' => $destination->id,
+            'created_by' => $owner->id,
+        ]);
+        $itemA = StockTransferItem::factory()->for($transfer, 'transfer')->for($ingA, 'ingredient')->create(['quantity' => $quantityA]);
+        $itemB = StockTransferItem::factory()->for($transfer, 'transfer')->for($ingB, 'ingredient')->create(['quantity' => $quantityB]);
+
+        return [$origin, $destination, $owner, $transfer, $itemA, $itemB];
     }
 }
