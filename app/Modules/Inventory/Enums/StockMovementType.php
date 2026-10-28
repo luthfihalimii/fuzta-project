@@ -11,6 +11,8 @@ enum StockMovementType: string
     case CountCorrection = 'count_correction';
     case Consumption = 'consumption';
     case ConsumptionReversal = 'consumption_reversal';
+    case TransferOut = 'transfer_out';
+    case TransferIn = 'transfer_in';
 
     public function label(): string
     {
@@ -22,6 +24,8 @@ enum StockMovementType: string
             self::CountCorrection => 'Koreksi opname',
             self::Consumption => 'Konsumsi pesanan',
             self::ConsumptionReversal => 'Pembalikan konsumsi',
+            self::TransferOut => 'Pengiriman antar cabang',
+            self::TransferIn => 'Penerimaan antar cabang',
         };
     }
 

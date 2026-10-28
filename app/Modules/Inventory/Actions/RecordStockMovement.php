@@ -161,6 +161,18 @@ class RecordStockMovement
             ]);
         }
 
+        if ($type === StockMovementType::TransferOut && $quantity > 0) {
+            throw ValidationException::withMessages([
+                'quantity' => 'Jumlah pengiriman harus mengurangi stok.',
+            ]);
+        }
+
+        if ($type === StockMovementType::TransferIn && $quantity < 0) {
+            throw ValidationException::withMessages([
+                'quantity' => 'Jumlah penerimaan harus menambah stok.',
+            ]);
+        }
+
         if (trim($reason) === '') {
             throw ValidationException::withMessages([
                 'reason' => 'Alasan wajib diisi.',
