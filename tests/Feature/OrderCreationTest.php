@@ -11,6 +11,7 @@ use App\Modules\Catalog\Models\Product;
 use App\Modules\Catalog\Models\ProductVariant;
 use App\Modules\Ordering\Models\Order;
 use App\Modules\Shifts\Models\CashierShift;
+use Carbon\CarbonImmutable;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Inertia\Testing\AssertableInertia;
 use Tests\TestCase;
@@ -18,6 +19,21 @@ use Tests\TestCase;
 class OrderCreationTest extends TestCase
 {
     use RefreshDatabase;
+
+    protected function setUp(): void
+    {
+        parent::setUp();
+        // Shift gate (CreateOrder) menolak order saat now() >= scheduled_end_at + grace.
+        // Bekukan jam ke 10:00 WIB hari berjalan agar test tidak bergantung wall-clock
+        // (pola yang sama dengan OpenShiftTest/CloseShiftTest).
+        CarbonImmutable::setTestNow(CarbonImmutable::now('Asia/Jakarta')->startOfDay()->addHours(10));
+    }
+
+    protected function tearDown(): void
+    {
+        CarbonImmutable::setTestNow();
+        parent::tearDown();
+    }
 
     private function openShiftFor(User $user): CashierShift
     {

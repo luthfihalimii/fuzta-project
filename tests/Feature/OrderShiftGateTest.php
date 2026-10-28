@@ -16,6 +16,20 @@ class OrderShiftGateTest extends TestCase
 {
     use RefreshDatabase;
 
+    protected function setUp(): void
+    {
+        parent::setUp();
+        // Bekukan jam ke 10:00 WIB hari berjalan: window factory 09:00–15:00 tetap
+        // mencakup now(), sehingga gate cutoff tidak bergantung wall-clock.
+        CarbonImmutable::setTestNow(CarbonImmutable::now('Asia/Jakarta')->startOfDay()->addHours(10));
+    }
+
+    protected function tearDown(): void
+    {
+        CarbonImmutable::setTestNow();
+        parent::tearDown();
+    }
+
     private function productFor(Branch $branch): Product
     {
         $product = Product::factory()->for(Category::factory())->create(['base_price' => 50000]);
