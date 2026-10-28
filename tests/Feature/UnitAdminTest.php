@@ -136,6 +136,32 @@ class UnitAdminTest extends TestCase
         $this->assertSame(0, UnitConversion::count());
     }
 
+    public function test_store_conversion_rejects_exact_direction_duplicate(): void
+    {
+        $owner = User::factory()->owner()->create();
+        $kg = Unit::factory()->create(['code' => 'kg']);
+        $g = Unit::factory()->create(['code' => 'g']);
+
+        UnitConversion::create([
+            'from_unit_id' => $kg->id,
+            'to_unit_id' => $g->id,
+            'from_quantity' => 1,
+            'to_quantity' => 1000,
+        ]);
+
+        $this->actingAs($owner)
+            ->from('/admin/stock/units')
+            ->post('/admin/stock/unit-conversions', [
+                'from_unit_id' => $kg->id,
+                'to_unit_id' => $g->id,
+                'from_quantity' => 1,
+                'to_quantity' => 1000,
+            ])
+            ->assertSessionHasErrors('to_unit_id');
+
+        $this->assertSame(1, UnitConversion::count());
+    }
+
     public function test_store_conversion_rejects_reverse_direction_duplicate(): void
     {
         $owner = User::factory()->owner()->create();
