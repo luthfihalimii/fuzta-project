@@ -206,6 +206,12 @@ function confirmDelete(): void {
                     >
                         Bahan
                     </Link>
+                    <Link
+                        href="/admin/stock/units"
+                        class="inline-flex min-h-12 items-center rounded-xl border border-line bg-white px-4 text-sm font-semibold text-ink transition hover:bg-canvas"
+                    >
+                        Satuan
+                    </Link>
                 </div>
             </div>
 
