@@ -149,6 +149,18 @@ class RecordStockMovement
             ]);
         }
 
+        if ($type === StockMovementType::Consumption && $quantity > 0) {
+            throw ValidationException::withMessages([
+                'quantity' => 'Jumlah konsumsi harus mengurangi stok.',
+            ]);
+        }
+
+        if ($type === StockMovementType::ConsumptionReversal && $quantity < 0) {
+            throw ValidationException::withMessages([
+                'quantity' => 'Jumlah pembalikan konsumsi harus menambah stok.',
+            ]);
+        }
+
         if (trim($reason) === '') {
             throw ValidationException::withMessages([
                 'reason' => 'Alasan wajib diisi.',

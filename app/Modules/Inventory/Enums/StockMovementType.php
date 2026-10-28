@@ -9,6 +9,8 @@ enum StockMovementType: string
     case Waste = 'waste';
     case Adjustment = 'adjustment';
     case CountCorrection = 'count_correction';
+    case Consumption = 'consumption';
+    case ConsumptionReversal = 'consumption_reversal';
 
     public function label(): string
     {
@@ -18,6 +20,8 @@ enum StockMovementType: string
             self::Waste => 'Rusak',
             self::Adjustment => 'Koreksi',
             self::CountCorrection => 'Koreksi opname',
+            self::Consumption => 'Konsumsi pesanan',
+            self::ConsumptionReversal => 'Pembalikan konsumsi',
         };
     }
 
