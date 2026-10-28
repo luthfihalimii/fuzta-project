@@ -7,6 +7,7 @@ import EmptyState from '@/components/EmptyState.vue';
 import Money from '@/components/Money.vue';
 import PaymentSheet from '@/components/pos/PaymentSheet.vue';
 import ReceiptPreview from '@/components/pos/ReceiptPreview.vue';
+import ShiftStatusBadge from '@/components/shifts/ShiftStatusBadge.vue';
 import StaffLayout from '@/layouts/StaffLayout.vue';
 import { formatDateTime } from '@/lib/datetime';
 import type {
@@ -22,6 +23,7 @@ import {
     paymentStatusLabel,
     paymentStatusTone,
 } from '@/lib/status';
+import type { ShiftSummaryData } from '@/lib/shift';
 
 const props = defineProps<{
     branch: BranchSummary | null;
@@ -30,6 +32,9 @@ const props = defineProps<{
     orders: OrderRow[];
     today: string;
     posUrl: string;
+    shift: ShiftSummaryData | null;
+    orders_cutoff_at: string | null;
+    can_create_orders: boolean;
 }>();
 
 const page = usePage();
@@ -155,6 +160,14 @@ function switchBranch(): void {
                             · {{ props.branch.name }} ({{ props.branch.code }})
                         </template>
                     </p>
+                    <div v-if="props.shift" class="mt-2 flex flex-wrap items-center gap-2">
+                        <ShiftStatusBadge :shift="props.shift" />
+                        <span class="text-xs text-muted">
+                            {{ props.shift.window_key }}
+                            · kas seharusnya
+                            <Money :value="props.shift.expected_cash ?? 0" />
+                        </span>
+                    </div>
                 </div>
 
                 <div class="flex flex-wrap items-center gap-2">
@@ -181,6 +194,13 @@ function switchBranch(): void {
                         Kembali ke POS
                     </Link>
                 </div>
+            </div>
+
+            <div
+                v-if="!props.can_create_orders && props.shift"
+                class="rounded-xl border border-warning/20 bg-warning/10 px-4 py-3 text-sm text-warning"
+            >
+                Batas pesanan shift ini sudah lewat. Pembayaran masih bisa dilakukan sampai shift ditutup.
             </div>
 
             <div

@@ -6,11 +6,17 @@ import EmptyState from '@/components/EmptyState.vue';
 import Input from '@/components/Input.vue';
 import Money from '@/components/Money.vue';
 import PaymentSheet from '@/components/pos/PaymentSheet.vue';
+import CloseShiftDialog from '@/components/shifts/CloseShiftDialog.vue';
+import ReconcileShiftDialog from '@/components/shifts/ReconcileShiftDialog.vue';
+import ShiftGate from '@/components/shifts/ShiftGate.vue';
+import ShiftStatusBadge from '@/components/shifts/ShiftStatusBadge.vue';
+import ShiftSummary from '@/components/shifts/ShiftSummary.vue';
 import ReceiptPreview from '@/components/pos/ReceiptPreview.vue';
 import StaffLayout from '@/layouts/StaffLayout.vue';
 import { HttpError, postJson } from '@/lib/http';
 import type { BranchOption, BranchSummary, PosOrder } from '@/lib/order';
 import { formatSignedRupiah } from '@/lib/money';
+import type { ShiftReminder, ShiftSummaryData, ShiftWindow } from '@/lib/shift';
 
 type PosVariant = {
     id: number;
@@ -65,6 +71,12 @@ const props = defineProps<{
     categories: PosCategory[];
     products: PosProduct[];
     ordersUrl: string;
+    shift: ShiftSummaryData | null;
+    shift_window: ShiftWindow | null;
+    shift_reminder: ShiftReminder | null;
+    unreconciled_shift: ShiftSummaryData | null;
+    orders_cutoff_at: string | null;
+    can_create_orders: boolean;
 }>();
 
 const page = usePage();
@@ -94,6 +106,7 @@ const receiptOpen = ref(false);
 const paidOrder = ref<PosOrder | null>(null);
 const successMessage = ref('');
 const pendingKey = ref<string | null>(null);
+const closeShiftOpen = ref(false);
 
 const filteredProducts = computed(() => {
     const query = search.value.trim().toLowerCase();
@@ -401,6 +414,12 @@ async function submitOrder(): Promise<void> {
         return;
     }
 
+    if (!props.can_create_orders) {
+        orderError.value = 'Shift sudah melewati batas pesanan. Tutup shift.';
+
+        return;
+    }
+
     submittingOrder.value = true;
     orderError.value = '';
     successMessage.value = '';
@@ -490,6 +509,15 @@ function switchBranch(): void {
                 </div>
 
                 <div class="flex flex-wrap items-center gap-2">
+                    <ShiftStatusBadge v-if="props.shift" :shift="props.shift" />
+                    <button
+                        v-if="props.shift"
+                        type="button"
+                        class="inline-flex min-h-12 items-center justify-center rounded-xl border border-line bg-white px-4 text-sm font-semibold text-ink transition hover:bg-canvas"
+                        @click="closeShiftOpen = true"
+                    >
+                        Tutup shift
+                    </button>
                     <select
                         v-if="props.canChooseBranch"
                         v-model="branchSelect"
@@ -548,7 +576,27 @@ function switchBranch(): void {
             </div>
 
             <div
-                v-if="props.products.length > 0"
+                v-if="props.shift_reminder"
+                class="rounded-xl border border-warning/20 bg-warning/10 px-4 py-3 text-sm text-warning"
+            >
+                {{ props.shift_reminder.message }}
+            </div>
+
+            <ShiftGate
+                v-if="!props.shift && !props.unreconciled_shift"
+                :branch="props.branch"
+                :window="props.shift_window"
+            />
+
+            <ReconcileShiftDialog
+                v-if="props.unreconciled_shift && !props.shift"
+                :shift="props.unreconciled_shift"
+            />
+
+            <ShiftSummary v-if="props.shift" :shift="props.shift" />
+
+            <div
+                v-if="props.shift && props.products.length > 0"
                 class="flex flex-col gap-3 lg:flex-row lg:items-end lg:justify-between"
             >
                 <div class="flex gap-2 overflow-x-auto pb-1">
@@ -592,7 +640,10 @@ function switchBranch(): void {
                 </div>
             </div>
 
-            <div class="grid gap-5 lg:grid-cols-[1fr_360px] lg:items-start">
+            <div
+                v-if="props.shift"
+                class="grid gap-5 lg:grid-cols-[1fr_360px] lg:items-start"
+            >
                 <section class="min-w-0">
                     <EmptyState
                         v-if="props.products.length === 0"
@@ -861,7 +912,11 @@ function switchBranch(): void {
 
                         <Button
                             class="w-full"
-                            :disabled="submittingOrder || cart.length === 0"
+                            :disabled="
+                                submittingOrder ||
+                                cart.length === 0 ||
+                                !props.can_create_orders
+                            "
                             @click="submitOrder"
                         >
                             {{
@@ -876,7 +931,7 @@ function switchBranch(): void {
         </div>
 
         <div
-            v-if="cartCount > 0 || createdOrder"
+            v-if="props.shift && (cartCount > 0 || createdOrder)"
             class="fixed inset-x-0 bottom-0 z-20 border-t border-line bg-white p-3 lg:hidden"
         >
             <button
@@ -1128,6 +1183,12 @@ function switchBranch(): void {
             allow-new-order
             @close="receiptOpen = false"
             @new-order="startNewOrder"
+        />
+
+        <CloseShiftDialog
+            :open="closeShiftOpen"
+            :shift="props.shift"
+            @close="closeShiftOpen = false"
         />
     </StaffLayout>
 </template>

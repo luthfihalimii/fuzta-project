@@ -15,6 +15,8 @@ use App\Modules\Ordering\Actions\ResolvePosBranch;
 use App\Modules\Ordering\Data\CreateOrderData;
 use App\Modules\Ordering\Enums\OrderChannel;
 use App\Modules\Ordering\Support\OrderPayload;
+use App\Modules\Shifts\Actions\BuildShiftReminder;
+use App\Modules\Shifts\Actions\ResolveShiftWindow;
 use App\Modules\Shifts\Models\CashierShift;
 use App\Modules\Shifts\Support\ShiftPresenter;
 use Illuminate\Http\JsonResponse;
@@ -28,6 +30,8 @@ class PosController extends Controller
     public function index(
         Request $request,
         ResolvePosBranch $resolveBranch,
+        ResolveShiftWindow $resolveWindow,
+        BuildShiftReminder $buildReminder,
     ): Response {
         $user = $request->user();
         $requestedBranchId = $request->integer('branch');
@@ -120,6 +124,15 @@ class PosController extends Controller
             (int) config('shifts.auto_close_grace_minutes', 15),
         );
 
+        $unreconciled = CashierShift::query()
+            ->where('user_id', $user->id)
+            ->where('close_type', 'auto')
+            ->whereNull('reconciled_at')
+            ->latest('closed_at')
+            ->first();
+
+        $window = ($resolveWindow)();
+
         return Inertia::render('pos/Index', [
             'branch' => $branch ? BranchPresenter::summary($branch) : null,
             'branches' => $user->isOwner() ? BranchPresenter::options() : [],
@@ -128,6 +141,14 @@ class PosController extends Controller
             'products' => $products,
             'ordersUrl' => $branch ? '/pos/orders?branch='.$branch->id : '/pos/orders',
             'shift' => $shift ? ShiftPresenter::summary($shift) : null,
+            'shift_window' => $window === null ? null : [
+                'key' => $window->key,
+                'label' => $window->label,
+                'start' => $window->startUtc->setTimezone(config('shifts.timezone'))->format('H:i'),
+                'end' => $window->endUtc->setTimezone(config('shifts.timezone'))->format('H:i'),
+            ],
+            'shift_reminder' => ($buildReminder)($shift),
+            'unreconciled_shift' => $unreconciled ? ShiftPresenter::summary($unreconciled) : null,
             'orders_cutoff_at' => $cutoff?->toIso8601String(),
             'can_create_orders' => $shift !== null && ($cutoff === null || now()->lessThan($cutoff)),
         ]);

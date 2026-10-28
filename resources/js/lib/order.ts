@@ -4,6 +4,7 @@ export type BranchSummary = {
     name: string;
     address: string | null;
     phone: string | null;
+    cash_float: number;
     is_active: boolean;
 };
 
