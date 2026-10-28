@@ -9,6 +9,7 @@ use App\Modules\Inventory\Enums\StockMovementType;
 use App\Modules\Inventory\Enums\TransferStatus;
 use App\Modules\Inventory\Models\Ingredient;
 use App\Modules\Inventory\Models\StockBalance;
+use App\Modules\Inventory\Models\StockMovement;
 use App\Modules\Inventory\Models\StockTransfer;
 use App\Modules\Inventory\Models\StockTransferItem;
 use Illuminate\Foundation\Testing\RefreshDatabase;
@@ -214,5 +215,116 @@ class StockTransferTest extends TestCase
             'target_type' => StockTransfer::class,
             'target_id' => $transfer->id,
         ]);
+    }
+
+    public function test_dispatch_reduces_origin_stock_and_writes_transfer_out_movements(): void
+    {
+        $origin = Branch::factory()->create();
+        $destination = Branch::factory()->create();
+        $owner = User::factory()->owner()->create();
+        $ingA = Ingredient::factory()->create(['name' => 'Tepung']);
+        $ingB = Ingredient::factory()->create(['name' => 'Saus']);
+
+        StockBalance::factory()->for($origin)->for($ingA, 'ingredient')->create(['quantity' => 100]);
+        StockBalance::factory()->for($origin)->for($ingB, 'ingredient')->create(['quantity' => 50]);
+
+        $transfer = StockTransfer::factory()->create([
+            'origin_branch_id' => $origin->id,
+            'destination_branch_id' => $destination->id,
+            'created_by' => $owner->id,
+        ]);
+        StockTransferItem::factory()->for($transfer, 'transfer')->for($ingA, 'ingredient')->create(['quantity' => 30]);
+        StockTransferItem::factory()->for($transfer, 'transfer')->for($ingB, 'ingredient')->create(['quantity' => 10]);
+
+        $this->actingAs($owner)
+            ->patch("/admin/stock/transfers/{$transfer->id}/dispatch")
+            ->assertStatus(302);
+
+        $this->assertDatabaseHas('stock_balances', ['branch_id' => $origin->id, 'ingredient_id' => $ingA->id, 'quantity' => 70]);
+        $this->assertDatabaseHas('stock_balances', ['branch_id' => $origin->id, 'ingredient_id' => $ingB->id, 'quantity' => 40]);
+
+        $this->assertSame(2, StockMovement::query()->where('type', StockMovementType::TransferOut->value)->count());
+
+        foreach ([[$ingA, -30], [$ingB, -10]] as [$ingredient, $quantity]) {
+            $this->assertDatabaseHas('stock_movements', [
+                'branch_id' => $origin->id,
+                'ingredient_id' => $ingredient->id,
+                'type' => StockMovementType::TransferOut->value,
+                'quantity' => $quantity,
+                'reference_type' => StockTransfer::class,
+                'reference_id' => $transfer->id,
+                'actor_id' => $owner->id,
+            ]);
+        }
+
+        $transfer->refresh();
+        $this->assertSame(TransferStatus::Dispatched, $transfer->status);
+        $this->assertNotNull($transfer->dispatched_at);
+
+        $this->assertDatabaseHas('audit_logs', [
+            'action' => 'transfer.dispatched',
+            'target_type' => StockTransfer::class,
+            'target_id' => $transfer->id,
+        ]);
+    }
+
+    public function test_dispatch_shortfall_rejects_and_changes_nothing(): void
+    {
+        $origin = Branch::factory()->create();
+        $destination = Branch::factory()->create();
+        $owner = User::factory()->owner()->create();
+        $ingredient = Ingredient::factory()->create(['name' => 'Tepung']);
+
+        StockBalance::factory()->for($origin)->for($ingredient, 'ingredient')->create(['quantity' => 20]);
+
+        $transfer = StockTransfer::factory()->create([
+            'origin_branch_id' => $origin->id,
+            'destination_branch_id' => $destination->id,
+            'created_by' => $owner->id,
+        ]);
+        StockTransferItem::factory()->for($transfer, 'transfer')->for($ingredient, 'ingredient')->create(['quantity' => 30]);
+
+        $this->actingAs($owner)
+            ->patch("/admin/stock/transfers/{$transfer->id}/dispatch")
+            ->assertSessionHasErrors('stock');
+
+        $this->assertStringContainsString('Tepung', session('errors')->first('stock'));
+
+        $this->assertDatabaseHas('stock_balances', ['branch_id' => $origin->id, 'ingredient_id' => $ingredient->id, 'quantity' => 20]);
+        $this->assertDatabaseCount('stock_movements', 0);
+
+        $transfer->refresh();
+        $this->assertSame(TransferStatus::Draft, $transfer->status);
+        $this->assertNull($transfer->dispatched_at);
+    }
+
+    public function test_second_dispatch_is_rejected(): void
+    {
+        $origin = Branch::factory()->create();
+        $destination = Branch::factory()->create();
+        $owner = User::factory()->owner()->create();
+        $ingredient = Ingredient::factory()->create(['name' => 'Keju']);
+
+        StockBalance::factory()->for($origin)->for($ingredient, 'ingredient')->create(['quantity' => 100]);
+
+        $transfer = StockTransfer::factory()->create([
+            'origin_branch_id' => $origin->id,
+            'destination_branch_id' => $destination->id,
+            'created_by' => $owner->id,
+        ]);
+        StockTransferItem::factory()->for($transfer, 'transfer')->for($ingredient, 'ingredient')->create(['quantity' => 40]);
+
+        $this->actingAs($owner)
+            ->patch("/admin/stock/transfers/{$transfer->id}/dispatch")
+            ->assertStatus(302);
+
+        $this->actingAs($owner)
+            ->patch("/admin/stock/transfers/{$transfer->id}/dispatch")
+            ->assertSessionHasErrors('status');
+
+        $this->assertSame(1, StockMovement::query()->where('type', StockMovementType::TransferOut->value)->count());
+        $this->assertDatabaseHas('stock_balances', ['branch_id' => $origin->id, 'ingredient_id' => $ingredient->id, 'quantity' => 60]);
+
+        $this->assertSame(TransferStatus::Dispatched, $transfer->fresh()->status);
     }
 }

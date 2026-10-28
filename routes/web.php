@@ -116,6 +116,7 @@ Route::middleware(['auth', 'role:owner'])->prefix('admin')->group(function () {
         Route::get('/counts', [StockCountController::class, 'index'])->name('counts.index');
         Route::post('/counts', [StockCountController::class, 'store'])->name('counts.store');
         Route::post('/transfers', [StockTransferController::class, 'store'])->name('transfers.store');
+        Route::patch('/transfers/{transfer}/dispatch', [StockTransferController::class, 'dispatch'])->name('transfers.dispatch');
     });
 
     Route::get('/staff', [StaffController::class, 'index'])->name('admin.staff.index');
