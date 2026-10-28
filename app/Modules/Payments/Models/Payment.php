@@ -5,6 +5,7 @@ namespace App\Modules\Payments\Models;
 use App\Modules\Ordering\Models\Order;
 use App\Modules\Payments\Enums\PaymentMethod;
 use App\Modules\Payments\Enums\PaymentStatus;
+use App\Modules\Shifts\Models\CashierShift;
 use Illuminate\Database\Eloquent\Attributes\Fillable;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
@@ -12,6 +13,7 @@ use Illuminate\Database\Eloquent\Relations\HasMany;
 
 #[Fillable([
     'order_id',
+    'shift_id',
     'method',
     'amount',
     'cash_received',
@@ -41,6 +43,11 @@ class Payment extends Model
     public function order(): BelongsTo
     {
         return $this->belongsTo(Order::class);
+    }
+
+    public function shift(): BelongsTo
+    {
+        return $this->belongsTo(CashierShift::class, 'shift_id');
     }
 
     public function events(): HasMany

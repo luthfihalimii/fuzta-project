@@ -22,6 +22,7 @@ class BranchFactory extends Factory
             'code' => 'PF-'.fake()->unique()->numerify('##'),
             'address' => fake()->address(),
             'phone' => fake()->phoneNumber(),
+            'cash_float' => 0,
             'is_active' => true,
         ];
     }

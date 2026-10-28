@@ -9,7 +9,7 @@ use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\HasMany;
 
-#[Fillable(['name', 'code', 'address', 'phone', 'is_active'])]
+#[Fillable(['name', 'code', 'address', 'phone', 'cash_float', 'is_active'])]
 class Branch extends Model
 {
     /** @use HasFactory<BranchFactory> */
@@ -21,6 +21,7 @@ class Branch extends Model
     protected function casts(): array
     {
         return [
+            'cash_float' => 'integer',
             'is_active' => 'boolean',
         ];
     }

@@ -8,6 +8,7 @@ use App\Modules\Ordering\Enums\OrderChannel;
 use App\Modules\Ordering\Enums\OrderStatus;
 use App\Modules\Payments\Enums\PaymentStatus;
 use App\Modules\Payments\Models\Payment;
+use App\Modules\Shifts\Models\CashierShift;
 use Database\Factories\OrderFactory;
 use Illuminate\Database\Eloquent\Attributes\Fillable;
 use Illuminate\Database\Eloquent\Builder;
@@ -21,6 +22,7 @@ use Illuminate\Database\Eloquent\Relations\HasOne;
     'order_number',
     'branch_id',
     'placed_by_id',
+    'shift_id',
     'channel',
     'table_number',
     'customer_name',
@@ -58,6 +60,11 @@ class Order extends Model
     public function placedBy(): BelongsTo
     {
         return $this->belongsTo(User::class, 'placed_by_id');
+    }
+
+    public function shift(): BelongsTo
+    {
+        return $this->belongsTo(CashierShift::class, 'shift_id');
     }
 
     public function items(): HasMany
