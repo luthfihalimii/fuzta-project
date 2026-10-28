@@ -9,7 +9,7 @@ This repository is the first-release MVP. Payment is recorded in the app (cash o
 - PHP 8.3+ with `pdo_pgsql`, `mbstring`, `xml`, `curl`, and `zip`
 - Composer 2
 - PostgreSQL 16+
-- Node.js 22+ and npm
+- Bun 1.4 (bundles its own JavaScript runtime)
 - Optional: `pg_dump`, `pg_restore`, and the AWS CLI for backups
 
 ## Local setup
@@ -29,15 +29,15 @@ createdb pizza_fruzta
 Then install the frontend, migrate and seed, and run the app:
 
 ```bash
-npm install
+bun install
 php artisan migrate --seed
-npm run build
+bun run build
 
 # terminal 1
 php artisan serve
 
 # terminal 2 (hot reload)
-npm run dev
+bun run dev
 ```
 
 Open `http://127.0.0.1:8000`.
@@ -64,13 +64,13 @@ The command prompts for the password and refuses to run when an active owner alr
 
 ```bash
 php artisan test
-npm run test:js
-npm run typecheck
-npm run lint
+bun run test:js
+bun run typecheck
+bun run lint
 ./vendor/bin/pint --test
 ```
 
-The PHP suite uses the `pizza_fruzta_test` database (create it once). Do not run `npm run build` at the same time as `php artisan test`; Vite can rewrite the manifest and break Inertia rendering during the run.
+The PHP suite uses the `pizza_fruzta_test` database (create it once). Do not run `bun run build` at the same time as `php artisan test`; Vite can rewrite the manifest and break Inertia rendering during the run.
 
 `composer ci:check` runs formatting, lint, typecheck, JS tests, the production build, Pint, and the PHP suite. Static analysis is available with `composer analyse`, but PHPStan is not a CI gate yet.
 

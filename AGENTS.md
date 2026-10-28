@@ -53,12 +53,12 @@ php artisan inventory:reconcile # scan saldo vs ledger; tambahkan --fix untuk me
 ./vendor/bin/pint               # code style (if Pint is installed)
 
 # Web UI
-npm install
-npm run dev
-npm run build
-npm run test:js
-npm run lint && npm run typecheck
-npm run check                # format + lint + types; drift format lolos commit karena baris ini dulu tak dijalankan
+bun install
+bun run dev
+bun run build
+bun run test:js
+bun run lint && bun run typecheck
+bun run check                # format + lint + types; drift format lolos commit karena baris ini dulu tak dijalankan
 
 # Gerbang otoritatif — sama persis dengan CI (format, types, vitest, build, pint, phpunit):
 composer ci:check
