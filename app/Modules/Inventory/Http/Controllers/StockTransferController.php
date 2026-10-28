@@ -3,9 +3,11 @@
 namespace App\Modules\Inventory\Http\Controllers;
 
 use App\Http\Controllers\Controller;
+use App\Http\Requests\CancelStockTransferRequest;
 use App\Http\Requests\DispatchStockTransferRequest;
 use App\Http\Requests\ReceiveStockTransferRequest;
 use App\Http\Requests\StoreStockTransferRequest;
+use App\Modules\Inventory\Actions\CancelStockTransfer;
 use App\Modules\Inventory\Actions\CreateStockTransfer;
 use App\Modules\Inventory\Actions\DispatchStockTransfer;
 use App\Modules\Inventory\Actions\ReceiveStockTransfer;
@@ -39,5 +41,15 @@ class StockTransferController extends Controller
         $receive($request->user(), $transfer->id, $request->validated('received_items'));
 
         return back()->with('success', 'Transfer diterima.');
+    }
+
+    public function cancel(
+        CancelStockTransferRequest $request,
+        StockTransfer $transfer,
+        CancelStockTransfer $cancel,
+    ): RedirectResponse {
+        $cancel($request->user(), $transfer->id, (string) $request->validated('cancel_reason'));
+
+        return back()->with('success', 'Transfer dibatalkan.');
     }
 }

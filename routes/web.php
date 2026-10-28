@@ -118,6 +118,7 @@ Route::middleware(['auth', 'role:owner'])->prefix('admin')->group(function () {
         Route::post('/transfers', [StockTransferController::class, 'store'])->name('transfers.store');
         Route::patch('/transfers/{transfer}/dispatch', [StockTransferController::class, 'dispatch'])->name('transfers.dispatch');
         Route::patch('/transfers/{transfer}/receive', [StockTransferController::class, 'receive'])->name('transfers.receive');
+        Route::patch('/transfers/{transfer}/cancel', [StockTransferController::class, 'cancel'])->name('transfers.cancel');
     });
 
     Route::get('/staff', [StaffController::class, 'index'])->name('admin.staff.index');

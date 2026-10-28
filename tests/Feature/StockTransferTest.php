@@ -577,6 +577,122 @@ class StockTransferTest extends TestCase
         $this->assertSame(2, StockMovement::query()->where('type', StockMovementType::TransferIn->value)->count());
     }
 
+    public function test_cancel_draft_transfer(): void
+    {
+        $origin = Branch::factory()->create();
+        $destination = Branch::factory()->create();
+        $owner = User::factory()->owner()->create();
+        $ingredient = Ingredient::factory()->create();
+
+        $transfer = StockTransfer::factory()->create([
+            'origin_branch_id' => $origin->id,
+            'destination_branch_id' => $destination->id,
+            'created_by' => $owner->id,
+        ]);
+        StockTransferItem::factory()->for($transfer, 'transfer')->for($ingredient, 'ingredient')->create(['quantity' => 10]);
+
+        $this->actingAs($owner)
+            ->patch("/admin/stock/transfers/{$transfer->id}/cancel", ['cancel_reason' => 'salah ketik'])
+            ->assertStatus(302);
+
+        $transfer->refresh();
+        $this->assertSame(TransferStatus::Cancelled, $transfer->status);
+        $this->assertSame('salah ketik', $transfer->cancel_reason);
+
+        $this->assertDatabaseCount('stock_movements', 0);
+        $this->assertDatabaseCount('stock_balances', 0);
+
+        $this->assertDatabaseHas('audit_logs', [
+            'action' => 'transfer.cancelled',
+            'target_type' => StockTransfer::class,
+            'target_id' => $transfer->id,
+        ]);
+    }
+
+    public function test_cancel_requires_reason(): void
+    {
+        $origin = Branch::factory()->create();
+        $destination = Branch::factory()->create();
+        $owner = User::factory()->owner()->create();
+
+        $transfer = StockTransfer::factory()->create([
+            'origin_branch_id' => $origin->id,
+            'destination_branch_id' => $destination->id,
+            'created_by' => $owner->id,
+        ]);
+
+        $this->actingAs($owner)
+            ->patchJson("/admin/stock/transfers/{$transfer->id}/cancel")
+            ->assertStatus(422)
+            ->assertJsonValidationErrors('cancel_reason');
+
+        $transfer->refresh();
+        $this->assertSame(TransferStatus::Draft, $transfer->status);
+        $this->assertNull($transfer->cancel_reason);
+    }
+
+    public function test_cancel_dispatched_is_rejected(): void
+    {
+        [, , $owner, $transfer] = $this->makeDispatchedTransfer();
+
+        $this->actingAs($owner)
+            ->patch("/admin/stock/transfers/{$transfer->id}/cancel", ['cancel_reason' => 'berubah pikiran'])
+            ->assertSessionHasErrors('status');
+
+        $this->assertSame(TransferStatus::Dispatched, $transfer->fresh()->status);
+        $this->assertDatabaseCount('stock_movements', 0);
+    }
+
+    public function test_full_cycle_reconciles_to_ledger(): void
+    {
+        $origin = Branch::factory()->create();
+        $destination = Branch::factory()->create();
+        $owner = User::factory()->owner()->create();
+        $ingA = Ingredient::factory()->create();
+        $ingB = Ingredient::factory()->create();
+
+        app(RecordStockMovement::class)($owner, $origin->id, $ingA->id, 100, StockMovementType::Opening, 'Stok awal');
+        app(RecordStockMovement::class)($owner, $origin->id, $ingB->id, 50, StockMovementType::Opening, 'Stok awal');
+
+        $this->actingAs($owner)
+            ->post('/admin/stock/transfers', [
+                'origin_branch_id' => $origin->id,
+                'destination_branch_id' => $destination->id,
+                'items' => [
+                    ['ingredient_id' => $ingA->id, 'quantity' => 30],
+                    ['ingredient_id' => $ingB->id, 'quantity' => 10],
+                ],
+            ])
+            ->assertStatus(302);
+
+        $transfer = StockTransfer::query()->sole();
+
+        $this->actingAs($owner)
+            ->patch("/admin/stock/transfers/{$transfer->id}/dispatch")
+            ->assertStatus(302);
+
+        $items = $transfer->items()->orderBy('id')->get();
+        $shortItem = $items->firstWhere('ingredient_id', $ingB->id);
+        $fullItem = $items->firstWhere('ingredient_id', $ingA->id);
+
+        $this->actingAs($owner)
+            ->patch("/admin/stock/transfers/{$transfer->id}/receive", [
+                'received_items' => [
+                    ['item_id' => $fullItem->id, 'received_quantity' => 30, 'discrepancy_reason' => null],
+                    ['item_id' => $shortItem->id, 'received_quantity' => 9, 'discrepancy_reason' => 'leps hilang 1'],
+                ],
+            ])
+            ->assertStatus(302);
+
+        $this->assertSame(TransferStatus::Received, $transfer->fresh()->status);
+
+        $this->artisan('inventory:reconcile')
+            ->expectsOutputToContain('tidak ada selisih')
+            ->assertExitCode(0);
+
+        $this->assertSame(0, StockBalance::where('quantity', '<', 0)->count());
+    }
+
     /**
      * @return array{Branch, Branch, User, StockTransfer, StockTransferItem, StockTransferItem}
      */
