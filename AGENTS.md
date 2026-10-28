@@ -49,6 +49,7 @@ AGENTS.md         This file
 composer install
 php artisan migrate
 php artisan test                # run before every commit
+php artisan inventory:reconcile # scan saldo vs ledger; tambahkan --fix untuk menulis ulang + audit
 ./vendor/bin/pint               # code style (if Pint is installed)
 
 # Web UI
