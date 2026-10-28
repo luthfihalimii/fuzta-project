@@ -44,3 +44,7 @@ yarn-error.log
 /opencode.jsonc
 
 .env.testing
+
+# Agent scratch (never commit)
+.superpowers/
+.commandcode/
