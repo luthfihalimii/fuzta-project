@@ -41,7 +41,7 @@ class ConvertUnit
             }
 
             foreach ($edges as [$edgeFrom, $edgeTo, $edgeFromQty, $edgeToQty]) {
-                // shortcut: floor rounding on inexact results; upgrade when lots/expiry need fractional qty.
+                // shortcut: pembulatan floor pada hasil non-eksak; upgrade saat lot/expiry butuh qty fraksional.
                 if ($edgeFrom === $unitId) {
                     $next = intdiv($result * $edgeToQty, $edgeFromQty);
                     $nextUnitId = $edgeTo;
