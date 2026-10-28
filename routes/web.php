@@ -13,6 +13,7 @@ use App\Modules\Inventory\Http\Controllers\IngredientController;
 use App\Modules\Inventory\Http\Controllers\RecipeController;
 use App\Modules\Inventory\Http\Controllers\StockCountController;
 use App\Modules\Inventory\Http\Controllers\StockMovementController;
+use App\Modules\Inventory\Http\Controllers\UnitConversionController;
 use App\Modules\Kitchen\Http\Controllers\KitchenController;
 use App\Modules\Ordering\Http\Controllers\OrderController;
 use App\Modules\Ordering\Http\Controllers\PosController;
@@ -99,6 +100,12 @@ Route::middleware(['auth', 'role:owner'])->prefix('admin')->group(function () {
     Route::prefix('stock')->name('admin.stock.')->group(function () {
         Route::get('/ingredients', [IngredientController::class, 'index'])->name('ingredients.index');
         Route::post('/ingredients', [IngredientController::class, 'store'])->name('ingredients.store');
+        Route::get('/units', [UnitConversionController::class, 'index'])->name('units.index');
+        Route::post('/units', [UnitConversionController::class, 'storeUnit'])->name('units.store');
+        Route::patch('/units/{unit}', [UnitConversionController::class, 'updateUnit'])->name('units.update');
+        Route::delete('/units/{unit}', [UnitConversionController::class, 'destroyUnit'])->name('units.destroy');
+        Route::post('/unit-conversions', [UnitConversionController::class, 'storeConversion'])->name('unit-conversions.store');
+        Route::delete('/unit-conversions/{unitConversion}', [UnitConversionController::class, 'destroyConversion'])->name('unit-conversions.destroy');
         Route::get('/recipes', [RecipeController::class, 'index'])->name('recipes.index');
         Route::post('/recipes', [RecipeController::class, 'store'])->name('recipes.store');
         Route::patch('/recipes/{recipe}', [RecipeController::class, 'update'])->name('recipes.update');
