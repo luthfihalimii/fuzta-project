@@ -17,6 +17,7 @@ class BranchPresenter
             'name' => $branch->name,
             'address' => $branch->address,
             'phone' => $branch->phone,
+            'cash_float' => $branch->cash_float,
             'is_active' => $branch->is_active,
         ];
     }

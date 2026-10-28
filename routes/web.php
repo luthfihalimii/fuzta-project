@@ -17,6 +17,7 @@ use App\Modules\Ordering\Http\Controllers\OrderController;
 use App\Modules\Ordering\Http\Controllers\PosController;
 use App\Modules\Payments\Http\Controllers\PaymentController;
 use App\Modules\Reporting\Http\Controllers\ReportController;
+use App\Modules\Shifts\Http\Controllers\PosShiftController;
 use Illuminate\Support\Facades\Route;
 
 Route::get('/health', fn () => response()->json(['status' => 'ok']));
@@ -46,6 +47,7 @@ Route::post('/logout', [LoginController::class, 'destroy'])
 
 Route::middleware(['auth', 'role:cashier,owner'])->group(function () {
     Route::get('/pos', [PosController::class, 'index'])->name('pos.index');
+    Route::post('/pos/shift/open', [PosShiftController::class, 'open'])->middleware('throttle:shifts')->name('pos.shift.open');
     Route::post('/pos/orders', [PosController::class, 'store'])->middleware('throttle:orders')->name('pos.orders.store');
     Route::get('/pos/orders', [OrderController::class, 'index'])->name('pos.orders.index');
 

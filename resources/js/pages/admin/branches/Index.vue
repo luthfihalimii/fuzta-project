@@ -5,6 +5,7 @@ import Badge from '@/components/Badge.vue';
 import Button from '@/components/Button.vue';
 import EmptyState from '@/components/EmptyState.vue';
 import Input from '@/components/Input.vue';
+import { formatRupiah } from '@/lib/money';
 import StaffLayout from '@/layouts/StaffLayout.vue';
 
 type BranchRow = {
@@ -13,6 +14,7 @@ type BranchRow = {
     code: string;
     address: string | null;
     phone: string | null;
+    cash_float: number;
     is_active: boolean;
     users_count: number;
 };
@@ -29,6 +31,7 @@ const form = useForm({
     code: '',
     address: '',
     phone: '',
+    cash_float: '0',
     is_active: true,
     reason: '',
 });
@@ -45,6 +48,7 @@ function startEdit(branch: BranchRow): void {
     form.code = branch.code;
     form.address = branch.address ?? '';
     form.phone = branch.phone ?? '';
+    form.cash_float = String(branch.cash_float);
     form.is_active = branch.is_active;
     form.reason = '';
     form.clearErrors();
@@ -167,6 +171,14 @@ function toggleActive(branch: BranchRow): void {
                         :error="form.errors.phone"
                     />
                     <Input
+                        v-model="form.cash_float"
+                        label="Float kas"
+                        type="number"
+                        min="0"
+                        hint="Uang fisik yang harus ada di awal shift."
+                        :error="form.errors.cash_float"
+                    />
+                    <Input
                         v-if="isEditing"
                         v-model="form.reason"
                         label="Alasan perubahan (opsional)"
@@ -220,6 +232,7 @@ function toggleActive(branch: BranchRow): void {
                                 <th class="px-5 py-3">Nama</th>
                                 <th class="px-5 py-3">Alamat</th>
                                 <th class="px-5 py-3">Telepon</th>
+                                <th class="px-5 py-3">Float kas</th>
                                 <th class="px-5 py-3">Staf</th>
                                 <th class="px-5 py-3">Status</th>
                                 <th class="px-5 py-3 text-right">Aksi</th>
@@ -243,6 +256,9 @@ function toggleActive(branch: BranchRow): void {
                                 </td>
                                 <td class="px-5 py-4 text-muted">
                                     {{ branch.phone ?? '—' }}
+                                </td>
+                                <td class="px-5 py-4 text-muted">
+                                    {{ formatRupiah(branch.cash_float) }}
                                 </td>
                                 <td class="px-5 py-4">
                                     {{ branch.users_count }}

@@ -2,12 +2,15 @@
 
 namespace App\Providers;
 
+use App\Modules\Shifts\Models\CashierShift;
+use App\Modules\Shifts\Policies\CashierShiftPolicy;
 use Carbon\CarbonImmutable;
 use Illuminate\Cache\RateLimiting\Limit;
 use Illuminate\Database\Eloquent\Factories\Factory;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Date;
 use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\Gate;
 use Illuminate\Support\Facades\RateLimiter;
 use Illuminate\Support\ServiceProvider;
 use Illuminate\Support\Str;
@@ -30,6 +33,8 @@ class AppServiceProvider extends ServiceProvider
     {
         $this->configureDefaults();
         $this->configureRateLimiting();
+
+        Gate::policy(CashierShift::class, CashierShiftPolicy::class);
     }
 
     protected function configureRateLimiting(): void
@@ -41,6 +46,9 @@ class AppServiceProvider extends ServiceProvider
             ->by($request->user()?->id ?: $request->ip()));
 
         RateLimiter::for('payments', fn (Request $request): Limit => Limit::perMinute(20)
+            ->by($request->user()?->id ?: $request->ip()));
+
+        RateLimiter::for('shifts', fn (Request $request): Limit => Limit::perMinute(10)
             ->by($request->user()?->id ?: $request->ip()));
     }
 

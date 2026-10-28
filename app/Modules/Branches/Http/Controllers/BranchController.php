@@ -29,6 +29,7 @@ class BranchController extends Controller
                     'code' => $branch->code,
                     'address' => $branch->address,
                     'phone' => $branch->phone,
+                    'cash_float' => $branch->cash_float,
                     'is_active' => $branch->is_active,
                     'users_count' => $branch->users_count,
                 ]),
@@ -44,6 +45,7 @@ class BranchController extends Controller
             'code' => ['required', 'string', 'max:20', 'unique:branches,code'],
             'address' => ['nullable', 'string', 'max:1000'],
             'phone' => ['nullable', 'string', 'max:30'],
+            'cash_float' => ['sometimes', 'integer', 'min:0', 'max:1000000000'],
             'is_active' => ['sometimes', 'boolean'],
         ]);
 
@@ -82,6 +84,7 @@ class BranchController extends Controller
             ],
             'address' => ['sometimes', 'nullable', 'string', 'max:1000'],
             'phone' => ['sometimes', 'nullable', 'string', 'max:30'],
+            'cash_float' => ['sometimes', 'integer', 'min:0', 'max:1000000000'],
             'is_active' => ['sometimes', 'boolean'],
             'reason' => ['nullable', 'string', 'max:500'],
         ]);
@@ -120,6 +123,7 @@ class BranchController extends Controller
             'code' => $branch->code,
             'address' => $branch->address,
             'phone' => $branch->phone,
+            'cash_float' => $branch->cash_float,
             'is_active' => $branch->is_active,
         ];
     }

@@ -10,6 +10,7 @@ defineProps<{
     max?: string | number;
     step?: string | number;
     inputmode?: 'text' | 'numeric' | 'decimal' | 'email' | 'tel';
+    hint?: string;
 }>();
 
 const model = defineModel<string | number>();
@@ -35,6 +36,9 @@ const model = defineModel<string | number>();
         />
         <span v-if="error" class="mt-1.5 block text-sm text-danger">
             {{ error }}
+        </span>
+        <span v-else-if="hint" class="mt-1.5 block text-xs text-muted">
+            {{ hint }}
         </span>
     </label>
 </template>
