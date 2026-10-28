@@ -10,6 +10,7 @@ use App\Modules\Payments\Enums\PaymentEventType;
 use App\Modules\Payments\Enums\PaymentMethod;
 use App\Modules\Payments\Enums\PaymentStatus;
 use App\Modules\Payments\Models\Payment;
+use App\Modules\Shifts\Actions\ResolveOpenShift;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Validation\ValidationException;
 
@@ -17,6 +18,7 @@ class MarkOrderPaid
 {
     public function __construct(
         private readonly WriteAuditLog $writeAuditLog,
+        private readonly ResolveOpenShift $resolveOpenShift,
     ) {}
 
     public function __invoke(
@@ -46,6 +48,8 @@ class MarkOrderPaid
                 ]);
             }
 
+            $shift = ($this->resolveOpenShift)($actor, $locked->branch_id, lockForShare: true);
+
             if ($method === PaymentMethod::Cash) {
                 if ($cashReceived !== null && ($cashReceived < 0 || $cashReceived < $locked->total)) {
                     throw ValidationException::withMessages([
@@ -64,6 +68,7 @@ class MarkOrderPaid
 
             $payment = Payment::create([
                 'order_id' => $locked->id,
+                'shift_id' => $shift->id,
                 'method' => $method,
                 'amount' => $locked->total,
                 'cash_received' => $method === PaymentMethod::Cash ? $cashReceived : null,

@@ -100,6 +100,9 @@ class PaymentTest extends TestCase
     {
         $order = Order::factory()->unpaid()->create(['total' => 170000]);
         $owner = User::factory()->owner()->create();
+        CashierShift::factory()->open()->for($owner, 'user')->create([
+            'branch_id' => $order->branch_id,
+        ]);
 
         $this->actingAs($owner)
             ->post("/orders/{$order->id}/pay", [

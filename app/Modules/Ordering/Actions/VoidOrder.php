@@ -29,6 +29,13 @@ class VoidOrder
             }
 
             $payment = $locked->payment()->first();
+
+            if ($payment !== null && $payment->shift_id !== null && $payment->shift?->closed_at !== null) {
+                throw ValidationException::withMessages([
+                    'order' => 'Pembayaran pada shift yang sudah ditutup tidak dapat di-void. Gunakan modul refund.',
+                ]);
+            }
+
             $from = $locked->status;
 
             $locked->update([
