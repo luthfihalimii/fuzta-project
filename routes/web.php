@@ -13,6 +13,7 @@ use App\Modules\Inventory\Http\Controllers\IngredientController;
 use App\Modules\Inventory\Http\Controllers\RecipeController;
 use App\Modules\Inventory\Http\Controllers\StockCountController;
 use App\Modules\Inventory\Http\Controllers\StockMovementController;
+use App\Modules\Inventory\Http\Controllers\StockTransferController;
 use App\Modules\Inventory\Http\Controllers\UnitConversionController;
 use App\Modules\Kitchen\Http\Controllers\KitchenController;
 use App\Modules\Ordering\Http\Controllers\OrderController;
@@ -114,6 +115,7 @@ Route::middleware(['auth', 'role:owner'])->prefix('admin')->group(function () {
         Route::post('/movements', [StockMovementController::class, 'store'])->name('movements.store');
         Route::get('/counts', [StockCountController::class, 'index'])->name('counts.index');
         Route::post('/counts', [StockCountController::class, 'store'])->name('counts.store');
+        Route::post('/transfers', [StockTransferController::class, 'store'])->name('transfers.store');
     });
 
     Route::get('/staff', [StaffController::class, 'index'])->name('admin.staff.index');
