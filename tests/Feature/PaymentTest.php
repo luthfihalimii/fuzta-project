@@ -10,6 +10,7 @@ use App\Modules\Catalog\Models\Product;
 use App\Modules\Ordering\Enums\OrderStatus;
 use App\Modules\Ordering\Models\Order;
 use App\Modules\Payments\Enums\PaymentStatus;
+use App\Modules\Shifts\Models\CashierShift;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Inertia\Testing\AssertableInertia;
 use Tests\TestCase;
@@ -18,10 +19,18 @@ class PaymentTest extends TestCase
 {
     use RefreshDatabase;
 
+    private function openShiftFor(User $user): CashierShift
+    {
+        return CashierShift::factory()->open()->for($user, 'user')->create([
+            'branch_id' => $user->branch_id,
+        ]);
+    }
+
     public function test_marking_paid_records_payment_and_calculates_change(): void
     {
         $order = Order::factory()->unpaid()->create(['total' => 170000]);
         $cashier = User::factory()->cashier()->for($order->branch)->create();
+        $this->openShiftFor($cashier);
 
         $this->actingAs($cashier)
             ->post("/orders/{$order->id}/pay", [
@@ -58,6 +67,7 @@ class PaymentTest extends TestCase
     {
         $order = Order::factory()->unpaid()->create(['total' => 170000]);
         $cashier = User::factory()->cashier()->for($order->branch)->create();
+        $this->openShiftFor($cashier);
 
         $this->actingAs($cashier)
             ->post("/orders/{$order->id}/pay", ['method' => 'cash'])
@@ -76,6 +86,7 @@ class PaymentTest extends TestCase
         $branchB = Branch::factory()->create();
         $order = Order::factory()->unpaid()->for($branchB)->create(['total' => 170000]);
         $cashier = User::factory()->cashier()->for($branchA)->create();
+        $this->openShiftFor($cashier);
 
         $this->actingAs($cashier)
             ->post("/orders/{$order->id}/pay", ['method' => 'cash'])
@@ -103,6 +114,7 @@ class PaymentTest extends TestCase
     {
         $order = Order::factory()->unpaid()->create(['status' => OrderStatus::Cancelled]);
         $cashier = User::factory()->cashier()->for($order->branch)->create();
+        $this->openShiftFor($cashier);
 
         $this->actingAs($cashier)
             ->post("/orders/{$order->id}/pay", ['method' => 'cash'])
@@ -115,6 +127,7 @@ class PaymentTest extends TestCase
     {
         $order = Order::factory()->unpaid()->create(['total' => 170000]);
         $cashier = User::factory()->cashier()->for($order->branch)->create();
+        $this->openShiftFor($cashier);
 
         $this->actingAs($cashier)
             ->postJson("/orders/{$order->id}/pay", [
@@ -131,6 +144,7 @@ class PaymentTest extends TestCase
     {
         $order = Order::factory()->unpaid()->create(['total' => 170000]);
         $cashier = User::factory()->cashier()->for($order->branch)->create();
+        $this->openShiftFor($cashier);
 
         $this->actingAs($cashier)
             ->post("/orders/{$order->id}/pay", ['method' => 'qris_static'])
@@ -150,6 +164,7 @@ class PaymentTest extends TestCase
     {
         $order = Order::factory()->unpaid()->create(['total' => 170000]);
         $cashier = User::factory()->cashier()->for($order->branch)->create();
+        $this->openShiftFor($cashier);
 
         $this->actingAs($cashier)
             ->postJson("/orders/{$order->id}/pay", [
@@ -167,6 +182,7 @@ class PaymentTest extends TestCase
         $branchA = Branch::factory()->create();
         $branchB = Branch::factory()->create();
         $cashier = User::factory()->cashier()->for($branchA)->create();
+        $this->openShiftFor($cashier);
         $category = Category::factory()->create(['name' => 'Pizza']);
 
         $available = Product::factory()->for($category)->create([
@@ -231,6 +247,7 @@ class PaymentTest extends TestCase
         $branchA = Branch::factory()->create();
         $branchB = Branch::factory()->create();
         $cashier = User::factory()->cashier()->for($branchA)->create();
+        $this->openShiftFor($cashier);
 
         $today = Order::factory()->unpaid()->for($branchA)->create(['total' => 170000]);
         Order::factory()->unpaid()->for($branchB)->create();

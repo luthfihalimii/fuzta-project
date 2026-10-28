@@ -16,7 +16,7 @@ class ResolveOpenShift
             ->whereNull('closed_at');
 
         if ($lockForShare) {
-            $query->lockForShare();
+            $query->sharedLock();
         }
 
         $shift = $query->first();

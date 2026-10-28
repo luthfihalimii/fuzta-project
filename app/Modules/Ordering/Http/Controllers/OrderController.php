@@ -10,9 +10,12 @@ use App\Modules\Ordering\Actions\ResolvePosBranch;
 use App\Modules\Ordering\Actions\VoidOrder;
 use App\Modules\Ordering\Models\Order;
 use App\Modules\Ordering\Support\OrderPayload;
+use App\Modules\Shifts\Models\CashierShift;
+use App\Modules\Shifts\Support\ShiftPresenter;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
+use Illuminate\Validation\ValidationException;
 use Inertia\Inertia;
 use Inertia\Response;
 
@@ -30,16 +33,49 @@ class OrderController extends Controller
         $requestedBranchId = $request->integer('branch');
         $branch = $resolveBranch($user, $requestedBranchId > 0 ? $requestedBranchId : null);
 
+        $shift = null;
         $orders = [];
+        $requestedShiftId = $request->integer('shift');
 
         if ($branch !== null) {
-            $start = now('Asia/Jakarta')->startOfDay()->utc();
-            $end = now('Asia/Jakarta')->endOfDay()->utc();
+            if ($requestedShiftId > 0) {
+                if (! $user->isOwner()) {
+                    throw ValidationException::withMessages([
+                        'shift' => 'Anda tidak dapat melihat shift kasir lain.',
+                    ]);
+                }
 
-            $orders = Order::query()
+                $shift = CashierShift::query()
+                    ->where('branch_id', $branch->id)
+                    ->findOrFail($requestedShiftId);
+            } else {
+                $shift = CashierShift::query()
+                    ->where('user_id', $user->id)
+                    ->where('branch_id', $branch->id)
+                    ->whereNull('closed_at')
+                    ->first();
+            }
+
+            $query = Order::query()
                 ->with(['branch', 'items.modifiers', 'payment'])
-                ->where('branch_id', $branch->id)
-                ->whereBetween('created_at', [$start, $end])
+                ->where('branch_id', $branch->id);
+
+            if ($requestedShiftId > 0 && $shift !== null) {
+                $query->where('shift_id', $shift->id);
+            } else {
+                $start = now('Asia/Jakarta')->startOfDay()->utc();
+                $end = now('Asia/Jakarta')->endOfDay()->utc();
+
+                $query->where(function ($query) use ($shift, $start, $end): void {
+                    $query->whereBetween('created_at', [$start, $end]);
+
+                    if ($shift !== null) {
+                        $query->orWhere('shift_id', $shift->id);
+                    }
+                });
+            }
+
+            $orders = $query
                 ->orderByDesc('id')
                 ->get()
                 ->map(fn (Order $order) => [
@@ -54,6 +90,10 @@ class OrderController extends Controller
                 ->all();
         }
 
+        $cutoff = $shift?->scheduled_end_at?->copy()->addMinutes(
+            (int) config('shifts.auto_close_grace_minutes', 15),
+        );
+
         return Inertia::render('pos/Orders', [
             'branch' => $branch ? BranchPresenter::summary($branch) : null,
             'branches' => $user->isOwner() ? BranchPresenter::options() : [],
@@ -61,6 +101,9 @@ class OrderController extends Controller
             'orders' => $orders,
             'today' => now('Asia/Jakarta')->toDateString(),
             'posUrl' => $branch ? '/pos?branch='.$branch->id : '/pos',
+            'shift' => $shift ? ShiftPresenter::summary($shift) : null,
+            'orders_cutoff_at' => $cutoff?->toIso8601String(),
+            'can_create_orders' => $shift !== null && ($cutoff === null || now()->lessThan($cutoff)),
         ]);
     }
 

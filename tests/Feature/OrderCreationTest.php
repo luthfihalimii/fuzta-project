@@ -10,6 +10,7 @@ use App\Modules\Catalog\Models\ModifierGroup;
 use App\Modules\Catalog\Models\Product;
 use App\Modules\Catalog\Models\ProductVariant;
 use App\Modules\Ordering\Models\Order;
+use App\Modules\Shifts\Models\CashierShift;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Inertia\Testing\AssertableInertia;
 use Tests\TestCase;
@@ -18,10 +19,18 @@ class OrderCreationTest extends TestCase
 {
     use RefreshDatabase;
 
+    private function openShiftFor(User $user): CashierShift
+    {
+        return CashierShift::factory()->open()->for($user, 'user')->create([
+            'branch_id' => $user->branch_id,
+        ]);
+    }
+
     public function test_order_total_uses_server_prices_and_ignores_client_price(): void
     {
         $branch = Branch::factory()->create();
         $cashier = User::factory()->cashier()->for($branch)->create();
+        $this->openShiftFor($cashier);
         [$product, $large, $cheese] = $this->pizzaForBranch($branch);
 
         $this->actingAs($cashier)->post('/pos/orders', [
@@ -72,6 +81,7 @@ class OrderCreationTest extends TestCase
         $branchA = Branch::factory()->create();
         $branchB = Branch::factory()->create();
         $cashier = User::factory()->cashier()->for($branchA)->create();
+        $this->openShiftFor($cashier);
         [$product, $large, $cheese] = $this->pizzaForBranch($branchB);
 
         $this->actingAs($cashier)->post('/pos/orders', [
@@ -93,6 +103,7 @@ class OrderCreationTest extends TestCase
     {
         $branch = Branch::factory()->create();
         $cashier = User::factory()->cashier()->for($branch)->create();
+        $this->openShiftFor($cashier);
         [$product, $large, $cheese] = $this->pizzaForBranch($branch);
 
         $payload = [
@@ -122,6 +133,7 @@ class OrderCreationTest extends TestCase
     {
         $branch = Branch::factory()->create();
         $cashier = User::factory()->cashier()->for($branch)->create();
+        $this->openShiftFor($cashier);
         [$product, $large, $cheese] = $this->pizzaForBranch($branch);
 
         $response = $this->actingAs($cashier)->post('/pos/orders', [
@@ -142,6 +154,9 @@ class OrderCreationTest extends TestCase
     {
         $branch = Branch::factory()->create();
         $owner = User::factory()->owner()->create();
+        CashierShift::factory()->open()->for($owner, 'user')->create([
+            'branch_id' => $branch->id,
+        ]);
         [$product, $large, $cheese] = $this->pizzaForBranch($branch);
 
         $this->actingAs($owner)->post('/pos/orders', [
@@ -163,6 +178,7 @@ class OrderCreationTest extends TestCase
     {
         $branch = Branch::factory()->create();
         $cashier = User::factory()->cashier()->for($branch)->create();
+        $this->openShiftFor($cashier);
         $kitchen = User::factory()->kitchen()->for($branch)->create();
 
         $this->actingAs($cashier)
@@ -191,6 +207,7 @@ class OrderCreationTest extends TestCase
         $branchA = Branch::factory()->create();
         $branchB = Branch::factory()->create();
         $cashier = User::factory()->cashier()->for($branchB)->create();
+        $this->openShiftFor($cashier);
         [$product, $large, $cheese] = $this->pizzaForBranch($branchA);
 
         $this->actingAs($cashier)->post('/pos/orders', [
@@ -212,6 +229,7 @@ class OrderCreationTest extends TestCase
     {
         $branch = Branch::factory()->create();
         $cashier = User::factory()->cashier()->for($branch)->create();
+        $this->openShiftFor($cashier);
         $category = Category::factory()->create();
         $product = Product::factory()->for($category)->create(['base_price' => 50000]);
         $group = ModifierGroup::factory()->create([
@@ -242,6 +260,7 @@ class OrderCreationTest extends TestCase
     {
         $branch = Branch::factory()->create();
         $cashier = User::factory()->cashier()->for($branch)->create();
+        $this->openShiftFor($cashier);
         $category = Category::factory()->create();
         $product = Product::factory()->for($category)->create(['base_price' => 50000]);
         $group = ModifierGroup::factory()->create([
@@ -273,6 +292,7 @@ class OrderCreationTest extends TestCase
     {
         $branch = Branch::factory()->create();
         $cashier = User::factory()->cashier()->for($branch)->create();
+        $this->openShiftFor($cashier);
         $category = Category::factory()->create();
         $product = Product::factory()->for($category)->create(['base_price' => 50000]);
         $otherProduct = Product::factory()->for($category)->create();
@@ -300,6 +320,7 @@ class OrderCreationTest extends TestCase
     {
         $branch = Branch::factory()->create();
         $cashier = User::factory()->cashier()->for($branch)->create();
+        $this->openShiftFor($cashier);
         [$product] = $this->pizzaForBranch($branch);
 
         $this->actingAs($cashier)->post('/pos/orders', [
@@ -319,6 +340,7 @@ class OrderCreationTest extends TestCase
     {
         $branch = Branch::factory()->create();
         $cashier = User::factory()->cashier()->for($branch)->create();
+        $this->openShiftFor($cashier);
         $category = Category::factory()->create(['is_active' => false]);
         $product = Product::factory()->for($category)->create(['base_price' => 50000]);
         $product->branches()->attach($branch, ['is_available' => true]);
@@ -340,6 +362,7 @@ class OrderCreationTest extends TestCase
     {
         $branch = Branch::factory()->create();
         $cashier = User::factory()->cashier()->for($branch)->create();
+        $this->openShiftFor($cashier);
         $category = Category::factory()->create();
         $product = Product::factory()->for($category)->create([
             'name' => 'Pizza Polos',

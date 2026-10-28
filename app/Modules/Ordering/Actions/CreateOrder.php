@@ -12,6 +12,7 @@ use App\Modules\Ordering\Models\Order;
 use App\Modules\Ordering\Models\OrderItem;
 use App\Modules\Ordering\Models\OrderItemModifier;
 use App\Modules\Payments\Enums\PaymentStatus;
+use App\Modules\Shifts\Actions\ResolveOpenShift;
 use Illuminate\Auth\Access\AuthorizationException;
 use Illuminate\Database\QueryException;
 use Illuminate\Support\Arr;
@@ -24,6 +25,7 @@ class CreateOrder
         private readonly PriceOrderItems $priceOrderItems,
         private readonly GenerateOrderNumber $generateOrderNumber,
         private readonly WriteAuditLog $writeAuditLog,
+        private readonly ResolveOpenShift $resolveOpenShift,
     ) {}
 
     public function __invoke(User $actor, CreateOrderData $data): Order
@@ -60,6 +62,15 @@ class CreateOrder
                     return $existing;
                 }
 
+                $shift = ($this->resolveOpenShift)($actor, $data->branchId, lockForShare: true);
+                $cutoff = $shift->scheduled_end_at->addMinutes((int) config('shifts.auto_close_grace_minutes', 15));
+
+                if (now()->greaterThanOrEqualTo($cutoff)) {
+                    throw ValidationException::withMessages([
+                        'shift' => 'Shift sudah melewati batas pesanan. Tutup shift.',
+                    ]);
+                }
+
                 $pricedItems = ($this->priceOrderItems)($data->branchId, $data->items);
                 $subtotal = array_sum(array_column($pricedItems, 'line_total'));
 
@@ -67,6 +78,7 @@ class CreateOrder
                     'order_number' => ($this->generateOrderNumber)($branch),
                     'branch_id' => $data->branchId,
                     'placed_by_id' => $actor->id,
+                    'shift_id' => $shift->id,
                     'channel' => $data->channel,
                     'table_number' => $data->tableNumber,
                     'customer_name' => $data->customerName,
@@ -154,6 +166,7 @@ class CreateOrder
             'order_number' => $order->order_number,
             'branch_id' => $order->branch_id,
             'placed_by_id' => $order->placed_by_id,
+            'shift_id' => $order->shift_id,
             'channel' => $order->channel->value,
             'table_number' => $order->table_number,
             'customer_name' => $order->customer_name,

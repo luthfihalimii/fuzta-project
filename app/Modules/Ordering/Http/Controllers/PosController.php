@@ -15,6 +15,8 @@ use App\Modules\Ordering\Actions\ResolvePosBranch;
 use App\Modules\Ordering\Data\CreateOrderData;
 use App\Modules\Ordering\Enums\OrderChannel;
 use App\Modules\Ordering\Support\OrderPayload;
+use App\Modules\Shifts\Models\CashierShift;
+use App\Modules\Shifts\Support\ShiftPresenter;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
 use Illuminate\Validation\ValidationException;
@@ -108,6 +110,16 @@ class PosController extends Controller
                 ->all();
         }
 
+        $shift = $branch === null ? null : CashierShift::query()
+            ->where('user_id', $user->id)
+            ->where('branch_id', $branch->id)
+            ->whereNull('closed_at')
+            ->first();
+
+        $cutoff = $shift?->scheduled_end_at?->copy()->addMinutes(
+            (int) config('shifts.auto_close_grace_minutes', 15),
+        );
+
         return Inertia::render('pos/Index', [
             'branch' => $branch ? BranchPresenter::summary($branch) : null,
             'branches' => $user->isOwner() ? BranchPresenter::options() : [],
@@ -115,6 +127,9 @@ class PosController extends Controller
             'categories' => $categories,
             'products' => $products,
             'ordersUrl' => $branch ? '/pos/orders?branch='.$branch->id : '/pos/orders',
+            'shift' => $shift ? ShiftPresenter::summary($shift) : null,
+            'orders_cutoff_at' => $cutoff?->toIso8601String(),
+            'can_create_orders' => $shift !== null && ($cutoff === null || now()->lessThan($cutoff)),
         ]);
     }
 
