@@ -50,6 +50,7 @@ Route::middleware(['auth', 'role:cashier,owner'])->group(function () {
     Route::get('/pos', [PosController::class, 'index'])->name('pos.index');
     Route::post('/pos/shift/open', [PosShiftController::class, 'open'])->middleware('throttle:shifts')->name('pos.shift.open');
     Route::post('/pos/shift/close', [PosShiftController::class, 'close'])->middleware('throttle:shifts')->name('pos.shift.close');
+    Route::post('/pos/shifts/{shift}/reconcile', [PosShiftController::class, 'reconcile'])->middleware('throttle:shifts')->name('pos.shifts.reconcile');
     Route::post('/pos/orders', [PosController::class, 'store'])->middleware('throttle:orders')->name('pos.orders.store');
     Route::get('/pos/orders', [OrderController::class, 'index'])->name('pos.orders.index');
 
@@ -75,6 +76,10 @@ Route::middleware(['auth', 'role:owner'])->prefix('admin')->group(function () {
     Route::post('/shifts/{shift}/close', [AdminShiftController::class, 'close'])
         ->middleware('throttle:shifts')
         ->name('admin.shifts.close');
+
+    Route::post('/shifts/{shift}/reconcile', [AdminShiftController::class, 'reconcile'])
+        ->middleware('throttle:shifts')
+        ->name('admin.shifts.reconcile');
 
     Route::post('/shifts/{shift}/cash-movements', [AdminShiftController::class, 'storeCashMovement'])
         ->middleware('throttle:shifts')

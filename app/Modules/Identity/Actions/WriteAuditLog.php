@@ -13,26 +13,26 @@ class WriteAuditLog
      * @param  array<string, mixed>  $after
      */
     public function __invoke(
-        User $actor,
+        ?User $actor,
         string $action,
         Model $target,
         array $before = [],
         array $after = [],
         ?string $reason = null,
     ): AuditLog {
-        $request = request();
+        $request = $actor === null ? null : request();
 
         return AuditLog::create([
-            'actor_id' => $actor->getKey(),
-            'branch_id' => $target->getAttribute('branch_id') ?? $actor->branch_id,
+            'actor_id' => $actor?->getKey(),
+            'branch_id' => $target->getAttribute('branch_id') ?? $actor?->branch_id,
             'action' => $action,
             'target_type' => $target::class,
             'target_id' => $target->getKey(),
             'before' => $this->safe($before),
             'after' => $this->safe($after),
             'reason' => $reason,
-            'ip' => $request->ip(),
-            'user_agent' => $request->userAgent(),
+            'ip' => $request?->ip(),
+            'user_agent' => $request?->userAgent(),
         ]);
     }
 

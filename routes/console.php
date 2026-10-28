@@ -37,6 +37,11 @@ Artisan::command('backup:database', function () {
     return 0;
 })->purpose('Write and verify a PostgreSQL backup');
 
+Schedule::command('shifts:auto-close')
+    ->everyFiveMinutes()
+    ->timezone('Asia/Jakarta')
+    ->withoutOverlapping();
+
 if (config('backup.enabled')) {
     Schedule::command('backup:database')
         ->dailyAt(config('backup.time'))
