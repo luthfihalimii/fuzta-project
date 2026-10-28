@@ -16,7 +16,7 @@
 - Copy UI Bahasa Indonesia. Grafik/label mengikuti token yang sudah ada di `resources/css/app.css` dan kelas Tailwind di halaman `admin/stock/Ingredients.vue` (mis. `rounded-2xl border border-line bg-white`).
 - Timestamp tersimpan UTC, ditampilkan `Asia/Jakarta` (sudah ada di app).
 - TDD: tulis test gagal dulu, jalankan gagal, implement, jalankan lulus, commit. Commit per task, pesan kecil.
-- Jalankan `php artisan test`, `npm run typecheck`, `npm run lint`, `npm run build` sebelum task ditandai selesai (UI task: ketiganya; PHP task: `php artisan test` cukup, tetap jalankan lint pint bila menyentuh banyak file).
+- Jalankan `php artisan test`, `npm run typecheck`, `npm run lint`, `npm run build` sebelum task ditandai selesai (UI task: ketiganya; PHP task: `php artisan test` cukup, tetap jalankan pint bila menyentuh banyak file).
 - Jangan menambah dependensi baru.
 - Jangan merubah/delete baris `stock_movements`. Koreksi hanya lewat baris pembalikan.
 - UI staff register (DESIGN.md §1): fungsional, tanpa dekorasi; setiap aksi sensitif punya konfirmasi yang menyebut konsekuensinya; CTA spesifik ("Simpan resep", bukan "Save").
