@@ -116,7 +116,7 @@ git commit -m "feat: scaffold laravel-reverb broadcasting (config, dev env, docs
     - `App\Modules\Ordering\Events\OrderStatusChanged` — ctor `public readonly Order $order, public readonly OrderStatus $from, public readonly OrderStatus $to`; `broadcastWith()` = `{ kind: 'status', order_number, branch_id, from: $from->value, to: $to->value, created_at, accepted_at }`.
     - `App\Modules\Ordering\Events\OrderPaymentChanged` — ctor `public readonly Order $order`; `broadcastWith()` = `{ kind: 'payment', order_number, branch_id, created_at, accepted_at }`.
     - Semuanya `implements ShouldBroadcast` (bukan `ShouldBroadcastNow` — `BroadcastEvent` `ShouldDispatchAfterCommit`, jadi emit di dalam DB::transaction aman) + `broadcastOn()` = `[new PrivateChannel('kitchen.'.$order->branch_id), new PrivateChannel('pos.'.$order->branch_id)]`.
-    - **`broadcastAs()` wajib ada** (default Laravel = FQCN class — jangan andalkan itu): `OrderCreated` → `'order-created'`, `OrderStatusChanged` → `'order-status-changed'`, `OrderPaymentChanged` → `'order-payment-changed'`. Ini nama event yang didengar klien (`.listen('…')` di Task 4/5).
+    - **`broadcastAs()` wajib ada** (default Laravel = FQCN class — jangan andalkan itu): `OrderCreated` → `'order-created'`, `OrderStatusChanged` → `'order-status-changed'`, `OrderPaymentChanged` → `'order-payment-changed'`. Ini nama event **wire** (persis apa yang dikirim server). Klien **wajib** listen dengan prefix titik: `.listen('.order-created')` — laravel-echo default `namespace: 'App.Events'` akan mem-prefix nama polos menjadi `App\Events\order-created` (tak pernah match); prefix titik berarti "tanpa namespace" (terverifikasi dari source `laravel-echo` terpasang).
     - Emit via helper `event(new …)` di dalam transaction yang sudah ada.
     - JSON kitchen/POS (`OrderPayload`) kini memuat `accepted_at` (ISO-8601, nullable).
 
@@ -127,7 +127,7 @@ Run: `php artisan migrate`
 
 - [ ] **Step 2: Tulis test gagal — `tests/Feature/BroadcastOrderEventsTest.php`**
 
-Follow setup house (pola `tests/Feature/OrderCreationTest.php` + `tests/Feature/KitchenTest.php` untuk shift/paid order; 2 cabang `branchA`/`branchB`, cashier & kitchen per cabang). Semua test pakai `Broadcast::fake()`. 7 test:
+Follow setup house (pola `tests/Feature/OrderCreationTest.php` + `tests/Feature/KitchenTest.php` untuk shift/paid order; 2 cabang `branchA`/`branchB`, cashier & kitchen per cabang). **Erratum:** Laravel 13 tidak punya `Broadcast::fake()` — semua test pakai `Event::fake([OrderCreated::class, OrderStatusChanged::class, OrderPaymentChanged::class])` + `Event::assertDispatched*` atas objek event (pin `broadcastWith()`/`broadcastOn()`/`broadcastAs()`/count); `$this->assertInstanceOf(ShouldBroadcast::class, …)` mem-pin interface broadcast. 7 test:
 
 1. `order_creation_broadcasts_to_both_branch_channels_with_locked_payload` — buat order via `app(CreateOrder::class)`; `Broadcast::assertBroadcasted(OrderCreated::class, fn (OrderCreated $e) => …)` dengan:
     - `assertSame(['kind' => 'created', 'order_number' => $order->order_number, 'branch_id' => $order->branch_id, 'created_at' => $order->created_at->toIso8601String(), 'accepted_at' => null], $e->broadcastWith())` — **exact match = kunci PII** (semua key ekstra otomatis gagal).
@@ -375,7 +375,7 @@ return [
 2. Import: `realtimeEcho`, `isLate`, `shouldRing`, `RealtimeNotification`, `playBeep`, `unlockAudio`.
 3. State: `soundOn = ref(sessionStorage.getItem('pf_kitchen_muted') !== '1')`; `seen = new Set<string>(sessionStorage.getItem('pf_kitchen_seen')?.split(',').filter(Boolean) ?? [])`; `now = ref(Date.now())`.
 4. `onRealtime(payload: RealtimeNotification)`: skip bila `payload.branch_id !== props.branch?.id`; `if (shouldRing(payload, seen)) { seen.add(payload.order_number); persist; if (soundOn.value && document.visibilityState === 'visible') playBeep(); }`; `void loadOrders()`.
-5. `connectRealtime()`: `const echo = realtimeEcho()`; kalau `null` atau `!props.branch` → return (polling 5-detik tetap jalan); `channel = echo.private('kitchen.' + props.branch.id)`; 3× `.listen('order-created' | 'order-status-changed' | 'order-payment-changed', onRealtime)`; `echo.connection.on('reconnected', () => void loadOrders())`.
+5. `connectRealtime()`: `const echo = realtimeEcho()`; kalau `null` atau `!props.branch` → return (polling 5-detik tetap jalan); `channel = echo.private('kitchen.' + props.branch.id)`; 3× `.listen('.order-created' | '.order-status-changed' | '.order-payment-changed', onRealtime)` (**prefix titik wajib** — lihat erratum Task 2, Interfaces); `echo.connection.on('reconnected', () => void loadOrders())`.
 6. `onMounted`: + `connectRealtime()` + `nowTimer = window.setInterval(() => { now.value = Date.now(); }, 30_000)`. `onUnmounted`: `channel?.disconnect()`, `connection.off`, CLEAR kedua interval.
 7. Tombol mute di header (dekat link Stok): `type="button"`, `aria-pressed="soundOn"`, label teks "Suara" / dengan ikon SVG lonceng sederhana; toggle `soundOn` + persist `pf_kitchen_muted`; saat ON → `unlockAudio()`.
 8. Card order: ganti `formatElapsed(order.created_at)` → `formatElapsed(order.accepted_at ?? order.created_at)`; tambah chip `v-if="activeStatus !== 'completed' && isLate(order.accepted_at ?? order.created_at, now, kitchenLateMinutes)"` → `<span role="status" class="…bg-danger…">Terlambat</span>` di blok status card (style ikuti `statusTone` yang ada, tanpa brand baru).
@@ -412,7 +412,7 @@ git add -A && git commit -m "feat: kitchen realtime - sound, timer, late indicat
 - [ ] **Step 1: Kaitkan `resources/js/pages/pos/Orders.vue`**
 
 1. Import `realtimeEcho`.
-2. `onMounted`: `const echo = realtimeEcho(); const branch = props.branch;` kalau `null` → return; `channel = echo.private('pos.' + branch.id)`; 3× listener (`'order-created'`, `'order-status-changed'`, `'order-payment-changed'`) → `refresh()`.
+2. `onMounted`: `const echo = realtimeEcho(); const branch = props.branch;` kalau `null` → return; `channel = echo.private('pos.' + branch.id)`; 3× listener (`.listen('.order-created'`, `.listen('.order-status-changed'`, `.listen('.order-payment-changed')` — **prefix titik wajib**) → `refresh()`.
 3. `refresh()`: coalesce sederhana — `let pending = false; function refresh() { if (pending) return; pending = true; setTimeout(() => { pending = false; router.reload({ only: ['orders'], preserveScroll: true }); }, 50); }` (burst event jangan menumpuk reload).
 4. `reconnected` handler → `refresh()`. `onUnmounted`: `channel?.disconnect()` + off listener.
 5. Ganti branch (`switchBranch`) memakai `preserveState: false` → komponen remount → subscribe ulang otomatis (cek: tidak ada double-subscribe saat remount).
