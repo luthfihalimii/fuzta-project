@@ -55,7 +55,7 @@ const reasonError = ref('');
 const todayLabel = computed(() =>
     new Intl.DateTimeFormat('id-ID', {
         dateStyle: 'full',
-        timeZone: 'Asia/Jakarta',
+        timeZone: 'UTC',
     }).format(new Date(`${props.today}T00:00:00Z`)),
 );
 

@@ -22,11 +22,25 @@ class StaleShiftOrdersTest extends TestCase
             'shift_id' => $other->id,
         ]);
         $stale->forceFill(['created_at' => now()->subDays(4)])->save();
+        $cancelled = Order::factory()->unpaid()->create([
+            'branch_id' => $shift->branch_id,
+            'shift_id' => $other->id,
+            'status' => 'cancelled',
+        ]);
+        $cancelled->forceFill(['created_at' => now()->subDays(4)])->save();
+        $paid = Order::factory()->paid()->create([
+            'branch_id' => $shift->branch_id,
+            'shift_id' => $other->id,
+        ]);
+        $paid->forceFill(['created_at' => now()->subDays(4)])->save();
 
         $this->actingAs($shift->user)->get('/pos/orders')
             ->assertOk()
-            ->assertInertia(fn ($page) => $page
-                ->where('orders.0.id', $stale->id)
-                ->where('orders.0.payment_status', 'unpaid'));
+            ->assertInertia(function ($page) use ($stale): void {
+                $ids = collect($page->toArray()['props']['orders'])->pluck('id');
+
+                $this->assertTrue($ids->contains($stale->id));
+                $this->assertSame(1, $ids->count());
+            });
     }
 }
