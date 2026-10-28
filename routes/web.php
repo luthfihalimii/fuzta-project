@@ -17,6 +17,7 @@ use App\Modules\Ordering\Http\Controllers\OrderController;
 use App\Modules\Ordering\Http\Controllers\PosController;
 use App\Modules\Payments\Http\Controllers\PaymentController;
 use App\Modules\Reporting\Http\Controllers\ReportController;
+use App\Modules\Shifts\Http\Controllers\AdminShiftController;
 use App\Modules\Shifts\Http\Controllers\PosShiftController;
 use Illuminate\Support\Facades\Route;
 
@@ -69,6 +70,10 @@ Route::middleware(['auth', 'role:kitchen,owner'])->group(function () {
 
 Route::middleware(['auth', 'role:owner'])->prefix('admin')->group(function () {
     Route::get('/', [DashboardController::class, 'index'])->name('admin.dashboard');
+
+    Route::post('/shifts/{shift}/cash-movements', [AdminShiftController::class, 'storeCashMovement'])
+        ->middleware('throttle:shifts')
+        ->name('admin.shifts.cash-movements.store');
 
     Route::prefix('reports')->name('admin.reports.')->group(function () {
         Route::get('/sales', [ReportController::class, 'sales'])->name('sales');
