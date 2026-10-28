@@ -125,6 +125,12 @@ function submit(): void {
                     >
                         Satuan
                     </Link>
+                    <Link
+                        href="/admin/stock/transfers"
+                        class="inline-flex min-h-12 items-center rounded-xl border border-line bg-white px-4 text-sm font-semibold text-ink transition hover:bg-canvas"
+                    >
+                        Transfer
+                    </Link>
                 </div>
             </div>
 

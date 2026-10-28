@@ -15,6 +15,7 @@ use App\Modules\Inventory\Models\StockTransferItem;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Validation\ValidationException;
+use Inertia\Testing\AssertableInertia;
 use Tests\TestCase;
 
 class StockTransferTest extends TestCase
@@ -691,6 +692,82 @@ class StockTransferTest extends TestCase
             ->assertExitCode(0);
 
         $this->assertSame(0, StockBalance::where('quantity', '<', 0)->count());
+    }
+
+    public function test_index_page_renders_for_owner(): void
+    {
+        [$origin, $destination] = Branch::factory()->count(2)->create();
+        $owner = User::factory()->owner()->create();
+        $ingredient = Ingredient::factory()->create();
+
+        $draft = StockTransfer::factory()->create([
+            'origin_branch_id' => $origin->id,
+            'destination_branch_id' => $destination->id,
+            'created_by' => $owner->id,
+        ]);
+        StockTransferItem::factory()->for($draft, 'transfer')->for($ingredient, 'ingredient')->create(['quantity' => 5]);
+
+        $dispatched = StockTransfer::factory()->dispatched()->create([
+            'origin_branch_id' => $origin->id,
+            'destination_branch_id' => $destination->id,
+            'created_by' => $owner->id,
+        ]);
+        StockTransferItem::factory()->for($dispatched, 'transfer')->for($ingredient, 'ingredient')->create(['quantity' => 3]);
+
+        $this->actingAs($owner)
+            ->get('/admin/stock/transfers')
+            ->assertOk()
+            ->assertInertia(fn (AssertableInertia $page) => $page
+                ->component('admin/stock/Transfers')
+                ->has('transfers', 2)
+                ->has('transfers.0.status')
+                ->has('transfers.1.status')
+                ->has('branches', 2)
+                ->has('ingredients', 1));
+    }
+
+    public function test_cashier_forbidden_on_all_transfer_routes(): void
+    {
+        [$origin, $destination] = Branch::factory()->count(2)->create();
+        $cashier = User::factory()->cashier()->create();
+        $owner = User::factory()->owner()->create();
+        $ingredient = Ingredient::factory()->create();
+
+        $draft = StockTransfer::factory()->create([
+            'origin_branch_id' => $origin->id,
+            'destination_branch_id' => $destination->id,
+            'created_by' => $owner->id,
+        ]);
+
+        $this->actingAs($cashier)
+            ->get('/admin/stock/transfers')
+            ->assertStatus(403);
+
+        $this->actingAs($cashier)
+            ->post('/admin/stock/transfers', [
+                'origin_branch_id' => $origin->id,
+                'destination_branch_id' => $destination->id,
+                'items' => [
+                    ['ingredient_id' => $ingredient->id, 'quantity' => 5],
+                ],
+            ])
+            ->assertStatus(403);
+
+        $this->actingAs($cashier)
+            ->patch("/admin/stock/transfers/{$draft->id}/dispatch")
+            ->assertStatus(403);
+
+        $this->actingAs($cashier)
+            ->patch("/admin/stock/transfers/{$draft->id}/receive", [
+                'received_items' => [],
+            ])
+            ->assertStatus(403);
+
+        $this->actingAs($cashier)
+            ->patch("/admin/stock/transfers/{$draft->id}/cancel", [
+                'cancel_reason' => 'salah ketik',
+            ])
+            ->assertStatus(403);
     }
 
     /**
