@@ -8,6 +8,7 @@ use App\Modules\Catalog\Actions\PriceOrderItems;
 use App\Modules\Identity\Actions\WriteAuditLog;
 use App\Modules\Ordering\Data\CreateOrderData;
 use App\Modules\Ordering\Enums\OrderStatus;
+use App\Modules\Ordering\Events\OrderCreated;
 use App\Modules\Ordering\Models\Order;
 use App\Modules\Ordering\Models\OrderItem;
 use App\Modules\Ordering\Models\OrderItemModifier;
@@ -120,6 +121,8 @@ class CreateOrder
                     [],
                     $this->snapshot($order),
                 );
+
+                event(new OrderCreated($order));
 
                 return $order->load(['items.modifiers', 'statusEvents']);
             });

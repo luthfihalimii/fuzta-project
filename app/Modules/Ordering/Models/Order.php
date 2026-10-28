@@ -31,6 +31,7 @@ use Illuminate\Database\Eloquent\Relations\HasOne;
     'payment_status',
     'subtotal',
     'total',
+    'accepted_at',
     'idempotency_key',
 ])]
 class Order extends Model
@@ -49,6 +50,7 @@ class Order extends Model
             'payment_status' => PaymentStatus::class,
             'subtotal' => 'integer',
             'total' => 'integer',
+            'accepted_at' => 'datetime',
         ];
     }
 

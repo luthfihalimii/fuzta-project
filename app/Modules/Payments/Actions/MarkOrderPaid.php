@@ -5,6 +5,7 @@ namespace App\Modules\Payments\Actions;
 use App\Models\User;
 use App\Modules\Identity\Actions\WriteAuditLog;
 use App\Modules\Ordering\Enums\OrderStatus;
+use App\Modules\Ordering\Events\OrderPaymentChanged;
 use App\Modules\Ordering\Models\Order;
 use App\Modules\Payments\Enums\PaymentEventType;
 use App\Modules\Payments\Enums\PaymentMethod;
@@ -101,6 +102,8 @@ class MarkOrderPaid
                     'change_amount' => $payment->change_amount,
                 ],
             );
+
+            event(new OrderPaymentChanged($locked));
 
             return $payment;
         });

@@ -5,6 +5,7 @@ namespace App\Modules\Ordering\Actions;
 use App\Models\User;
 use App\Modules\Identity\Actions\WriteAuditLog;
 use App\Modules\Ordering\Enums\OrderStatus;
+use App\Modules\Ordering\Events\OrderStatusChanged;
 use App\Modules\Ordering\Models\Order;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Validation\ValidationException;
@@ -53,6 +54,8 @@ class CancelOrder
                 ],
                 $reason,
             );
+
+            event(new OrderStatusChanged($locked, $from, OrderStatus::Cancelled));
         });
     }
 }

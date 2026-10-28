@@ -31,6 +31,7 @@ class OrderPayload
             'subtotal' => $order->subtotal,
             'total' => $order->total,
             'created_at' => $order->created_at?->toIso8601String(),
+            'accepted_at' => $order->accepted_at?->toIso8601String(),
             'items' => $order->items
                 ->map(fn (OrderItem $item) => [
                     'id' => $item->id,

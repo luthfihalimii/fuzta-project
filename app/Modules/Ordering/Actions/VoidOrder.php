@@ -6,6 +6,8 @@ use App\Models\User;
 use App\Modules\Identity\Actions\WriteAuditLog;
 use App\Modules\Inventory\Actions\ReverseOrderConsumption;
 use App\Modules\Ordering\Enums\OrderStatus;
+use App\Modules\Ordering\Events\OrderPaymentChanged;
+use App\Modules\Ordering\Events\OrderStatusChanged;
 use App\Modules\Ordering\Models\Order;
 use App\Modules\Payments\Enums\PaymentEventType;
 use App\Modules\Payments\Enums\PaymentStatus;
@@ -89,6 +91,12 @@ class VoidOrder
                 ],
                 $reason,
             );
+
+            if ($from !== OrderStatus::Cancelled) {
+                event(new OrderStatusChanged($locked, $from, OrderStatus::Cancelled));
+            }
+
+            event(new OrderPaymentChanged($locked));
         });
     }
 }

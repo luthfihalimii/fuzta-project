@@ -55,6 +55,7 @@ export type PosOrder = {
     subtotal: number;
     total: number;
     created_at: string | null;
+    accepted_at: string | null;
     items: OrderItem[];
     payment: OrderPayment | null;
 };
