@@ -10,6 +10,7 @@ use App\Modules\Catalog\Http\Controllers\ModifierGroupController;
 use App\Modules\Catalog\Http\Controllers\ProductController;
 use App\Modules\Identity\Enums\Role;
 use App\Modules\Inventory\Http\Controllers\IngredientController;
+use App\Modules\Inventory\Http\Controllers\RecipeController;
 use App\Modules\Inventory\Http\Controllers\StockCountController;
 use App\Modules\Inventory\Http\Controllers\StockMovementController;
 use App\Modules\Kitchen\Http\Controllers\KitchenController;
@@ -98,6 +99,10 @@ Route::middleware(['auth', 'role:owner'])->prefix('admin')->group(function () {
     Route::prefix('stock')->name('admin.stock.')->group(function () {
         Route::get('/ingredients', [IngredientController::class, 'index'])->name('ingredients.index');
         Route::post('/ingredients', [IngredientController::class, 'store'])->name('ingredients.store');
+        Route::get('/recipes', [RecipeController::class, 'index'])->name('recipes.index');
+        Route::post('/recipes', [RecipeController::class, 'store'])->name('recipes.store');
+        Route::patch('/recipes/{recipe}', [RecipeController::class, 'update'])->name('recipes.update');
+        Route::delete('/recipes/{recipe}', [RecipeController::class, 'destroy'])->name('recipes.destroy');
         Route::get('/movements', [StockMovementController::class, 'index'])->name('movements.index');
         Route::post('/movements', [StockMovementController::class, 'store'])->name('movements.store');
         Route::get('/counts', [StockCountController::class, 'index'])->name('counts.index');
