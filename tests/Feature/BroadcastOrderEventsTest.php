@@ -26,6 +26,7 @@ use App\Modules\Shifts\Models\CashierShift;
 use Carbon\CarbonImmutable;
 use Illuminate\Broadcasting\Channel;
 use Illuminate\Broadcasting\PrivateChannel;
+use Illuminate\Contracts\Broadcasting\ShouldBroadcast;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Support\Facades\Event;
 use Tests\TestCase;
@@ -75,6 +76,10 @@ class BroadcastOrderEventsTest extends TestCase
             );
 
             $this->assertSame('order-created', $event->broadcastAs());
+
+            // Tanpa interface ini event() tidak pernah diantri ke broadcaster:
+            // semua asersi di atas tetap hijau tapi klien tak menerima apa pun.
+            $this->assertInstanceOf(ShouldBroadcast::class, $event);
 
             return true;
         });
