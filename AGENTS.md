@@ -58,6 +58,10 @@ npm run dev
 npm run build
 npm run test:js
 npm run lint && npm run typecheck
+npm run check                # format + lint + types; drift format lolos commit karena baris ini dulu tak dijalankan
+
+# Gerbang otoritatif — sama persis dengan CI (format, types, vitest, build, pint, phpunit):
+composer ci:check
 
 # Mobile
 cd mobile && flutter pub get
