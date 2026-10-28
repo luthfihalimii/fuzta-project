@@ -55,6 +55,7 @@ php artisan inventory:reconcile # scan saldo vs ledger; tambahkan --fix untuk me
 # Web UI
 bun install
 bun run dev
+php artisan reverb:start --debug  # proses kedua (realtime dev)
 bun run build
 bun run test:js
 bun run lint && bun run typecheck

@@ -55,7 +55,7 @@ class ShiftReportTest extends TestCase
             ->assertOk()
             ->assertInertia(fn ($page) => $page->has('shifts.data', 2));
 
-        $this->actingAs($owner)->get("/admin/shifts?branch={$branchA->id}&from={$today->opened_at->toDateString()}&to={$today->opened_at->toDateString()}")
+        $this->actingAs($owner)->get("/admin/shifts?branch={$branchA->id}&from={$today->opened_at->setTimezone('Asia/Jakarta')->toDateString()}&to={$today->opened_at->setTimezone('Asia/Jakarta')->toDateString()}")
             ->assertOk()
             ->assertInertia(fn ($page) => $page->has('shifts.data', 1));
     }
