@@ -66,7 +66,9 @@ const conversionExample = computed(() => {
     const from = props.units.find(
         (unit) => unit.id === conversionForm.from_unit_id,
     );
-    const to = props.units.find((unit) => unit.id === conversionForm.to_unit_id);
+    const to = props.units.find(
+        (unit) => unit.id === conversionForm.to_unit_id,
+    );
 
     if (
         !from ||
@@ -136,9 +138,12 @@ function submitConversion(): void {
 }
 
 function deleteConversion(conversion: ConversionRow): void {
-    deleteConversionForm.delete(`/admin/stock/unit-conversions/${conversion.id}`, {
-        preserveScroll: true,
-    });
+    deleteConversionForm.delete(
+        `/admin/stock/unit-conversions/${conversion.id}`,
+        {
+            preserveScroll: true,
+        },
+    );
 }
 </script>
 
@@ -149,7 +154,9 @@ function deleteConversion(conversion: ConversionRow): void {
         <div class="space-y-6">
             <div class="flex flex-wrap items-end justify-between gap-3">
                 <div>
-                    <h1 class="text-2xl font-bold text-ink">Satuan &amp; konversi</h1>
+                    <h1 class="text-2xl font-bold text-ink">
+                        Satuan &amp; konversi
+                    </h1>
                     <p class="mt-1 text-sm text-muted">
                         Kelola satuan bahan dan aturan konversi antar satuan.
                     </p>
@@ -213,7 +220,11 @@ function deleteConversion(conversion: ConversionRow): void {
                         required
                     />
                     <Button type="submit" :disabled="unitForm.processing">
-                        {{ unitForm.processing ? 'Menyimpan...' : 'Simpan satuan' }}
+                        {{
+                            unitForm.processing
+                                ? 'Menyimpan...'
+                                : 'Simpan satuan'
+                        }}
                     </Button>
                 </form>
 
@@ -224,7 +235,10 @@ function deleteConversion(conversion: ConversionRow): void {
                     <Badge tone="info">{{ props.units.length }} satuan</Badge>
                 </div>
 
-                <div v-if="props.units.length === 0" class="border-t border-line p-5">
+                <div
+                    v-if="props.units.length === 0"
+                    class="border-t border-line p-5"
+                >
                     <EmptyState
                         title="Belum ada satuan"
                         description="Tambahkan satuan pertama lewat formulir di atas."
@@ -261,7 +275,9 @@ function deleteConversion(conversion: ConversionRow): void {
                                             required
                                         />
                                     </template>
-                                    <span v-else class="text-muted">{{ unit.name }}</span>
+                                    <span v-else class="text-muted">{{
+                                        unit.name
+                                    }}</span>
                                 </td>
                                 <td class="px-5 py-4">
                                     <div
@@ -363,15 +379,22 @@ function deleteConversion(conversion: ConversionRow): void {
                         required
                     />
 
-                    <p v-if="conversionExample" class="text-sm text-muted sm:col-span-2">
-                        Contoh: <span class="font-semibold text-ink tabular-nums">{{ conversionExample }}</span>
+                    <p
+                        v-if="conversionExample"
+                        class="text-sm text-muted sm:col-span-2"
+                    >
+                        Contoh:
+                        <span class="font-semibold text-ink tabular-nums">{{
+                            conversionExample
+                        }}</span>
                     </p>
 
                     <div class="sm:col-span-2">
                         <Button
                             type="submit"
                             :disabled="
-                                conversionForm.processing || props.units.length < 2
+                                conversionForm.processing ||
+                                props.units.length < 2
                             "
                         >
                             {{
@@ -387,10 +410,15 @@ function deleteConversion(conversion: ConversionRow): void {
                     class="flex flex-wrap items-center justify-between gap-2 border-t border-line px-5 py-4"
                 >
                     <h3 class="font-semibold text-ink">Daftar konversi</h3>
-                    <Badge tone="info">{{ props.conversions.length }} konversi</Badge>
+                    <Badge tone="info"
+                        >{{ props.conversions.length }} konversi</Badge
+                    >
                 </div>
 
-                <div v-if="props.conversions.length === 0" class="border-t border-line p-5">
+                <div
+                    v-if="props.conversions.length === 0"
+                    class="border-t border-line p-5"
+                >
                     <EmptyState
                         title="Belum ada konversi"
                         description="Tambahkan konversi pertama lewat formulir di atas."
@@ -412,7 +440,9 @@ function deleteConversion(conversion: ConversionRow): void {
                                 v-for="conversion in props.conversions"
                                 :key="conversion.id"
                             >
-                                <td class="px-5 py-4 font-medium text-ink tabular-nums">
+                                <td
+                                    class="px-5 py-4 font-medium text-ink tabular-nums"
+                                >
                                     {{ conversion.from_quantity }}
                                     {{ conversion.from_code ?? '—' }}
                                     <span class="text-muted">→</span>
@@ -423,7 +453,9 @@ function deleteConversion(conversion: ConversionRow): void {
                                     <button
                                         type="button"
                                         class="min-h-10 rounded-xl border border-danger/30 px-3 text-sm font-semibold text-danger transition hover:bg-danger/10 disabled:opacity-60"
-                                        :disabled="deleteConversionForm.processing"
+                                        :disabled="
+                                            deleteConversionForm.processing
+                                        "
                                         @click="deleteConversion(conversion)"
                                     >
                                         Hapus

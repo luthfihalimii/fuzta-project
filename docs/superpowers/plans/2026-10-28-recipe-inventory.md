@@ -34,6 +34,7 @@
 ### Task 1: Skema resep & konversi satuan
 
 **Files:**
+
 - Create: `database/migrations/2026_10_28_000001_create_recipes_table.php`
 - Create: `database/migrations/2026_10_28_000002_create_recipe_items_table.php`
 - Create: `database/migrations/2026_10_28_000003_create_unit_conversions_table.php`
@@ -48,11 +49,12 @@
 - Test: `tests/Feature/RecipeSchemaTest.php`
 
 **Interfaces:**
+
 - Consumes: `Product`, `ProductVariant`, `Modifier`, `Unit`, `Ingredient` (models eksisting).
 - Produces:
-  - `Recipe` (morphTo `recipeable()`, hasMany `items()`), `RecipeItem` (`recipe()`, `ingredient()`, cast `quantity` => integer), `UnitConversion` (`fromUnit()`, `toUnit()`).
-  - Enum case `StockMovementType::Consumption` (value `consumption`) dan `StockMovementType::ConsumptionReversal` (value `consumption_reversal`).
-  - Factory: `Recipe::factory()->for($model, 'recipeable')`, `RecipeItem::factory()->for($recipe)`, `UnitConversion::factory()->for($unit, 'fromUnit')->for($unit2, 'toUnit')`.
+    - `Recipe` (morphTo `recipeable()`, hasMany `items()`), `RecipeItem` (`recipe()`, `ingredient()`, cast `quantity` => integer), `UnitConversion` (`fromUnit()`, `toUnit()`).
+    - Enum case `StockMovementType::Consumption` (value `consumption`) dan `StockMovementType::ConsumptionReversal` (value `consumption_reversal`).
+    - Factory: `Recipe::factory()->for($model, 'recipeable')`, `RecipeItem::factory()->for($recipe)`, `UnitConversion::factory()->for($unit, 'fromUnit')->for($unit2, 'toUnit')`.
 
 - [ ] **Step 1: Tulis test skema yang gagal**
 
@@ -92,16 +94,19 @@ git commit -m "feat: add recipe and unit conversion schema"
 ### Task 2: Service konversi satuan
 
 **Files:**
+
 - Create: `app/Modules/Inventory/Actions/ConvertUnit.php`
 - Test: `tests/Feature/UnitConversionTest.php`
 
 **Interfaces:**
+
 - Consumes: `UnitConversion` (Task 1), `Unit`.
 - Produces: `ConvertUnit::__invoke(int $fromUnitId, int $quantity, int $toUnitId): int` — jumlah integer di unit tujuan.
 
 - [ ] **Step 1: Tulis test gagal**
 
 `tests/Feature/UnitConversionTest.php` (DatabaseMigrations). Skenario: buat unit `g`, `kg`, `pcs` + konversi `1 kg = 1000 g`.
+
 - `convert(1 kg, 3) → g = 3000`.
 - `convert(500, g → kg) = 0` (integer, floor).
 - `convert(x, u → u) = x` (unit sama).
@@ -134,16 +139,19 @@ git commit -m "feat: add unit conversion service"
 ### Task 3: Resolver kebutuhan bahan (BOM)
 
 **Files:**
+
 - Create: `app/Modules/Inventory/Actions/ResolveOrderRequirements.php`
 - Test: `tests/Feature/RecipeRequirementTest.php`
 
 **Interfaces:**
+
 - Consumes: `Order` dengan relasi `items.modifiers` (Eksisting: `OrderItem.product_id`, `variant_id`, `quantity`; `OrderItemModifier.modifier_id`), `Recipe::query()->where('recipeable_type', ...)->with('items.ingredient')`.
 - Produces: `ResolveOrderRequirements::__invoke(Order $order): Collection<int, int>` — kunci = `ingredient_id`, nilai = total qty unit dasar. Item tanpa resep tidak termasuk.
 
 - [ ] **Step 1: Tulis test gagal**
 
 `tests/Feature/RecipeRequirementTest.php` (DatabaseMigrations, gunakan `Order::factory()` + `OrderItem::factory()` + factory modifier yang ada, pola `tests/Feature/OrderCreationTest.php`). Skenario produk `P`, varian `V`, bahan `A`(kg), `B`(unit dasar), modifier `M`:
+
 - Order 1 × `P` (tanpa varian), resep product `P`: 2 A → hasil `A => 2`.
 - Order qty 3, resep varian `V`: 1 A + 2 B, resep modifier `M`: 1 B, item memakai `M` qty 3 → `A => 3, B => 9` (1×3 + 2×3).
 - Variant `V` memiliki resep, resep product `P` juga ada → varian menang (2 A + 4 B per unit).
@@ -176,6 +184,7 @@ git commit -m "feat: resolve order ingredient requirements from recipes"
 ### Task 4: Konsumsi saat `preparing` + pembalikan saat void
 
 **Files:**
+
 - Create: `config/inventory.php`
 - Create: `app/Modules/Inventory/Actions/ConsumeOrderIngredients.php`
 - Create: `app/Modules/Inventory/Actions/ReverseOrderConsumption.php`
@@ -185,15 +194,17 @@ git commit -m "feat: resolve order ingredient requirements from recipes"
 - Modify: `tests/Feature/KitchenTest.php` (jika asumsi stok lama bergantung pada tidak ada konsumsi)
 
 **Interfaces:**
+
 - Consumes: `ResolveOrderRequirements` (Task 3); `Order.lockForUpdate` (Eksisting di kedua caller); `StockBalance` (lock `lockForUpdate()` + cek `< 0`, pola `RecordStockMovement`).
 - Produces:
-  - `config/inventory.php` => `['deduct_on' => 'preparing']`.
-  - `ConsumeOrderIngredients::__invoke(Order $order, User $actor): void` — menulis 1 movement `consumption` (qty negatif) per bahan yang dibutuhkan; `ValidationException` jika saldo habis (nama bahan di pesan).
-  - `ReverseOrderConsumption::__invoke(Order $order, User $actor): void` — per movement `consumption` milik order, tulis `consumption_reversal` qty positif + saldo naik.
+    - `config/inventory.php` => `['deduct_on' => 'preparing']`.
+    - `ConsumeOrderIngredients::__invoke(Order $order, User $actor): void` — menulis 1 movement `consumption` (qty negatif) per bahan yang dibutuhkan; `ValidationException` jika saldo habis (nama bahan di pesan).
+    - `ReverseOrderConsumption::__invoke(Order $order, User $actor): void` — per movement `consumption` milik order, tulis `consumption_reversal` qty positif + saldo naik.
 
 - [ ] **Step 1: Tulis test gagal** (`tests/Feature/OrderConsumptionTest.php`)
 
 Skenario utama (buat branch, owner, cashier, kitchen user, order paid, setiap skenario):
+
 1. **Start consumes**: PATCH `/kitchen/orders/{id}/status` `{status: preparing}` → status `preparing`; 1 movement `consumption` per bahan (qty negatif, `reference_type/id` = order, `actor_id` = kitchen user); saldo turun; balance `lockForUpdate` tidak boleh negatif.
 2. **No recipe** → status `preparing` OK, nol movement baru.
 3. **Cancel queued unpaid** → status `cancelled`, nol movement `consumption`.
@@ -238,16 +249,19 @@ git commit -m "feat: consume stock on preparing, reverse on void"
 ### Task 5: `inventory:reconcile`
 
 **Files:**
+
 - Create: `app/Console/Commands/InventoryReconcile.php`
 - Test: `tests/Feature/InventoryReconcileTest.php`
 
 **Interfaces:**
+
 - Consumes: `stock_balances`, `stock_movements` (ledger), `WriteAuditLog` (actor boleh NULL, mensikapi `audit_logs` migration `000005`).
 - Produces: artisan `inventory:reconcile {--fix}`. Exit 0 jika bersih (atau sudah diperbaiki), exit 1 jika masih ada selisih.
 
 - [ ] **Step 1: Tulis test gagal**
 
 `tests/Feature/InventoryReconcileTest.php`:
+
 - State bersih (movement konsisten dengan saldo) → `artisan('inventory:reconcile')` exit 0, output menyebut "tidak ada selisih".
 - Rusak saldo manual: `DB::table('stock_balances')->whereKey(...)->update(['quantity' => qty + 5])` → exit 1, output menyebut branch + bahan + selisih.
 - Dengan `--fix` → exit 0, saldo kembali ke jumlah ledger, 1 `audit_logs` baris `stock.reconciled` dengan `actor_id` NULL.
@@ -278,6 +292,7 @@ git commit -m "feat: add inventory reconcile command"
 ### Task 6: UI admin — Resep
 
 **Files:**
+
 - Create: `app/Modules/Inventory/Http/Controllers/RecipeController.php`
 - Create: `app/Http/Requests/StoreRecipeRequest.php`
 - Create: `app/Http/Requests/UpdateRecipeRequest.php`
@@ -286,17 +301,19 @@ git commit -m "feat: add inventory reconcile command"
 - Test: `tests/Feature/RecipeAdminTest.php`
 
 **Interfaces:**
+
 - Consumes: `Recipe`/`RecipeItem` (Task 1), `Product`/`ProductVariant`/`Modifier` (Eksisting), `EmptyState.vue`, `ConfirmDialog.vue`, `Button/Input/Select` (Eksisting), `WriteAuditLog`.
 - Produces (route, mengikuti bentuk `/admin/stock/*` yang ada):
-  - `GET  /admin/stock/recipes` → Inertia `admin/stock/Recipes`
-  - `POST /admin/stock/recipes` — body: `recipeable_type` (`product|product_variant|modifier`), `recipeable_id`, `items[] {ingredient_id, quantity}`
-  - `PATCH /admin/stock/recipes/{recipe}` — body `items[]` yang sama (pengganti total isi item)
-  - `DELETE /admin/stock/recipes/{recipe}`
+    - `GET  /admin/stock/recipes` → Inertia `admin/stock/Recipes`
+    - `POST /admin/stock/recipes` — body: `recipeable_type` (`product|product_variant|modifier`), `recipeable_id`, `items[] {ingredient_id, quantity}`
+    - `PATCH /admin/stock/recipes/{recipe}` — body `items[]` yang sama (pengganti total isi item)
+    - `DELETE /admin/stock/recipes/{recipe}`
 - Props halaman: `products` (id, name, variants), `modifiers` (id, name), `recipes` (id, target label, items dengan label `ingredient.name + unit.code`).
 
 - [ ] **Step 1: Tulis test gagal**
 
 `tests/Feature/RecipeAdminTest.php` (DatabaseMigrations, pola `CatalogTest.php`):
+
 - Cashier → `GET /admin/stock/recipes` 403.
 - Owner → 200 + halaman `admin/stock/Recipes` dengan 0 `recipes` menghasilkan empty state (test Inertia `assertInertia`).
 - Store payload valid (produk + 2 item) → 302, `recipes` ada 1, `recipe_items` ada 2, audit `recipe.created` ada.
@@ -315,14 +332,15 @@ Expected: FAIL.
 - Route di grup owner `admin/stock`; tambahkan untuk recipe: `GET <index>`, `POST <store>`, `PATCH {recipe} <update>`, `DELETE {recipe} <destroy>`.
 - `StoreRecipeRequest`/`UpdateRecipeRequest`: `recipeable_type` in:`product,product_variant,modifier`, `recipeable_id` required integer, `items` required array min:1, `items.*.ingredient_id` exists, `items.*.quantity` integer min:1. validasi target sesuai type (belongs to product/variant/modifier). Nilai `product|product_variant|modifier` hanya untuk request; di DB disimpan model class FQCN (`Product::class`, `ProductVariant::class`, `Modifier::class`) — pemetaan dilakukan di controller.
 - `RecipeController`:
-  - `index`: props sesuai Interfaces. (label unit bahan dari `baseUnit.code` + `name`).
-  - `store`: checkpoint duplikat `Recipe::where('recipeable_type',...)->where('recipeable_id',...)` → `ValidationException` "Target sudah memiliki resep."; buat recipe + items (transaction); audit `recipe.created` (after: daftar item `nama+qty`).
-  - `update`: simpan snapshot before, hapus `recipe->items`, buat ulang dari `items[]`; audit `recipe.updated` before/after.
-  - `destroy`: simpan after snapshot, hapus; audit `recipe.deleted`.
+    - `index`: props sesuai Interfaces. (label unit bahan dari `baseUnit.code` + `name`).
+    - `store`: checkpoint duplikat `Recipe::where('recipeable_type',...)->where('recipeable_id',...)` → `ValidationException` "Target sudah memiliki resep."; buat recipe + items (transaction); audit `recipe.created` (after: daftar item `nama+qty`).
+    - `update`: simpan snapshot before, hapus `recipe->items`, buat ulang dari `items[]`; audit `recipe.updated` before/after.
+    - `destroy`: simpan after snapshot, hapus; audit `recipe.deleted`.
 
 - [ ] **Step 4: Implementasikan `Recipes.vue`**
 
 Struktur mengikuti `admin/stock/Ingredients.vue` (kartu `rounded-2xl border border-line bg-white`, form `useForm`, tabel daftar):
+
 - Section 1 (form "Tambah resep"): Select target jenis (Produk/Varian/Modifier) + Select target + dynamic rows item (Select bahan + number qty + label unit bahan tampil di samping input — anti salah satuan) + tombol "Tambah baris" + CTA "Simpan resep". Validation error per field (`form.errors.items_0_ingredient_id` dst. mapping ke row).
 - Section 2 (daftar resep): tabel per resep (target label, ringkasan item), aksi Ubah (populate form) + Hapus (panggil `ConfirmDialog` dengan pesan "Resep akan dihapus; pesanan lama tidak berubah, pesanan baru akan berhenti menguras bahan."). Empty state bila kosong.
 - State: loading via `form.processing`, success flash, error server dari Inertia (`usePage().props.error`) sudah ada di StaffLayout, pastikan tampil.
@@ -345,6 +363,7 @@ git commit -m "feat: add recipe admin UI"
 ### Task 7: UI admin — Satuan & konversi
 
 **Files:**
+
 - Create: `app/Modules/Inventory/Http/Controllers/UnitConversionController.php`
 - Create: `app/Http/Requests/StoreUnitRequest.php`
 - Create: `app/Http/Requests/StoreUnitConversionRequest.php`
@@ -353,18 +372,20 @@ git commit -m "feat: add recipe admin UI"
 - Test: `tests/Feature/UnitAdminTest.php`
 
 **Interfaces:**
+
 - Consumes: `Unit`/`UnitConversion` (Task 1). `ConvertUnit` (Task 2) tetap tersedia di kode untuk verifikasi manual, tidak dipakai controller.
 - Produces (route, grup owner `admin/stock`):
-  - `GET    /admin/stock/units`
-  - `POST   /admin/stock/units` (body: `name`, `code`)
-  - `PATCH  /admin/stock/units/{unit}` (body: `name` only)
-  - `DELETE /admin/stock/units/{unit}` — 422 jika dipakai bahan/movement/konversi ("Satuan sudah terpakai.")
-  - `POST   /admin/stock/unit-conversions` (body: `from_unit_id`, `to_unit_id`, `from_quantity`, `to_quantity`)
-  - `DELETE /admin/stock/unit-conversions/{unitConversion}`
+    - `GET    /admin/stock/units`
+    - `POST   /admin/stock/units` (body: `name`, `code`)
+    - `PATCH  /admin/stock/units/{unit}` (body: `name` only)
+    - `DELETE /admin/stock/units/{unit}` — 422 jika dipakai bahan/movement/konversi ("Satuan sudah terpakai.")
+    - `POST   /admin/stock/unit-conversions` (body: `from_unit_id`, `to_unit_id`, `from_quantity`, `to_quantity`)
+    - `DELETE /admin/stock/unit-conversions/{unitConversion}`
 
 - [ ] **Step 1: Tulis test gagal**
 
 `tests/Feature/UnitAdminTest.php`:
+
 - Cashier → 403; owner → 200 props `units` + `conversions`.
 - Store unit valid → 302, baris ada. Store `code` duplikat → 422.
 - Store konversi valid → 302. `from == to` → 422. `to→from` yang sudah ada (mis. ada `g→kg` lalu kirim `kg→g`) → 422 "Konversi arah ini sudah ada." qty 0/negatif → 422.

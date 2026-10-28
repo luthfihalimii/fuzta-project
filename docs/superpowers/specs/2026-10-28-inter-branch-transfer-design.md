@@ -14,6 +14,7 @@ Sedangkan saat ini tidak ada cara memindahkan stok antar cabang secara tercatat 
 adjustment manual di masing-masing cabang, yang memutus jejak "barang pindah dari mana ke mana".
 
 Kesepakatan owner (sudah dikonfirmasi):
+
 - Alur fisik: **klik kirim → antre → terima**. Cabang A klik "kirim" (stok A berkurang, barang
   berstatus in-transit); barang diantar; cabang B klik "terima" (stok B bertambah).
 - Discrepancy: **penerima input jumlah aktual + alasan wajib** bila aktual < dikirim. Tanpa
@@ -27,6 +28,7 @@ warehouse → transfer antar **cabang ↔ cabang** saja (setiap cabang bisa menj
 ## Goal / Non-goal / Anti-goal
 
 **Goal**
+
 1. Pemilik (owner) bisa membuat transfer A→B (draft), mengirim (dispatch), dan receiver menerima
    (receive) dengan input jumlah aktual — seluruhnya tercatat di `stock_movements` (append-only)
    dengan balance tetap = jumlah ledger (kompatibel `inventory:reconcile`).
@@ -35,6 +37,7 @@ warehouse → transfer antar **cabang ↔ cabang** saja (setiap cabang bisa menj
 4. Tidak bisa dispatch dua cabang di transaksi race yang sama → saldo double-spend.
 
 **Non-goal (MVP)**
+
 - Entitas warehouse; purchase order / supplier / price history (PRD §7.9 P1).
 - Hierarki persetujuan untuk discrepancy atau dispatch.
 - Override negative stock saat dispatch (tetap basis default: saldo kurang = 422) — open item owner.
@@ -42,6 +45,7 @@ warehouse → transfer antar **cabang ↔ cabang** saja (setiap cabang bisa menj
 - UI di sisi POS/kitchen (admin owner only).
 
 **Anti-goal**
+
 - Tidak boleh ada kode yang menulis `stock_balances.qty` di luar ledger (maintain invariant
   reconciliation). Tidak boleh overwrite/rotate baris `stock_movements`.
 - Tidak boleh menulis receiver asli memory yang dikirim post-dispatch (audit trail utuh).
@@ -75,15 +79,15 @@ warehouse → transfer antar **cabang ↔ cabang** saja (setiap cabang bisa menj
 ## Keputusan Pembangun (tulis sebagai my call; boleh diobjeksi sebelum plan)
 
 - **Model & tabel**: `StockTransfer` + `StockTransferItem`.
-  - `stock_transfers`: id, `origin_branch_id` (FK branches), `destination_branch_id` (FK branches),
-    `status` (string/enum: draft|dispatched|received|cancelled), `created_by` (FK users),
-    `dispatched_at` nullable, `received_at` nullable, `cancel_reason` nullable (wajib saat cancel),
-    timestamps. Unique constraint `(origin_branch_id, destination_branch_id, status)` BELUM ada —
-    beberapa transfer menang/hilang untuk pasangan cabang itu sah.
-    Constraint: `origin_branch_id != destination_branch_id` (validasi app-level).
-  - `stock_transfer_items`: id, `transfer_id` (FK restrict), `ingredient_id` (FK restrict),
-    `quantity` (int, = dikirim), `received_quantity` (int nullable), `discrepancy_reason`
-    (string nullable). Unique `(transfer_id, ingredient_id)` — satu bahan satu baris per transfer.
+    - `stock_transfers`: id, `origin_branch_id` (FK branches), `destination_branch_id` (FK branches),
+      `status` (string/enum: draft|dispatched|received|cancelled), `created_by` (FK users),
+      `dispatched_at` nullable, `received_at` nullable, `cancel_reason` nullable (wajib saat cancel),
+      timestamps. Unique constraint `(origin_branch_id, destination_branch_id, status)` BELUM ada —
+      beberapa transfer menang/hilang untuk pasangan cabang itu sah.
+      Constraint: `origin_branch_id != destination_branch_id` (validasi app-level).
+    - `stock_transfer_items`: id, `transfer_id` (FK restrict), `ingredient_id` (FK restrict),
+      `quantity` (int, = dikirim), `received_quantity` (int nullable), `discrepancy_reason`
+      (string nullable). Unique `(transfer_id, ingredient_id)` — satu bahan satu baris per transfer.
 - **Enum status**: `TransferStatus` (Laravel backed enum, casing lower 'draft' dst).
 - **Enum `StockMovementType`** tambahan: `TransferOut` (label `'Pengiriman antar cabang'`,
   qty negatif) dan `TransferIn` (label `'Penerimaan antar cabang'`, qty positif);
@@ -123,24 +127,24 @@ warehouse → transfer antar **cabang ↔ cabang** saja (setiap cabang bisa menj
   reason input). In-transit = badge pada baris `dispatched`.
 - **Test** (`tests/Feature/StockTransferTest.php` + kemungkinan
   `tests/Feature/TransferConcurrencyTest.php` atau fork-section di dalamnya):
-  1. Cashier semua route 403.
-  2. Draft: origin==dest ditolak 422; bahan tidak ada ditolak; draft sukses → 0 movement, saldo utuh.
-  3. Dispatch: saldo origin turun tepat, 1 movement `transfer_out` per bahan (qty negatif,
-     reference_type/id = transfer, actor), status `dispatched`, `dispatched_at` terisi.
-  4. Dispatch shortfall → 422 + nama bahan; saldo & movement & status tidak berubah.
-  5. Double dispatch (atau race) → sekali menang, sekali 422; movement tetap 1 set.
-  6. Receive qty = dikirim → saldo dest naik, movement `transfer_in` qty positif, status `received`.
-  7. Receive aktual < dikirim tanpa alasan → 422; dengan alasan → sukses, `received_quantity` +
-     `discrepancy_reason` tersimpan, movement `transfer_in` qty = aktual, audit receive menyertakan
-     discrepancy.
-  8. Receive aktual > dikirim → sukses (movement qty aktual), discrepancy_reason opsional.
-  9. Cancel dari draft → status `cancelled`, cancel_reason tersimpan, 0 movement.
-  10. Cancel/Receive/Dispatch dari status yang salah → 422.
-  11. Reconciliation invariant: setelah siklus penuh (dispatch+receive),
-      `inventory:reconcile` melanjutkan (exit 0) — saldo = jumlah ledger.
-  12. Balance kedua cabang tidak pernah negatif (DB CHECK tetap hidup).
-  13. Receive semua baris aktual 0 → transfer ditutup `received`, 0 movement `transfer_in`,
-      discrepancy_reason semua baris tersimpan, saldo kedua cabang tidak berubah di fase receive.
+    1. Cashier semua route 403.
+    2. Draft: origin==dest ditolak 422; bahan tidak ada ditolak; draft sukses → 0 movement, saldo utuh.
+    3. Dispatch: saldo origin turun tepat, 1 movement `transfer_out` per bahan (qty negatif,
+       reference_type/id = transfer, actor), status `dispatched`, `dispatched_at` terisi.
+    4. Dispatch shortfall → 422 + nama bahan; saldo & movement & status tidak berubah.
+    5. Double dispatch (atau race) → sekali menang, sekali 422; movement tetap 1 set.
+    6. Receive qty = dikirim → saldo dest naik, movement `transfer_in` qty positif, status `received`.
+    7. Receive aktual < dikirim tanpa alasan → 422; dengan alasan → sukses, `received_quantity` +
+       `discrepancy_reason` tersimpan, movement `transfer_in` qty = aktual, audit receive menyertakan
+       discrepancy.
+    8. Receive aktual > dikirim → sukses (movement qty aktual), discrepancy_reason opsional.
+    9. Cancel dari draft → status `cancelled`, cancel_reason tersimpan, 0 movement.
+    10. Cancel/Receive/Dispatch dari status yang salah → 422.
+    11. Reconciliation invariant: setelah siklus penuh (dispatch+receive),
+        `inventory:reconcile` melanjutkan (exit 0) — saldo = jumlah ledger.
+    12. Balance kedua cabang tidak pernah negatif (DB CHECK tetap hidup).
+    13. Receive semua baris aktual 0 → transfer ditutup `received`, 0 movement `transfer_in`,
+        discrepancy_reason semua baris tersimpan, saldo kedua cabang tidak berubah di fase receive.
 - **Migration** 2 file bertanggal 2026-10-29 ( atau tanggal plan) — `stock_transfers` lalu
   `stock_transfer_items` (FK aman & cascade policy: `restrict` agar riwayat transfer tidak
   bisa dihapus diam-diam). Factory: `StockTransferFactory` + `StockTransferItemFactory`.

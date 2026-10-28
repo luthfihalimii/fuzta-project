@@ -9,16 +9,16 @@ Sekarang penjualan tidak pernah mengurangi stok. Laporan stok tidak mencerminkan
 
 ## Keputusan desain
 
-| # | Keputusan | Alasan |
-|---|---|---|
-| 1 | Potong stok saat transisi ke `preparing` (bukan saat paid/queued) | Order batal sebelum dimasak tidak menguras stok. Dipilih owner. |
-| 2 | Pambar otomatis (movement `consumption_reversal`) saat `void` untuk order yang sudah consuming; `cancel` hanya berlaku queued+unpaid jadi tidak pernah perlu reversal | Append-only ledger: pembalikan tidak menghapus baris asli. |
-| 3 | Resep terhubung polymorfik ke `Product`, `ProductVariant`, atau `Modifier`. Maksimal 1 resep per target | Harga modifier sudah per-unit × qty di `PriceOrderItems`; BOM harus mengikuti semantik yang sama. |
-| 4 | Jumlah item resep = **integer dalam unit dasar bahan** (`ingredient.base_unit_id`) | PRD §8.12: bukan float, jangan campur satuan tanpa aturan konversi. |
-| 5 | Satu `unit_conversions` per pasangan arah: `from_qty` unit A = `to_qty` unit B. Resolusi rantai via BFS; tanpa jalur = error, bukan asumsi | "Never mix grams, kilograms, pieces, and packs without a conversion rule." |
-| 6 | Stok tidak cukup saat mulai memasak = transisi **ditolak** (422), order tetap `accepted` | PRD: negative stock diblok default. Mekanisme override negative (permission + audit) **ditunda**, dicatat sebagai open item. |
-| 7 | `inventory:reconcile` artisan menyalin ulang saldo dari ledger; `--fix` menyetel ulang saldo + audit `stock.reconciled` | `stock_balances` hanya cache; ledger adalah sumber luar. |
-| 8 | `config('inventory.deduct_on')` satu-satunya titik kebijakan event potong (nilai: `preparing`) | AGENTS.md: keputusan bisnis di balik satu titik config, bukan tersebar. |
+| #   | Keputusan                                                                                                                                                             | Alasan                                                                                                                       |
+| --- | --------------------------------------------------------------------------------------------------------------------------------------------------------------------- | ---------------------------------------------------------------------------------------------------------------------------- |
+| 1   | Potong stok saat transisi ke `preparing` (bukan saat paid/queued)                                                                                                     | Order batal sebelum dimasak tidak menguras stok. Dipilih owner.                                                              |
+| 2   | Pambar otomatis (movement `consumption_reversal`) saat `void` untuk order yang sudah consuming; `cancel` hanya berlaku queued+unpaid jadi tidak pernah perlu reversal | Append-only ledger: pembalikan tidak menghapus baris asli.                                                                   |
+| 3   | Resep terhubung polymorfik ke `Product`, `ProductVariant`, atau `Modifier`. Maksimal 1 resep per target                                                               | Harga modifier sudah per-unit × qty di `PriceOrderItems`; BOM harus mengikuti semantik yang sama.                            |
+| 4   | Jumlah item resep = **integer dalam unit dasar bahan** (`ingredient.base_unit_id`)                                                                                    | PRD §8.12: bukan float, jangan campur satuan tanpa aturan konversi.                                                          |
+| 5   | Satu `unit_conversions` per pasangan arah: `from_qty` unit A = `to_qty` unit B. Resolusi rantai via BFS; tanpa jalur = error, bukan asumsi                            | "Never mix grams, kilograms, pieces, and packs without a conversion rule."                                                   |
+| 6   | Stok tidak cukup saat mulai memasak = transisi **ditolak** (422), order tetap `accepted`                                                                              | PRD: negative stock diblok default. Mekanisme override negative (permission + audit) **ditunda**, dicatat sebagai open item. |
+| 7   | `inventory:reconcile` artisan menyalin ulang saldo dari ledger; `--fix` menyetel ulang saldo + audit `stock.reconciled`                                               | `stock_balances` hanya cache; ledger adalah sumber luar.                                                                     |
+| 8   | `config('inventory.deduct_on')` satu-satunya titik kebijakan event potong (nilai: `preparing`)                                                                        | AGENTS.md: keputusan bisnis di balik satu titik config, bukan tersebar.                                                      |
 
 ## Skema (baru)
 
@@ -39,12 +39,12 @@ unit_conversions   id, from_unit_id, to_unit_id, from_quantity, to_quantity (big
 
 1. Kitchen PATCH status → `TransitionOrderStatus` lock order, validasi status machine, simpan `preparing`.
 2. Jika `deduct_on === 'preparing'`: `ConsumeOrderIngredients`:
-   - `ResolveOrderRequirements(order)` → map `ingredient_id => qty_total` (unit dasar).
-     Ketentuan per baris: `(resep varian ?? resep produk) × qty_baris + Σ (resep modifier × qty_baris)`.
-     Target tanpa resep tidak menguras apa-apa (valid, bukan error).
-   - Per bahan (di transaksi parentes, balance `lockForUpdate`): `after = before − qty`.
-     `after < 0` → `ValidationException` "Stok {bahan} tidak cukup untuk memulai pesanan." — tidak ada baris movement dan order tidak pindah status.
-     Jika lolos: update balance, tulis 1 movement `consumption` qty negatif, `reference_type/id` = order, `actor_id` = yang mengubah status.
+    - `ResolveOrderRequirements(order)` → map `ingredient_id => qty_total` (unit dasar).
+      Ketentuan per baris: `(resep varian ?? resep produk) × qty_baris + Σ (resep modifier × qty_baris)`.
+      Target tanpa resep tidak menguras apa-apa (valid, bukan error).
+    - Per bahan (di transaksi parentes, balance `lockForUpdate`): `after = before − qty`.
+      `after < 0` → `ValidationException` "Stok {bahan} tidak cukup untuk memulai pesanan." — tidak ada baris movement dan order tidak pindah status.
+      Jika lolos: update balance, tulis 1 movement `consumption` qty negatif, `reference_type/id` = order, `actor_id` = yang mengubah status.
 3. `VoidOrder` pada order berstatus `preparing|ready|completed` (setelah consuming):
    `ReverseOrderConsumption` menulis 1 movement `consumption_reversal` qty positif per bahan yang pernah dikonsumsi, balance naik, alasan menyebut nomor pesanan. Movement asli tetap ada.
 4. Rekonsiliasi: `SUM(stock_movements.quantity)` per (branch, ingredient) harus sama dengan `stock_balances.quantity`. `inventory:reconcile` melapor; `--fix` menyetel ulang + audit (actor NULL, diizinkan oleh `audit_logs`).

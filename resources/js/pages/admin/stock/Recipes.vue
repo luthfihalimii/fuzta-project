@@ -248,7 +248,10 @@ function confirmDelete(): void {
                 </div>
 
                 <form class="mt-4 space-y-4" @submit.prevent="submit">
-                    <div v-if="editingId === null" class="grid gap-4 sm:grid-cols-2">
+                    <div
+                        v-if="editingId === null"
+                        class="grid gap-4 sm:grid-cols-2"
+                    >
                         <Select
                             v-model="form.recipeable_type"
                             label="Jenis target"
@@ -311,7 +314,10 @@ function confirmDelete(): void {
                                 </button>
                             </div>
                         </div>
-                        <div v-if="form.errors.items" class="text-sm text-danger">
+                        <div
+                            v-if="form.errors.items"
+                            class="text-sm text-danger"
+                        >
                             {{ form.errors.items }}
                         </div>
                         <Button
@@ -326,7 +332,10 @@ function confirmDelete(): void {
                     <div class="flex flex-wrap gap-2">
                         <Button
                             type="submit"
-                            :disabled="form.processing || props.ingredients.length === 0"
+                            :disabled="
+                                form.processing ||
+                                props.ingredients.length === 0
+                            "
                         >
                             {{
                                 form.processing
@@ -375,7 +384,10 @@ function confirmDelete(): void {
                             </tr>
                         </thead>
                         <tbody class="divide-y divide-line">
-                            <tr v-for="recipe in props.recipes" :key="recipe.id">
+                            <tr
+                                v-for="recipe in props.recipes"
+                                :key="recipe.id"
+                            >
                                 <td class="px-5 py-4 font-medium text-ink">
                                     {{ recipe.target }}
                                 </td>

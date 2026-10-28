@@ -83,13 +83,22 @@ function createCancelForm() {
     return useForm({ cancel_reason: '' });
 }
 
-const dispatchForms = reactive<Record<number, ReturnType<typeof createDispatchForm>>>({});
-const receiveForms = reactive<Record<number, ReturnType<typeof createReceiveForm>>>({});
-const cancelForms = reactive<Record<number, ReturnType<typeof createCancelForm>>>({});
+const dispatchForms = reactive<
+    Record<number, ReturnType<typeof createDispatchForm>>
+>({});
+const receiveForms = reactive<
+    Record<number, ReturnType<typeof createReceiveForm>>
+>({});
+const cancelForms = reactive<
+    Record<number, ReturnType<typeof createCancelForm>>
+>({});
 
 const statusMeta: Record<
     TransferStatus,
-    { label: string; tone: 'neutral' | 'success' | 'danger' | 'warning' | 'info' }
+    {
+        label: string;
+        tone: 'neutral' | 'success' | 'danger' | 'warning' | 'info';
+    }
 > = {
     draft: { label: 'Draft', tone: 'neutral' },
     dispatched: { label: 'In-transit', tone: 'info' },
@@ -325,7 +334,10 @@ function submitCancel(transfer: TransferRow): void {
                                 </button>
                             </div>
                         </div>
-                        <div v-if="form.errors.items" class="text-sm text-danger">
+                        <div
+                            v-if="form.errors.items"
+                            class="text-sm text-danger"
+                        >
                             {{ form.errors.items }}
                         </div>
                         <Button
@@ -456,9 +468,8 @@ function submitCancel(transfer: TransferRow): void {
                                                 :error="
                                                     cardError(
                                                         transfer,
-                                                        receiveFormFor(
-                                                            transfer,
-                                                        ).errors,
+                                                        receiveFormFor(transfer)
+                                                            .errors,
                                                         `received_items.${index}.received_quantity`,
                                                     )
                                                 "
@@ -476,18 +487,17 @@ function submitCancel(transfer: TransferRow): void {
                                                 :error="
                                                     cardError(
                                                         transfer,
-                                                        receiveFormFor(
-                                                            transfer,
-                                                        ).errors,
+                                                        receiveFormFor(transfer)
+                                                            .errors,
                                                         `received_items.${index}.discrepancy_reason`,
                                                     )
                                                 "
                                                 :required="
                                                     Number(
-                                                        receiveFormFor(
-                                                            transfer,
-                                                        ).received_items[index]
-                                                            .received_quantity,
+                                                        receiveFormFor(transfer)
+                                                            .received_items[
+                                                            index
+                                                        ].received_quantity,
                                                     ) < item.quantity
                                                 "
                                             />
