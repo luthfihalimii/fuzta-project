@@ -15,6 +15,7 @@ class InventoryReconcile extends Command
 
     public function handle(WriteAuditLog $writeAuditLog): int
     {
+        // shortcut: scan diluar transaksi fix bisa stale bila concurrent write selama --fix; upgrade ke scan inside transaction jika terjadwal.
         $ledger = DB::table('stock_movements')
             ->selectRaw('branch_id, ingredient_id, SUM(quantity) AS ledger')
             ->groupBy('branch_id', 'ingredient_id');
