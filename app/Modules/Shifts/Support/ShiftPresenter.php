@@ -2,6 +2,7 @@
 
 namespace App\Modules\Shifts\Support;
 
+use App\Modules\Shifts\Actions\CalculateShiftTotals;
 use App\Modules\Shifts\Models\CashierShift;
 
 class ShiftPresenter
@@ -9,8 +10,20 @@ class ShiftPresenter
     /**
      * @return array<string, mixed>
      */
-    public static function summary(CashierShift $shift): array
+    public static function summary(CashierShift $shift, ?array $liveTotals = null): array
     {
+        if ($shift->closed_at === null) {
+            $liveTotals ??= app(CalculateShiftTotals::class)($shift);
+        } else {
+            $liveTotals = [
+                'cash_sales_total' => $shift->cash_sales_total,
+                'qris_sales_total' => $shift->qris_sales_total,
+                'cash_in_total' => $shift->cash_in_total,
+                'cash_out_total' => $shift->cash_out_total,
+                'expected_cash' => $shift->expected_cash,
+            ];
+        }
+
         $status = match (true) {
             $shift->closed_at === null => 'open',
             $shift->isAutoClosedUnreconciled() => 'auto_closed_unreconciled',
@@ -35,11 +48,11 @@ class ShiftPresenter
             'opened_at' => $shift->opened_at?->toIso8601String(),
             'closed_at' => $shift->closed_at?->toIso8601String(),
             'opening_cash' => $shift->opening_cash,
-            'cash_sales_total' => $shift->cash_sales_total,
-            'qris_sales_total' => $shift->qris_sales_total,
-            'cash_in_total' => $shift->cash_in_total,
-            'cash_out_total' => $shift->cash_out_total,
-            'expected_cash' => $shift->expected_cash,
+            'cash_sales_total' => $liveTotals['cash_sales_total'],
+            'qris_sales_total' => $liveTotals['qris_sales_total'],
+            'cash_in_total' => $liveTotals['cash_in_total'],
+            'cash_out_total' => $liveTotals['cash_out_total'],
+            'expected_cash' => $liveTotals['expected_cash'],
             'counted_cash' => $shift->counted_cash,
             'variance' => $shift->variance,
             'cash_deposited' => $shift->cash_deposited,

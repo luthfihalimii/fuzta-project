@@ -77,19 +77,6 @@ class OpenShift
                     ]);
                 }
 
-                $openShift = CashierShift::query()
-                    ->where('user_id', $actor->id)
-                    ->where('branch_id', $branch->id)
-                    ->whereNull('closed_at')
-                    ->lockForUpdate()
-                    ->first();
-
-                if ($openShift !== null) {
-                    throw ValidationException::withMessages([
-                        'shift' => 'Tutup shift sebelumnya terlebih dahulu.',
-                    ]);
-                }
-
                 $shift = CashierShift::create([
                     'branch_id' => $branch->id,
                     'user_id' => $actor->id,
@@ -122,7 +109,10 @@ class OpenShift
                 ->whereNull('closed_at')
                 ->first();
 
-            if ($open !== null) {
+            if ($open !== null
+                && $open->window_key === $window->key
+                && $open->scheduled_start_at->equalTo($window->startUtc)
+                && $open->scheduled_end_at->equalTo($window->endUtc)) {
                 return $open;
             }
 

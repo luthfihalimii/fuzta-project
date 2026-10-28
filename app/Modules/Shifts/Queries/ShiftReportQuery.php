@@ -84,10 +84,10 @@ class ShiftReportQuery
     private function query(array $filters): Builder
     {
         $from = isset($filters['from']) && $filters['from'] !== ''
-            ? CarbonImmutable::parse($filters['from'], 'Asia/Jakarta')->startOfDay()
+            ? CarbonImmutable::parse($filters['from'], (string) config('shifts.timezone', 'Asia/Jakarta'))->startOfDay()
             : null;
         $to = isset($filters['to']) && $filters['to'] !== ''
-            ? CarbonImmutable::parse($filters['to'], 'Asia/Jakarta')->endOfDay()
+            ? CarbonImmutable::parse($filters['to'], (string) config('shifts.timezone', 'Asia/Jakarta'))->endOfDay()
             : null;
 
         return CashierShift::query()

@@ -63,14 +63,20 @@ class OrderController extends Controller
             if ($requestedShiftId > 0 && $shift !== null) {
                 $query->where('shift_id', $shift->id);
             } else {
-                $start = now('Asia/Jakarta')->startOfDay()->utc();
-                $end = now('Asia/Jakarta')->endOfDay()->utc();
+                $timezone = (string) config('shifts.timezone', 'Asia/Jakarta');
+                $start = now($timezone)->startOfDay()->utc();
+                $end = now($timezone)->endOfDay()->utc();
 
                 $query->where(function ($query) use ($shift, $start, $end): void {
                     $query->whereBetween('created_at', [$start, $end]);
 
                     if ($shift !== null) {
-                        $query->orWhere('shift_id', $shift->id);
+                        $query->orWhere('shift_id', $shift->id)
+                            ->orWhere(function ($query): void {
+                                $query->whereNotNull('shift_id')
+                                    ->where('payment_status', 'unpaid')
+                                    ->where('status', '!=', 'cancelled');
+                            });
                     }
                 });
             }
@@ -99,7 +105,7 @@ class OrderController extends Controller
             'branches' => $user->isOwner() ? BranchPresenter::options() : [],
             'canChooseBranch' => $user->isOwner(),
             'orders' => $orders,
-            'today' => now('Asia/Jakarta')->toDateString(),
+            'today' => now((string) config('shifts.timezone', 'Asia/Jakarta'))->toDateString(),
             'posUrl' => $branch ? '/pos?branch='.$branch->id : '/pos',
             'shift' => $shift ? ShiftPresenter::summary($shift) : null,
             'orders_cutoff_at' => $cutoff?->toIso8601String(),

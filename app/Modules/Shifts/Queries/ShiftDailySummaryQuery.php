@@ -13,12 +13,13 @@ class ShiftDailySummaryQuery
      */
     public function __invoke(array $filters): array
     {
+        $timezone = (string) config('shifts.timezone', 'Asia/Jakarta');
         $from = isset($filters['from']) && $filters['from'] !== ''
-            ? CarbonImmutable::parse($filters['from'], 'Asia/Jakarta')->startOfDay()
-            : CarbonImmutable::now('Asia/Jakarta')->startOfDay();
+            ? CarbonImmutable::parse($filters['from'], $timezone)->startOfDay()
+            : CarbonImmutable::now($timezone)->startOfDay();
         $to = isset($filters['to']) && $filters['to'] !== ''
-            ? CarbonImmutable::parse($filters['to'], 'Asia/Jakarta')->endOfDay()
-            : CarbonImmutable::now('Asia/Jakarta')->endOfDay();
+            ? CarbonImmutable::parse($filters['to'], $timezone)->endOfDay()
+            : ($from->setTimezone($timezone)->endOfDay());
 
         $shifts = CashierShift::query()
             ->with(['branch', 'user'])
@@ -30,7 +31,7 @@ class ShiftDailySummaryQuery
 
         return $shifts
             ->groupBy(fn (CashierShift $shift) => implode('|', [
-                $shift->opened_at->setTimezone('Asia/Jakarta')->toDateString(),
+                $shift->opened_at->setTimezone((string) config('shifts.timezone', 'Asia/Jakarta'))->toDateString(),
                 $shift->branch_id,
                 $shift->user_id,
             ]))
@@ -40,7 +41,7 @@ class ShiftDailySummaryQuery
                 $reconciled = $closed->whereNotNull('reconciled_at');
 
                 return [
-                    'date' => $first->opened_at->setTimezone('Asia/Jakarta')->toDateString(),
+                    'date' => $first->opened_at->setTimezone((string) config('shifts.timezone', 'Asia/Jakarta'))->toDateString(),
                     'branch_id' => $first->branch_id,
                     'branch_code' => $first->branch?->code,
                     'branch_name' => $first->branch?->name,
