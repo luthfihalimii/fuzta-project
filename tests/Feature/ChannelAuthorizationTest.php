@@ -5,7 +5,6 @@ namespace Tests\Feature;
 use App\Models\User;
 use App\Modules\Branches\Models\Branch;
 use Illuminate\Foundation\Testing\RefreshDatabase;
-use Illuminate\Support\Facades\Broadcast;
 use Illuminate\Testing\TestResponse;
 use PHPUnit\Framework\Attributes\DataProvider;
 use Tests\TestCase;
@@ -14,9 +13,11 @@ class ChannelAuthorizationTest extends TestCase
 {
     use RefreshDatabase;
 
-    // phpunit.xml pins BROADCAST_CONNECTION=null; NullBroadcaster::auth() skips
-    // routes/channels.php closures and accepts every channel, so deny cases
-    // would pass for the wrong reason. Use the real reverb (pusher) driver.
+    // phpunit.xml pins BROADCAST_CONNECTION=null. Di bawah driver null,
+    // NullBroadcaster::auth() tidak pernah menjalankan closure
+    // routes/channels.php dan mengembalikan null → 200 kosong untuk SETIAP
+    // channel: deny cases gagal (403 tak terbit) dan allow cases lolos tipis
+    // tanpa key `auth`. Paksa driver reverb (pusher) asli agar closure berjalan.
     protected function setUp(): void
     {
         parent::setUp();
@@ -28,10 +29,8 @@ class ChannelAuthorizationTest extends TestCase
             'broadcasting.connections.reverb.app_id' => '1',
         ]);
 
-        // Closures from boot live on a driver instance that this new config
-        // replaces, so register them again for the reverb driver.
+        // Registry channel per-instance driver; register ulang ke driver reverb.
         require base_path('routes/channels.php');
-        Broadcast::connection();
     }
 
     public static function staffMatrix(): array
