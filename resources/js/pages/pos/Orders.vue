@@ -1,6 +1,7 @@
 <script setup lang="ts">
 import { Head, Link, router, usePage } from '@inertiajs/vue3';
-import { computed, ref } from 'vue';
+import { computed, onMounted, onUnmounted, ref } from 'vue';
+import { realtimeEcho } from '@/bootstrap/echo';
 import Badge from '@/components/Badge.vue';
 import Button from '@/components/Button.vue';
 import EmptyState from '@/components/EmptyState.vue';
@@ -51,6 +52,11 @@ const reasonOrder = ref<OrderRow | null>(null);
 const reason = ref('');
 const processing = ref(false);
 const reasonError = ref('');
+
+let realtimeChannel: string | null = null;
+let unbindConnection: (() => void) | null = null;
+let refreshTimer: number | undefined;
+let refreshPending = false;
 
 const todayLabel = computed(() =>
     new Intl.DateTimeFormat('id-ID', {
@@ -144,6 +150,61 @@ function switchBranch(): void {
         { preserveState: false, preserveScroll: true },
     );
 }
+
+function refresh(): void {
+    // coalesce: burst event (dapur ubah 5 order) cukup 1 reload
+    if (refreshPending) {
+        return;
+    }
+
+    refreshPending = true;
+    refreshTimer = window.setTimeout(() => {
+        refreshPending = false;
+        router.reload({ only: ['orders'] });
+    }, 50);
+}
+
+function onRealtime(): void {
+    refresh();
+}
+
+function connectRealtime(): void {
+    const echo = realtimeEcho();
+    const branch = props.branch;
+
+    if (!echo || !branch) {
+        // tanpa Reverb halaman tetap jalan (reload manual / interval kasir)
+        return;
+    }
+
+    realtimeChannel = `pos.${branch.id}`;
+
+    echo.private(realtimeChannel)
+        // prefix titik wajib: broadcastAs() server memakai nama polos,
+        // tanpa titik echo menambahkan namespace App\Events
+        .listen('.order-created', onRealtime)
+        .listen('.order-status-changed', onRealtime)
+        .listen('.order-payment-changed', onRealtime);
+
+    unbindConnection = echo.connector.onConnectionChange((status) => {
+        if (status === 'connected') {
+            refresh();
+        }
+    });
+}
+
+onMounted(() => {
+    connectRealtime();
+});
+
+onUnmounted(() => {
+    window.clearTimeout(refreshTimer);
+    unbindConnection?.();
+
+    if (realtimeChannel !== null) {
+        realtimeEcho()?.leave(realtimeChannel);
+    }
+});
 </script>
 
 <template>
