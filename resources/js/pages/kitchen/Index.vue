@@ -1,9 +1,12 @@
 <script setup lang="ts">
 import { Head, Link, router, usePage } from '@inertiajs/vue3';
 import { computed, onMounted, onUnmounted, ref } from 'vue';
+import { realtimeEcho } from '@/bootstrap/echo';
 import { formatElapsed } from '@/lib/datetime';
 import { getJson, HttpError, patchJson } from '@/lib/http';
 import type { BranchOption, BranchSummary, PosOrder } from '@/lib/order';
+import { isLate, shouldRing, type RealtimeNotification } from '@/lib/realtime';
+import { playBeep, unlockAudio } from '@/lib/sound';
 import { channelLabel } from '@/lib/status';
 
 type KitchenStatus =
@@ -17,6 +20,7 @@ const props = defineProps<{
     branch: BranchSummary | null;
     branches: BranchOption[];
     canChooseBranch: boolean;
+    kitchenLateMinutes: number;
 }>();
 
 const page = usePage();
@@ -56,9 +60,18 @@ const branchSelect = ref<number | null>(
     props.branch?.id ?? props.branches[0]?.id ?? null,
 );
 
+const soundOn = ref(sessionStorage.getItem('pf_kitchen_muted') !== '1');
+const seen = new Set<string>(
+    sessionStorage.getItem('pf_kitchen_seen')?.split(',').filter(Boolean) ?? [],
+);
+const now = ref(Date.now());
+
 let pollTimer: number | undefined;
 let requestId = 0;
 let newOrderTimer: number | undefined;
+let nowTimer: number | undefined;
+let realtimeChannel: string | null = null;
+let unbindConnection: (() => void) | null = null;
 
 const activeTab = computed(
     () => tabs.find((tab) => tab.value === activeStatus.value) ?? tabs[0],
@@ -187,14 +200,75 @@ function logout(): void {
     router.post('/logout');
 }
 
+function toggleSound(): void {
+    soundOn.value = !soundOn.value;
+    sessionStorage.setItem('pf_kitchen_muted', soundOn.value ? '0' : '1');
+
+    if (soundOn.value) {
+        unlockAudio();
+    }
+}
+
+function onRealtime(payload: RealtimeNotification): void {
+    if (payload.branch_id !== props.branch?.id) {
+        return;
+    }
+
+    if (shouldRing(payload, seen)) {
+        seen.add(payload.order_number);
+        sessionStorage.setItem('pf_kitchen_seen', [...seen].join(','));
+
+        if (soundOn.value && document.visibilityState === 'visible') {
+            playBeep();
+        }
+    }
+
+    void loadOrders();
+}
+
+function connectRealtime(): void {
+    const echo = realtimeEcho();
+    const branch = props.branch;
+
+    if (!echo || !branch) {
+        // fallback: polling 5 detik di onMounted tetap jalan
+        return;
+    }
+
+    realtimeChannel = `kitchen.${branch.id}`;
+
+    echo.private(realtimeChannel)
+        // prefix titik wajib: broadcastAs() server memakai nama polos,
+        // tanpa titik echo menambahkan namespace App\Events
+        .listen('.order-created', onRealtime)
+        .listen('.order-status-changed', onRealtime)
+        .listen('.order-payment-changed', onRealtime);
+
+    unbindConnection = echo.connector.onConnectionChange((status) => {
+        if (status === 'connected') {
+            void loadOrders();
+        }
+    });
+}
+
 onMounted(() => {
     void loadOrders(true);
     pollTimer = window.setInterval(() => void loadOrders(), 5000);
+    nowTimer = window.setInterval(() => {
+        now.value = Date.now();
+    }, 30_000);
+    connectRealtime();
 });
 
 onUnmounted(() => {
     window.clearInterval(pollTimer);
     window.clearTimeout(newOrderTimer);
+    window.clearInterval(nowTimer);
+    unbindConnection?.();
+
+    if (realtimeChannel !== null) {
+        realtimeEcho()?.leave(realtimeChannel);
+    }
 });
 </script>
 
@@ -252,6 +326,33 @@ onUnmounted(() => {
                     >
                         Stok
                     </Link>
+
+                    <button
+                        type="button"
+                        :aria-pressed="soundOn"
+                        :aria-label="
+                            soundOn ? 'Matikan suara' : 'Nyalakan suara'
+                        "
+                        class="inline-flex min-h-12 items-center gap-2 rounded-xl border border-white/15 px-3 text-sm font-semibold transition hover:bg-white/10"
+                        :class="soundOn ? 'text-brand-yellow' : 'text-white/60'"
+                        @click="toggleSound"
+                    >
+                        <svg
+                            aria-hidden="true"
+                            xmlns="http://www.w3.org/2000/svg"
+                            viewBox="0 0 24 24"
+                            fill="none"
+                            stroke="currentColor"
+                            stroke-width="2"
+                            stroke-linecap="round"
+                            stroke-linejoin="round"
+                            class="size-5"
+                        >
+                            <path d="M18 8a6 6 0 0 1 0 8" />
+                            <path d="M4 9v6h4l5 4V5L8 9H4z" />
+                        </svg>
+                        Suara
+                    </button>
 
                     <Link
                         v-if="user?.role === 'owner'"
@@ -401,7 +502,25 @@ onUnmounted(() => {
                             <p
                                 class="mt-2 text-base font-semibold text-white/65 2xl:text-lg"
                             >
-                                {{ formatElapsed(order.created_at) }}
+                                {{
+                                    formatElapsed(
+                                        order.accepted_at ?? order.created_at,
+                                    )
+                                }}
+                            </p>
+                            <p
+                                v-if="
+                                    activeStatus !== 'completed' &&
+                                    isLate(
+                                        order.accepted_at ?? order.created_at,
+                                        now,
+                                        kitchenLateMinutes,
+                                    )
+                                "
+                                role="status"
+                                class="mt-2 inline-flex rounded-full bg-danger px-2.5 py-1 text-xs font-black tracking-wide text-white uppercase"
+                            >
+                                Terlambat
                             </p>
                         </div>
                     </div>

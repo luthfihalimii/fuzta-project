@@ -33,6 +33,7 @@ class KitchenController extends Controller
             'branch' => $branch ? BranchPresenter::summary($branch) : null,
             'branches' => $user->isOwner() ? BranchPresenter::options() : [],
             'canChooseBranch' => $user->isOwner(),
+            'kitchenLateMinutes' => (int) config('kitchen.late_minutes', 15),
         ]);
     }
 
