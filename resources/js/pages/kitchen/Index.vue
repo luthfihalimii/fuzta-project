@@ -252,6 +252,8 @@ function connectRealtime(): void {
 }
 
 onMounted(() => {
+    // browser menahan AudioContext sampai gestur pertama; tanpa ini beep pertama dibuang
+    window.addEventListener('pointerdown', unlockAudio, { once: true });
     void loadOrders(true);
     pollTimer = window.setInterval(() => void loadOrders(), 5000);
     nowTimer = window.setInterval(() => {
