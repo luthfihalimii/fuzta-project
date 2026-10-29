@@ -57,7 +57,7 @@ Hanya key-key di atas (test mengunci). Tidak ada `user_id` pelanggan, `phone`, `
 
 1. `composer show laravel/reverb` menyediakan binari via `php artisan reverb:start` (paket bundel Go-binary, `vendor/bin/reverb` atau via composer platform note). Jalankan di supervisor: `php artisan reverb:start` (tanpa `--debug`).
    Queue worker juga wajib di supervisor: `php artisan queue:work` — `BroadcastEvent` implements `ShouldQueue` dan `QUEUE_CONNECTION=database` di `.env.example`, jadi tanpa worker event tidak pernah sampai ke Reverb (terverifikasi saat live smoke).
-2. Nginx: block `location /app` (atau khusus `/ws`) → `proxy_pass http://127.0.0.1:8080` + header `Upgrade`/`Connection` + `Authorization` (Echo mengirim token Bearer di query — sudah dibantu reverb config di klien melalui `Echo` option).
+2. Nginx: block `location /app` (atau khusus `/ws`) → `proxy_pass http://127.0.0.1:8080` + header `Upgrade`/`Connection`. Channel privat diautentikasi lewat POST `/broadcasting/auth` (session + header `X-CSRF-TOKEN`), bukan token di query string. Batasi `allowed_origins` di `config/reverb.php` ke domain aplikasi saat produksi (nilai `*` hanya untuk dev).
 3. HTTPS wss otomatis bila nginx terminasi TLS.
 4. Uji smoke dev-→-prod: buka dapur, buat order dari POS, dengar bunyi; cabut proses Reverb secara sengaja → Echo reconnect + fetch ulang terjadi.
 
@@ -67,12 +67,12 @@ Feature (PHP):
 
 - `BroadcastOrderEventsTest`: order dibuat → `OrderCreated` ter-broadcast ke `kitchen.{b}` & `pos.{b}`; payload persis kontrak (set key); `accepted_at` null; transisi → `OrderStatusChanged` dengan from/to benar + `accepted_at` di-set; bayar → `OrderPaymentChanged`; cancel/void → status + payment event.
 - `ChannelAuthorizationTest`: kitchen cabang A mengamati `kitchen.{bA}` (ya) dan `kitchen.{bB}`/`pos.{bB}` (tidak); kasir cabang A pada `pos.{bA}` (ya) dan `pos.{bB}` (tidak).
-- Regression: test suite yang ada tetap hijau (event broadcast tidak mengubah perilaku transaksi; `phpunit.xml` **sudah** memuat `BROADCAST_CONNECTION=null` — driver tidak aktif di test-env, jadi test lain tak perlu handling ekstra; test broadcast memakai `Event::fake()`/`assertBroadcasted` pada event domain).
+- Regression: test suite yang ada tetap hijau (event broadcast tidak mengubah perilaku transaksi; `phpunit.xml` **sudah** memuat `BROADCAST_CONNECTION=null` — driver tidak aktif di test-env, jadi test lain tak perlu handling ekstra; test broadcast memakai `Event::fake([...3 event...])` + `assertDispatched*` pada event domain — Laravel 13 tidak punya `Broadcast::fake()`).
 - Vitest: `isLate()` + `shouldRing(payload, seenOrderNumbers)` (bunyi hanya pada `kind:'payment'` & order_number belum terdengar; dedup kerja).
 
 ## Advertorial/ulur dokumen
 
-- README: seksi "Realtime (Reverb)" + perintah dev (`reverb:start --debug`).
+- README: seksi "Realtime (Reverb)" + perintah dev (`reverb:start --debug` + `queue:work`).
 - AGENTS.md: ada di perintah dev.
 - PRD §7.7: catatan satu baris "Diimplementasikan di rilis ini: …" (pola soal shift yang ada) — pada task terakhir.
 

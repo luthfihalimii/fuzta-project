@@ -325,7 +325,7 @@ Implemented in the current release: per-cashier shifts with windows, branch floa
 - **P0** Customer-facing status updates do not expose internal staff information.
 - **P1** Sound/visual alerts and configurable preparation-time indicators.
 
-Implemented in the current release: realtime broadcast to the kitchen display and POS over Laravel Reverb; sound alert when payment completes; late indicator with a configurable threshold (`KITCHEN_LATE_MINUTES`, default 15 minutes from acceptance); per-order timers; refetch on reconnect. Detail: `docs/superpowers/specs/2026-10-29-realtime-kitchen-pos-design.md`.
+Implemented in the current release: realtime broadcast to the kitchen display and POS over Laravel Reverb; sound alert when payment completes; late indicator with a configurable threshold (`KITCHEN_LATE_MINUTES`, default 15 minutes from acceptance, falling back to creation time for orders not yet accepted); per-order timers; refetch on reconnect. Detail: `docs/superpowers/specs/2026-10-29-realtime-kitchen-pos-design.md`.
 
 ### 7.8 Inventory and Recipes
 
