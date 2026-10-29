@@ -199,33 +199,29 @@ Helper: `postJson('/broadcasting/auth', ['channel_name' => 'private-'.$channel, 
 - guest (tanpa actingAs) → `private-kitchen.{branchA}` **403**.
 
 Run: `php artisan test --filter=ChannelAuthorizationTest`
-Expected: FAIL (route 404 — route belum ada).
+Expected: FAIL (rute `/broadcasting/auth` sudah ada sejak Task 1 via param `channels:` — red berupa 403 untuk semua kasus termasuk yang harusnya 200; asersi 200 itulah yang merah).
 
 - [ ] **Step 2: `routes/channels.php`**
 
 ```php
 <?php
 
+use App\Models\User;
 use App\Modules\Identity\Enums\Role;
-use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Broadcast;
 
-Broadcast::channel('kitchen.{branch_id}', function (Request $request, string $branchId): bool {
-    $user = $request->user();
-
-    return $user !== null
-        && in_array($user->role(), [Role::Kitchen, Role::Owner], true)
+Broadcast::channel('kitchen.{branch_id}', function (User $user, string $branchId): bool {
+    return in_array($user->role(), [Role::Kitchen, Role::Owner], true)
         && $user->hasBranchAccess((int) $branchId);
-});
+}, ['guards' => ['web']]);
 
-Broadcast::channel('pos.{branch_id}', function (Request $request, string $branchId): bool {
-    $user = $request->user();
-
-    return $user !== null
-        && in_array($user->role(), [Role::Cashier, Role::Owner], true)
+Broadcast::channel('pos.{branch_id}', function (User $user, string $branchId): bool {
+    return in_array($user->role(), [Role::Cashier, Role::Owner], true)
         && $user->hasBranchAccess((int) $branchId);
-});
+}, ['guards' => ['web']]);
 ```
+
+**Erratum (Task 3):** signature plan awal salah — di Laravel 13 argumen pertama callback channel adalah **User** (sudah terautentikasi) bukan `Request` (vendor: `Broadcaster::verifyUserCanAccessChannel()` memanggil `$handler($this->retrieveUser($request, $channel), …)`); `Request $request` → TypeError 500. Opsional `['guards' => ['web']]` valid di L13 (`Broadcaster::retrieveUser()`). Test matriks **wajib memaksa `broadcasting.default = reverb`** di setUp — `NullBroadcaster::auth()` (driver `null` dari phpunit.xml) me-skip closure, deny cases akan green semu.
 
 - [ ] **Step 3: Aktifkan di `bootstrap/app.php`**
 
