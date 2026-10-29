@@ -76,7 +76,7 @@ The PHP suite uses the `pizza_fruzta_test` database (create it once). Do not run
 
 ## Realtime (Reverb)
 
-Dev membutuhkan proses kedua: `php artisan reverb:start --debug` (WebSocket server di `127.0.0.1:8080`; nilai env `REVERB_*`/`VITE_REVERB_*` sudah dev-stable di `.env.example`).
+Dev membutuhkan dua proses tambahan: `php artisan reverb:start --debug` (WebSocket server di `127.0.0.1:8080`; nilai env `REVERB_*`/`VITE_REVERB_*` sudah dev-stable di `.env.example`) dan `php artisan queue:work` (broadcast dikirim lewat queue karena `QUEUE_CONNECTION=database`; tanpa worker, layar dapur/POS tidak menerima event).
 Deploy produksi mengikuti checklist di [docs/superpowers/specs/2026-10-29-realtime-kitchen-pos-design.md](docs/superpowers/specs/2026-10-29-realtime-kitchen-pos-design.md).
 
 ## Project layout

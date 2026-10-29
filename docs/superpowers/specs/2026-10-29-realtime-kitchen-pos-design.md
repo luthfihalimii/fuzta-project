@@ -56,6 +56,7 @@ Hanya key-key di atas (test mengunci). Tidak ada `user_id` pelanggan, `phone`, `
 ## Deployment notes (produksi, dikerjakan di item deploy — bukan sekarang)
 
 1. `composer show laravel/reverb` menyediakan binari via `php artisan reverb:start` (paket bundel Go-binary, `vendor/bin/reverb` atau via composer platform note). Jalankan di supervisor: `php artisan reverb:start` (tanpa `--debug`).
+   Queue worker juga wajib di supervisor: `php artisan queue:work` — `BroadcastEvent` implements `ShouldQueue` dan `QUEUE_CONNECTION=database` di `.env.example`, jadi tanpa worker event tidak pernah sampai ke Reverb (terverifikasi saat live smoke).
 2. Nginx: block `location /app` (atau khusus `/ws`) → `proxy_pass http://127.0.0.1:8080` + header `Upgrade`/`Connection` + `Authorization` (Echo mengirim token Bearer di query — sudah dibantu reverb config di klien melalui `Echo` option).
 3. HTTPS wss otomatis bila nginx terminasi TLS.
 4. Uji smoke dev-→-prod: buka dapur, buat order dari POS, dengar bunyi; cabut proses Reverb secara sengaja → Echo reconnect + fetch ulang terjadi.

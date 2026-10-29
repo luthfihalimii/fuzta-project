@@ -56,6 +56,7 @@ php artisan inventory:reconcile # scan saldo vs ledger; tambahkan --fix untuk me
 bun install
 bun run dev
 php artisan reverb:start --debug  # proses kedua (realtime dev)
+php artisan queue:work            # proses ketiga (broadcast lewat queue; wajib agar event realtime terkirim)
 bun run build
 bun run test:js
 bun run lint && bun run typecheck
