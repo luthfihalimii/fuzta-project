@@ -31,29 +31,29 @@ dengan harga beli per satuan yang tersimpan selamanya.
    `PurchaseItem`; action `RecordPurchase`; controller `SupplierController` (admin) +
    `PurchaseController` (admin/POS/dapur).
 2. **Model data:**
-   - `suppliers`: `name` (wajib, unik), `phone` (opsional), `is_active` (default true), timestamps.
-     **Tidak ada hapus** — supplier hanya bisa dinonaktifkan (pola staf).
-   - `purchases`: `branch_id`, `supplier_id`, `received_at` (DATE, default hari ini = tanggal
-     bisnis), `reference` (opsional, bebas — nomor nota supplier), `total` (integer rupiah,
-     tak-ubah), `recorded_by` → user, timestamps.
-   - `purchase_items`: `purchase_id`, `ingredient_id`, `unit_id` (**unit entri** — pilihan per
-     baris, default = unit dasar bahan), `quantity` (integer, **dalam unit entri**),
-     `unit_price` (integer rupiah **per unit entri**), `line_total` (integer, dihitung & disimpan
-     server = qty × harga, dalam unit entri — persis, tanpa pembulatan). Baris tak di-update.
-   - Selalu integer rupiah, jangan pernah float.
-2b. **Konversi (keputusan owner, opsi B):** `quantity` disamakan ke **unit dasar bahan** memakai
-   `unit_conversions` yang sudah ada; hasil harus integer ≥ 0 (selain itu 422: "hasil konversi
-   bukan bilangan bulat"); konversi belum ada → 422 ("definisikan konversi unit terlebih
-   dahulu").
-2c. **Idempotency (pola rumah, seperti orders):** kolom `idempotency_key` string +
-   `unique(['branch_id','idempotency_key'])` di `purchases`. Form generate key saat load & kirim
-   tersembunyi; POST ulang dengan key sama mengembalikan pembelian pertama (bukan duplikat,
-   bukan 422).
-2d. **Tanggal:** `received_at` boleh mundur maks **90 hari** (nota lama); tanggal masa depan →
-   422. Tanggal dokumen tidak ikut ditulis ke kolom waktu ledger (disengaja; ledger memakai
-   waktu pencatatan).
-2e. **Riwayat = owner hanya.** Dapur/kasir **submit-only** (redirect balik + pesan sukses);
-   daftar/riwayat pembelian tidak dibangun di layar mereka.
+    - `suppliers`: `name` (wajib, unik), `phone` (opsional), `is_active` (default true), timestamps.
+      **Tidak ada hapus** — supplier hanya bisa dinonaktifkan (pola staf).
+    - `purchases`: `branch_id`, `supplier_id`, `received_at` (DATE, default hari ini = tanggal
+      bisnis), `reference` (opsional, bebas — nomor nota supplier), `total` (integer rupiah,
+      tak-ubah), `recorded_by` → user, timestamps.
+    - `purchase_items`: `purchase_id`, `ingredient_id`, `unit_id` (**unit entri** — pilihan per
+      baris, default = unit dasar bahan), `quantity` (integer, **dalam unit entri**),
+      `unit_price` (integer rupiah **per unit entri**), `line_total` (integer, dihitung & disimpan
+      server = qty × harga, dalam unit entri — persis, tanpa pembulatan). Baris tak di-update.
+    - Selalu integer rupiah, jangan pernah float.
+      2b. **Konversi (keputusan owner, opsi B):** `quantity` disamakan ke **unit dasar bahan** memakai
+      `unit_conversions` yang sudah ada; hasil harus integer ≥ 0 (selain itu 422: "hasil konversi
+      bukan bilangan bulat"); konversi belum ada → 422 ("definisikan konversi unit terlebih
+      dahulu").
+      2c. **Idempotency (pola rumah, seperti orders):** kolom `idempotency_key` string +
+      `unique(['branch_id','idempotency_key'])` di `purchases`. Form generate key saat load & kirim
+      tersembunyi; POST ulang dengan key sama mengembalikan pembelian pertama (bukan duplikat,
+      bukan 422).
+      2d. **Tanggal:** `received_at` boleh mundur maks **90 hari** (nota lama); tanggal masa depan →
+    422. Tanggal dokumen tidak ikut ditulis ke kolom waktu ledger (disengaja; ledger memakai
+         waktu pencatatan).
+         2e. **Riwayat = owner hanya.** Dapur/kasir **submit-only** (redirect balik + pesan sukses);
+         daftar/riwayat pembelian tidak dibangun di layar mereka.
 3. **Ledger:** `RecordPurchase` menulis **langsung** (lock saldo → movement → update saldo)
    mengikuti preseden `ReceiveStockTransfer`; `RecordStockMovement` **tidak disentuh**. Per
    baris **satu movement** tipe `Receipt` (`Penerimaan`), `unit_id` = unit dasar bahan,
@@ -71,27 +71,27 @@ dengan harga beli per satuan yang tersimpan selamanya.
    yang tersimpan tetap tercatat apa adanya (koreksi dokumen = fitur lanjutan). Konsisten dengan
    ledger append-only & "no destructive deletes".
 7. **Otorisasi (dicek server-side, 2 lapis: middleware route + guard action):**
-   | Aksi | Role |
-   |---|---|
-   | Lihat/riwayat + terima via panel admin | owner |
-   | Terima via layar POS (submit-only, tanpa riwayat) | cashier, owner |
-   | Terima via layar dapur (submit-only, tanpa riwayat) | kitchen, owner |
-   | Kelola supplier (tambah/ubah/nonaktif) | owner |
-   Guard action: `role ∈ {owner, cashier, kitchen}` **dan** `hasBranchAccess(branchId)` — dapur
-   cabang A tidak bisa mencatat pembelian cabang B. (Matriks lintas-cabang wajib dites.)
+    | Aksi                                                                                         | Role           |
+    | -------------------------------------------------------------------------------------------- | -------------- |
+    | Lihat/riwayat + terima via panel admin                                                       | owner          |
+    | Terima via layar POS (submit-only, tanpa riwayat)                                            | cashier, owner |
+    | Terima via layar dapur (submit-only, tanpa riwayat)                                          | kitchen, owner |
+    | Kelola supplier (tambah/ubah/nonaktif)                                                       | owner          |
+    | Guard action: `role ∈ {owner, cashier, kitchen}` **dan** `hasBranchAccess(branchId)` — dapur |
+    | cabang A tidak bisa mencatat pembelian cabang B. (Matriks lintas-cabang wajib dites.)        |
 8. **UI:**
-   - Panel admin: nav baru **"Pembelian"** → `/admin/purchases` (daftar: tanggal, supplier, cabang,
-     total, pencatat; klik → detail barisnya) + tombol **"Terima barang"** → form; halaman
-     `/admin/suppliers` (daftar + tambah/ubah/nonaktif).
-   - Layar POS & dapur: tombol **"Terima barang"** di header (dekat tombol yang sudah ada) →
-     form pembelian yang **sama** (1 komponen Vue, 3 wrapper tipis — pola halaman stok dapur).
-   - Form: pilih cabang (hanya owner; kasir/dapur terkunci di cabang sendiri), pilih supplier
-     aktif, tanggal (default hari ini; boleh mundur maks 90 hari, tanpa masa depan), nomor nota
-     (opsional), lalu baris-baris: pilih bahan (daftar bahan yang sama dengan form gerak-stok),
-     **pilih unit entri** (default unit dasar bahan), jumlah, harga per satuan; bahan tidak
-     boleh duplikat dalam satu dokumen; total per baris & total keseluruhan ditampilkan
-     (di-re-itung server secara diamati); field tersembunyi `idempotency_key`.
-   - Bahasa UI: Indonesia, mengikuti halaman yang ada.
+    - Panel admin: nav baru **"Pembelian"** → `/admin/purchases` (daftar: tanggal, supplier, cabang,
+      total, pencatat; klik → detail barisnya) + tombol **"Terima barang"** → form; halaman
+      `/admin/suppliers` (daftar + tambah/ubah/nonaktif).
+    - Layar POS & dapur: tombol **"Terima barang"** di header (dekat tombol yang sudah ada) →
+      form pembelian yang **sama** (1 komponen Vue, 3 wrapper tipis — pola halaman stok dapur).
+    - Form: pilih cabang (hanya owner; kasir/dapur terkunci di cabang sendiri), pilih supplier
+      aktif, tanggal (default hari ini; boleh mundur maks 90 hari, tanpa masa depan), nomor nota
+      (opsional), lalu baris-baris: pilih bahan (daftar bahan yang sama dengan form gerak-stok),
+      **pilih unit entri** (default unit dasar bahan), jumlah, harga per satuan; bahan tidak
+      boleh duplikat dalam satu dokumen; total per baris & total keseluruhan ditampilkan
+      (di-re-itung server secara diamati); field tersembunyi `idempotency_key`.
+    - Bahasa UI: Indonesia, mengikuti halaman yang ada.
 9. **Audit:** `supplier.created`, `supplier.updated` (sebelum/sesudah aman), `purchase.received`
    (supplier, cabang, total, daftar bahan+qty+unit+harga) via `WriteAuditLog`.
 10. **Seeder (non-prod saja):** 2 supplier contoh + pastikan paling sedikit satu konversi unit
@@ -105,12 +105,14 @@ dengan harga beli per satuan yang tersimpan selamanya.
 ## Luas & batas (scope)
 
 **Di luar rilis ini:**
+
 - Purchase order / approval tier (PRD §7.9 P1 — sekaligus open decision "approval").
 - Laporan riwayat harga beli & biaya bahan/margin (PRD §7.10 P1 — datanya sudah tersimpan).
 - Multi-supplier dalam satu nota, barcode/scanner, batch/ekspedisi, pajak/bea pada pembelian.
 - Edit/pembatalan dokumen (koreksi lewat jalur koreksi stok yang ada).
 
 **Anti-goal:**
+
 - Tidak boleh ada kode yang menulis `stock_balances`/`stock_movements` di luar pola ledger yang ada.
 - Tidak boleh float untuk uang.
 - Supplier/akun tidak boleh dihapus (attribution).
@@ -135,6 +137,7 @@ Gagal di mana pun = seluruh transaksi batal (bayar tidak separuh-setengah).
 ## Pengujian (harus sukses + gagal)
 
 PHP (Feature):
+
 - Dapur cabang A tercatat di cabang A → 200; purchase+item+movement+saldo+audit terbentuk
   (assert kunci ledger: tipe `Receipt`, `reference_type=Purchase`, reason, qty).
 - Kasir boleh; kitchen lintas-cabang DITOLAK (403); cashier/kitchen tanpa akses cabang DITOLAK.

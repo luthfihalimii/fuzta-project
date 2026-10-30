@@ -53,14 +53,14 @@
 
 - Consumes: none.
 - Produces (dipakai Task 2–6):
-  - `App\Modules\Purchasing\Models\Supplier` — `#[Fillable(['name','phone','is_active'])]`, cast `is_active` boolean, `HasFactory`. Puede di-`update` (nama/telepon/aktif), **pola staf: tidak ada delete di UI/route**.
-  - `App\Modules\Purchasing\Models\Purchase` — `#[Fillable(['branch_id','supplier_id','received_at','reference','total','recorded_by','idempotency_key'])]`, cast `received_at => 'date:Y-m-d'`, `total => 'integer'`; `const UPDATED_AT = null;`; `booted()`: `updating`/`deleting` → `LogicException('Purchases are immutable.')`; relations `branch()`, `supplier()`, `recordedBy(): BelongsTo User`, `items(): HasMany PurchaseItem`; `HasFactory`.
-  - `App\Modules\Purchasing\Models\PurchaseItem` — `#[Fillable(['purchase_id','ingredient_id','unit_id','quantity','unit_price','line_total'])]`, cast `quantity`/`unit_price`/`line_total` integer; `const UPDATED_AT = null;` + guard imutabel (pesan `'Purchase items are immutable.'`); relations `purchase()`, `ingredient()`, `unit()`; `HasFactory`.
-  - Factory: `SupplierFactory` (name unique `fake()->unique()->company()`, phone, `is_active` true), `PurchaseFactory` (default `Branch::factory()`, `Supplier::factory()`, `received_at => now()->toDateString()`, `reference null`, `total 0`, `recorded_by => User::factory()`, `idempotency_key => Str::uuid()`), `PurchaseItemFactory` (default `Purchase::factory()`, `Ingredient::factory()`, `Unit::factory()`, `quantity 1`, `unit_price 0`, `line_total 0`).
-  - Skema DB (uraian kolom):
-    - `suppliers`: `id`, `name` string **unique**, `phone` nullable, `is_active` boolean default true, timestamps.
-    - `purchases`: `id`, `branch_id` FK `branches` restrict, `supplier_id` FK `suppliers` restrict, `received_at` DATE, `reference` nullable, `total` bigInteger default 0, `recorded_by` FK `users` restrict, `idempotency_key` string, `timestamps()`; **unique `['branch_id','idempotency_key']`**, index `['branch_id','received_at']`.
-    - `purchase_items`: `id`, `purchase_id` FK `purchases` restrict, `ingredient_id` FK `ingredients` restrict, `unit_id` FK `units` restrict, `quantity` bigInteger, `unit_price` bigInteger, `line_total` bigInteger, `timestamps()`.
+    - `App\Modules\Purchasing\Models\Supplier` — `#[Fillable(['name','phone','is_active'])]`, cast `is_active` boolean, `HasFactory`. Puede di-`update` (nama/telepon/aktif), **pola staf: tidak ada delete di UI/route**.
+    - `App\Modules\Purchasing\Models\Purchase` — `#[Fillable(['branch_id','supplier_id','received_at','reference','total','recorded_by','idempotency_key'])]`, cast `received_at => 'date:Y-m-d'`, `total => 'integer'`; `const UPDATED_AT = null;`; `booted()`: `updating`/`deleting` → `LogicException('Purchases are immutable.')`; relations `branch()`, `supplier()`, `recordedBy(): BelongsTo User`, `items(): HasMany PurchaseItem`; `HasFactory`.
+    - `App\Modules\Purchasing\Models\PurchaseItem` — `#[Fillable(['purchase_id','ingredient_id','unit_id','quantity','unit_price','line_total'])]`, cast `quantity`/`unit_price`/`line_total` integer; `const UPDATED_AT = null;` + guard imutabel (pesan `'Purchase items are immutable.'`); relations `purchase()`, `ingredient()`, `unit()`; `HasFactory`.
+    - Factory: `SupplierFactory` (name unique `fake()->unique()->company()`, phone, `is_active` true), `PurchaseFactory` (default `Branch::factory()`, `Supplier::factory()`, `received_at => now()->toDateString()`, `reference null`, `total 0`, `recorded_by => User::factory()`, `idempotency_key => Str::uuid()`), `PurchaseItemFactory` (default `Purchase::factory()`, `Ingredient::factory()`, `Unit::factory()`, `quantity 1`, `unit_price 0`, `line_total 0`).
+    - Skema DB (uraian kolom):
+        - `suppliers`: `id`, `name` string **unique**, `phone` nullable, `is_active` boolean default true, timestamps.
+        - `purchases`: `id`, `branch_id` FK `branches` restrict, `supplier_id` FK `suppliers` restrict, `received_at` DATE, `reference` nullable, `total` bigInteger default 0, `recorded_by` FK `users` restrict, `idempotency_key` string, `timestamps()`; **unique `['branch_id','idempotency_key']`**, index `['branch_id','received_at']`.
+        - `purchase_items`: `id`, `purchase_id` FK `purchases` restrict, `ingredient_id` FK `ingredients` restrict, `unit_id` FK `units` restrict, `quantity` bigInteger, `unit_price` bigInteger, `line_total` bigInteger, `timestamps()`.
 
 - [ ] **Step 1: Tes gagal dulu — `tests/Feature/PurchaseSchemaTest.php`**
 
@@ -111,50 +111,50 @@ git commit -m "feat: skema & model modul pembelian (suppliers, purchases, purcha
 
 - Consumes: Task 1 (model+factory); `App\Modules\Inventory\Actions\ConvertUnit`; `App\Modules\Identity\Actions\WriteAuditLog`; `Branch`, `Ingredient`, `StockBalance`, `StockMovement`, `StockMovementType`.
 - Produces (dipakai Task 3):
-  - `App\Modules\Purchasing\Data\RecordPurchaseData`:
+    - `App\Modules\Purchasing\Data\RecordPurchaseData`:
 
-    ```php
-    final class RecordPurchaseData
-    {
-        /**
-         * @param list<array{ingredient_id: int, unit_id: int, quantity: int, unit_price: int}> $items
-         */
+        ```php
+        final class RecordPurchaseData
+        {
+            /**
+             * @param list<array{ingredient_id: int, unit_id: int, quantity: int, unit_price: int}> $items
+             */
+            public function __construct(
+                public readonly int $branchId,
+                public readonly int $supplierId,
+                public readonly string $receivedAt, // 'YYYY-MM-DD'
+                public readonly ?string $reference,
+                public readonly string $idempotencyKey,
+                public readonly array $items,
+            ) {}
+        }
+        ```
+
+    - `App\Modules\Purchasing\Actions\RecordPurchase`:
+
+        ```php
         public function __construct(
-            public readonly int $branchId,
-            public readonly int $supplierId,
-            public readonly string $receivedAt, // 'YYYY-MM-DD'
-            public readonly ?string $reference,
-            public readonly string $idempotencyKey,
-            public readonly array $items,
+            private readonly ConvertUnit $convertUnit,
+            private readonly WriteAuditLog $writeAuditLog,
         ) {}
-    }
-    ```
+        public function __invoke(User $actor, RecordPurchaseData $data): Purchase
+        ```
 
-  - `App\Modules\Purchasing\Actions\RecordPurchase`:
-
-    ```php
-    public function __construct(
-        private readonly ConvertUnit $convertUnit,
-        private readonly WriteAuditLog $writeAuditLog,
-    ) {}
-    public function __invoke(User $actor, RecordPurchaseData $data): Purchase
-    ```
-
-    Kontrak perilaku (urut; semua tes mengunci ini):
-    1. Guard role: `role() ∉ {owner,cashier,kitchen}` → `AuthorizationException('Anda tidak dapat mencatat pembelian.')`.
-    2. `! $actor->hasBranchAccess($branchId)` → `AuthorizationException('Anda tidak dapat mencatat pembelian untuk cabang lain.')`.
-    3. Idempotency pre-check (di luar transaction): `Purchase::with('items')->where('branch_id',…)->where('idempotency_key',…)->first()` → `return $existing` (tanpa perubahan apa pun).
-    4. Supplier: `Supplier::query()->findOrFail($supplierId)` → 404 y.a.; `! $supplier->is_active` → `ValidationException` `supplier_id`: `'Supplier tidak tersedia.'`.
-    5. Branch: tidak ada / nonaktif → `ValidationException` `branch_id`: `'Cabang tidak aktif.'` (pola `CreateOrder`).
-    6. `items` kosong → `ValidationException` `items`: `'Minimal satu baris.'`.
-    7. Bahan duplikat (2 baris `ingredient_id` sama) → `ValidationException` `items`: `'Bahan tidak boleh duplikat dalam satu dokumen.'`.
-    8. Per baris `i`, urut input: `Ingredient::find` null → `ValidationException` `items.$i.ingredient_id`: `'Bahan tidak ditemukan.'`.
-    9. Konversi `entryUnit → baseUnit` (`ConvertUnit`): jika tidak ada path → tangkap `ValidationException`-nya dan ulang sebagai `ValidationException` `items.$i.unit_id`: `'Definisikan konversi unit terlebih dahulu.'`. **Round-trip:** `ConvertUnit(baseUnit, $converted, entryUnit) !== $quantity` → `ValidationException` `items.$i.quantity`: `'Hasil konversi bukan bilangan bulat.'` (penebus pembulatan lantai `intdiv`).
-    10. `line_total[i] = quantity * unit_price` (dalam unit entri, integer); `total = Σ line_total`.
-    11. `DB::transaction`: cek ulang `findExisting` (return jika ada) → `Purchase::create([...total])` → `items()->create(...)` per baris → per baris **diurutkan `ingredient_id`** (hindari deadlock, pola `ReceiveStockTransfer`): `StockBalance insertOrIgnore → lockForUpdate → quantity += $converted` → `StockMovement::create` (`branch_id`, `ingredient_id`, `unit_id = base_unit_id`, `quantity = $converted`, `type = StockMovementType::Receipt`, `reason = "Penerimaan pembelian #{$purchase->id} — {$supplier->name}"`, `reference_type = Purchase::class`, `reference_id = $purchase->id`, `actor_id`).
-    12. Audit `purchase.received` (target `Purchase`; after: `supplier_id`, `supplier_name`, `branch_id`, `total`, `items` = snapshot `[ingredient, unit_code, quantity, unit_price, line_total, base_quantity]`).
-    13. `catch (QueryException)`: pesan mengandung `purchases_branch_id_idempotency_key_unique` → kembalikan pembelian yang ada (pola `CreateOrder::isIdempotencyViolation`) — ini cabang race 2 POST paralel.
-    14. Return `Purchase` dengan `items` ter-load.
+        Kontrak perilaku (urut; semua tes mengunci ini):
+        1. Guard role: `role() ∉ {owner,cashier,kitchen}` → `AuthorizationException('Anda tidak dapat mencatat pembelian.')`.
+        2. `! $actor->hasBranchAccess($branchId)` → `AuthorizationException('Anda tidak dapat mencatat pembelian untuk cabang lain.')`.
+        3. Idempotency pre-check (di luar transaction): `Purchase::with('items')->where('branch_id',…)->where('idempotency_key',…)->first()` → `return $existing` (tanpa perubahan apa pun).
+        4. Supplier: `Supplier::query()->findOrFail($supplierId)` → 404 y.a.; `! $supplier->is_active` → `ValidationException` `supplier_id`: `'Supplier tidak tersedia.'`.
+        5. Branch: tidak ada / nonaktif → `ValidationException` `branch_id`: `'Cabang tidak aktif.'` (pola `CreateOrder`).
+        6. `items` kosong → `ValidationException` `items`: `'Minimal satu baris.'`.
+        7. Bahan duplikat (2 baris `ingredient_id` sama) → `ValidationException` `items`: `'Bahan tidak boleh duplikat dalam satu dokumen.'`.
+        8. Per baris `i`, urut input: `Ingredient::find` null → `ValidationException` `items.$i.ingredient_id`: `'Bahan tidak ditemukan.'`.
+        9. Konversi `entryUnit → baseUnit` (`ConvertUnit`): jika tidak ada path → tangkap `ValidationException`-nya dan ulang sebagai `ValidationException` `items.$i.unit_id`: `'Definisikan konversi unit terlebih dahulu.'`. **Round-trip:** `ConvertUnit(baseUnit, $converted, entryUnit) !== $quantity` → `ValidationException` `items.$i.quantity`: `'Hasil konversi bukan bilangan bulat.'` (penebus pembulatan lantai `intdiv`).
+        10. `line_total[i] = quantity * unit_price` (dalam unit entri, integer); `total = Σ line_total`.
+        11. `DB::transaction`: cek ulang `findExisting` (return jika ada) → `Purchase::create([...total])` → `items()->create(...)` per baris → per baris **diurutkan `ingredient_id`** (hindari deadlock, pola `ReceiveStockTransfer`): `StockBalance insertOrIgnore → lockForUpdate → quantity += $converted` → `StockMovement::create` (`branch_id`, `ingredient_id`, `unit_id = base_unit_id`, `quantity = $converted`, `type = StockMovementType::Receipt`, `reason = "Penerimaan pembelian #{$purchase->id} — {$supplier->name}"`, `reference_type = Purchase::class`, `reference_id = $purchase->id`, `actor_id`).
+        12. Audit `purchase.received` (target `Purchase`; after: `supplier_id`, `supplier_name`, `branch_id`, `total`, `items` = snapshot `[ingredient, unit_code, quantity, unit_price, line_total, base_quantity]`).
+        13. `catch (QueryException)`: pesan mengandung `purchases_branch_id_idempotency_key_unique` → kembalikan pembelian yang ada (pola `CreateOrder::isIdempotencyViolation`) — ini cabang race 2 POST paralel.
+        14. Return `Purchase` dengan `items` ter-load.
 
 - [ ] **Step 1: Tes gagal dulu — `tests/Feature/PurchaseActionTest.php`**
 
@@ -216,98 +216,96 @@ git commit -m "feat: action RecordPurchase (dokumen + konversi unit + ledger + i
 - Consumes: Task 1 (model/factory), Task 2 (`RecordPurchase`, `RecordPurchaseData`), `ResolvePosBranch`, `BranchPresenter`, `WriteAuditLog`.
 - Produces (dipakai Task 4/5 — route name & props **persis**):
 
-  Routes (tambah di `routes/web.php`):
-  - Grup `['auth','role:cashier,owner']` (POS, sisip dekat route pos yang ada):
-    - `GET /pos/purchases` → `PurchaseController::posCreate` — name `pos.purchases.create`
-    - `POST /pos/purchases` → `PurchaseController::store` — middleware `throttle:purchases` — name `pos.purchases.store`
-  - Grup `['auth','role:kitchen,owner']` (dapur):
-    - `GET /kitchen/purchases` → `PurchaseController::kitchenCreate` — name `kitchen.purchases.create`
-    - `POST /kitchen/purchases` → `PurchaseController::store` — `throttle:purchases` — name `kitchen.purchases.store`
-  - Grup `['auth','role:owner']` prefix `admin`:
-    - `GET /admin/purchases` → `index` — `admin.purchases.index`
-    - `GET /admin/purchases/create` → `create` — `admin.purchases.create`  (WAJIB terdaftar **sebelum** `/purchases/{purchase}`)
-    - `POST /admin/purchases` → `store` — `throttle:purchases` — `admin.purchases.store`
-    - `GET /admin/purchases/{purchase}` → `show` — `admin.purchases.show`
-    - `GET /admin/suppliers` → `SupplierController::index` — `admin.suppliers.index`
-    - `POST /admin/suppliers` → `store` — `admin.suppliers.store`
-    - `PATCH /admin/suppliers/{supplier}` → `update` — `admin.suppliers.update`
-  - AppServiceProvider: `RateLimiter::for('purchases', fn (): Limit => Limit::perMinute(10));` — copy pola limiter `orders` persis.
+    Routes (tambah di `routes/web.php`):
+    - Grup `['auth','role:cashier,owner']` (POS, sisip dekat route pos yang ada):
+        - `GET /pos/purchases` → `PurchaseController::posCreate` — name `pos.purchases.create`
+        - `POST /pos/purchases` → `PurchaseController::store` — middleware `throttle:purchases` — name `pos.purchases.store`
+    - Grup `['auth','role:kitchen,owner']` (dapur):
+        - `GET /kitchen/purchases` → `PurchaseController::kitchenCreate` — name `kitchen.purchases.create`
+        - `POST /kitchen/purchases` → `PurchaseController::store` — `throttle:purchases` — name `kitchen.purchases.store`
+    - Grup `['auth','role:owner']` prefix `admin`:
+        - `GET /admin/purchases` → `index` — `admin.purchases.index`
+        - `GET /admin/purchases/create` → `create` — `admin.purchases.create` (WAJIB terdaftar **sebelum** `/purchases/{purchase}`)
+        - `POST /admin/purchases` → `store` — `throttle:purchases` — `admin.purchases.store`
+        - `GET /admin/purchases/{purchase}` → `show` — `admin.purchases.show`
+        - `GET /admin/suppliers` → `SupplierController::index` — `admin.suppliers.index`
+        - `POST /admin/suppliers` → `store` — `admin.suppliers.store`
+        - `PATCH /admin/suppliers/{supplier}` → `update` — `admin.suppliers.update`
+    - AppServiceProvider: `RateLimiter::for('purchases', fn (): Limit => Limit::perMinute(10));` — copy pola limiter `orders` persis.
 
-  `PurchaseController` (namespace `App\Modules\Purchasing\Http\Controllers`):
-  - `posCreate(Request, ResolvePosBranch): Response` → `Inertia::render('pos/ReceiveStock', $props)`
-  - `kitchenCreate(...)` → `Inertia::render('kitchen/ReceiveStock', $props)`
-  - `create(...)` → `Inertia::render('admin/purchases/Receive', $props)`
-  - `index(Request, ResolvePosBranch): Response` → `Inertia::render('admin/purchases/Index', [...])`
-  - `show(Purchase $purchase): Response` → `Inertia::render('admin/purchases/Show', [...])`
-  - `store(StorePurchaseRequest, RecordPurchase): RedirectResponse`
-  - `props` form create = (helper private, dipakai 3 create):
+    `PurchaseController` (namespace `App\Modules\Purchasing\Http\Controllers`):
+    - `posCreate(Request, ResolvePosBranch): Response` → `Inertia::render('pos/ReceiveStock', $props)`
+    - `kitchenCreate(...)` → `Inertia::render('kitchen/ReceiveStock', $props)`
+    - `create(...)` → `Inertia::render('admin/purchases/Receive', $props)`
+    - `index(Request, ResolvePosBranch): Response` → `Inertia::render('admin/purchases/Index', [...])`
+    - `show(Purchase $purchase): Response` → `Inertia::render('admin/purchases/Show', [...])`
+    - `store(StorePurchaseRequest, RecordPurchase): RedirectResponse`
+    - `props` form create = (helper private, dipakai 3 create):
 
-    ```php
-    [
-        'branch' => $branch ? BranchPresenter::summary($branch) : null,
-        'branches' => $user->isOwner() ? BranchPresenter::options() : [],
-        'canChooseBranch' => $user->isOwner(),
-        'suppliers' => Supplier::query()->where('is_active', true)->orderBy('name')->get(['id', 'name'])->all(),
-        'units' => Unit::query()->orderBy('name')->get(['id', 'code', 'name'])->all(),
-        'ingredients' => Ingredient::query()->with('baseUnit')->orderBy('name')->get()
-            ->map(fn (Ingredient $i) => ['id' => $i->id, 'name' => $i->name,
-                'base_unit_id' => $i->base_unit_id, 'unit' => $i->baseUnit?->code])->values()->all(),
-        'default_date' => now()->toDateString(),
-    ]
-    ```
+        ```php
+        [
+            'branch' => $branch ? BranchPresenter::summary($branch) : null,
+            'branches' => $user->isOwner() ? BranchPresenter::options() : [],
+            'canChooseBranch' => $user->isOwner(),
+            'suppliers' => Supplier::query()->where('is_active', true)->orderBy('name')->get(['id', 'name'])->all(),
+            'units' => Unit::query()->orderBy('name')->get(['id', 'code', 'name'])->all(),
+            'ingredients' => Ingredient::query()->with('baseUnit')->orderBy('name')->get()
+                ->map(fn (Ingredient $i) => ['id' => $i->id, 'name' => $i->name,
+                    'base_unit_id' => $i->base_unit_id, 'unit' => $i->baseUnit?->code])->values()->all(),
+            'default_date' => now()->toDateString(),
+        ]
+        ```
 
-    `$branch = $resolveBranch($user, $request->integer('branch') > 0 ? $request->integer('branch') : null)` (pola `kitchenIndex`).
-  - `store()`: from `$request->validated()` bangun `RecordPurchaseData` (cast int untuk items); `return back()->with('success', "Penerimaan #{$purchase->id} tercatat.");`
-  - `index()`: `branch` filter (owner: `?branch=`) seperti halaman `admin/stock/Movements`; list `Purchase::with(['supplier','branch','recordedBy'])` (branch terkunci? non-applicable — grup owner) `orderByDesc('received_at')->orderByDesc('id')->limit(100)`; row: `id, received_at (Y-m-d), reference, supplier_name, branch_name, total, recorded_by`.
-  - `show()`: `load(['supplier','branch','recordedBy','items.ingredient','items.unit'])`; payload: `purchase: { id, received_at, reference, total, supplier_name, branch_name, recorded_by, created_at, items: [ { id, ingredient_name, unit_code, quantity, unit_price, line_total } ] }`.
+        `$branch = $resolveBranch($user, $request->integer('branch') > 0 ? $request->integer('branch') : null)` (pola `kitchenIndex`).
 
-  `SupplierController`:
-  - `index(): Response` → `admin/suppliers/Index`, `suppliers` = semua `orderBy('name')`: `id, name, phone, is_active`.
-  - `store(StoreSupplierRequest, WriteAuditLog): RedirectResponse` — `Supplier::create([...validated, 'is_active' => $data['is_active'] ?? true])`, audit `supplier.created` (after = snapshot), `back()->with('success', "Supplier {$supplier->name} ditambahkan.");`
-  - `update(UpdateSupplierRequest, Supplier $supplier, WriteAuditLog): RedirectResponse` — before/after snapshot, audit `supplier.updated`, `back()->with('success', 'Supplier diperbarui.')`
-  - `snapshot(Supplier): array` = `['name','phone','is_active']`
-  - (Tanpa Policy — grup `role:owner` sudah guard server-side; konsisten dengan `BranchController`.)
+    - `store()`: from `$request->validated()` bangun `RecordPurchaseData` (cast int untuk items); `return back()->with('success', "Penerimaan #{$purchase->id} tercatat.");`
+    - `index()`: `branch` filter (owner: `?branch=`) seperti halaman `admin/stock/Movements`; list `Purchase::with(['supplier','branch','recordedBy'])` (branch terkunci? non-applicable — grup owner) `orderByDesc('received_at')->orderByDesc('id')->limit(100)`; row: `id, received_at (Y-m-d), reference, supplier_name, branch_name, total, recorded_by`.
+    - `show()`: `load(['supplier','branch','recordedBy','items.ingredient','items.unit'])`; payload: `purchase: { id, received_at, reference, total, supplier_name, branch_name, recorded_by, created_at, items: [ { id, ingredient_name, unit_code, quantity, unit_price, line_total } ] }`.
 
-  `StorePurchaseRequest`:
-  - `authorize()`: `in_array($this->user()?->role(), [Role::Owner, Role::Cashier, Role::Kitchen], true)`
-  - `rules()`:
+    `SupplierController`:
+    - `index(): Response` → `admin/suppliers/Index`, `suppliers` = semua `orderBy('name')`: `id, name, phone, is_active`.
+    - `store(StoreSupplierRequest, WriteAuditLog): RedirectResponse` — `Supplier::create([...validated, 'is_active' => $data['is_active'] ?? true])`, audit `supplier.created` (after = snapshot), `back()->with('success', "Supplier {$supplier->name} ditambahkan.");`
+    - `update(UpdateSupplierRequest, Supplier $supplier, WriteAuditLog): RedirectResponse` — before/after snapshot, audit `supplier.updated`, `back()->with('success', 'Supplier diperbarui.')`
+    - `snapshot(Supplier): array` = `['name','phone','is_active']`
+    - (Tanpa Policy — grup `role:owner` sudah guard server-side; konsisten dengan `BranchController`.)
 
-    ```php
-    'branch_id' => ['required', 'integer', 'exists:branches,id'],
-    'supplier_id' => ['required', 'integer'], // exists di action → 404 sesuai spec
-    'received_at' => ['required', 'date_format:Y-m-d', 'before_or_equal:today',
-        'after_or_equal:' . now()->subDays(90)->toDateString()],
-    'reference' => ['nullable', 'string', 'max:100'],
-    'idempotency_key' => ['required', 'string', 'min:8', 'max:100'],
-    'items' => ['required', 'array', 'min:1'],
-    'items.*.ingredient_id' => ['required', 'integer', 'exists:ingredients,id'],
-    'items.*.unit_id' => ['required', 'integer', 'exists:units,id'],
-    'items.*.quantity' => ['required', 'integer', 'min:1'],
-    'items.*.unit_price' => ['required', 'integer', 'min:0'],
-    ```
+    `StorePurchaseRequest`:
+    - `authorize()`: `in_array($this->user()?->role(), [Role::Owner, Role::Cashier, Role::Kitchen], true)`
+    - `rules()`:
 
-  `StoreSupplierRequest`: `name` required unique:suppliers,name; `phone` nullable max:30; `is_active` sometimes boolean.
-  `UpdateSupplierRequest`: `name` required unique:suppliers,name,ignore; `phone` nullable; `is_active` required boolean.
+        ```php
+        'branch_id' => ['required', 'integer', 'exists:branches,id'],
+        'supplier_id' => ['required', 'integer'], // exists di action → 404 sesuai spec
+        'received_at' => ['required', 'date_format:Y-m-d', 'before_or_equal:today',
+            'after_or_equal:' . now()->subDays(90)->toDateString()],
+        'reference' => ['nullable', 'string', 'max:100'],
+        'idempotency_key' => ['required', 'string', 'min:8', 'max:100'],
+        'items' => ['required', 'array', 'min:1'],
+        'items.*.ingredient_id' => ['required', 'integer', 'exists:ingredients,id'],
+        'items.*.unit_id' => ['required', 'integer', 'exists:units,id'],
+        'items.*.quantity' => ['required', 'integer', 'min:1'],
+        'items.*.unit_price' => ['required', 'integer', 'min:0'],
+        ```
+
+    `StoreSupplierRequest`: `name` required unique:suppliers,name; `phone` nullable max:30; `is_active` sometimes boolean.
+    `UpdateSupplierRequest`: `name` required unique:suppliers,name,ignore; `phone` nullable; `is_active` required boolean.
 
 - [ ] **Step 1: Tes gagal dulu — `tests/Feature/PurchaseHttpTest.php` + `SupplierHttpTest.php`**
 
 `use RefreshDatabase;`. Matriks (ikuti gaya `ChannelAuthorizationTest`/`StockConcurrencyTest`):
 
-  PurchaseHttpTest:
-  1. `test_kitchen_sees_form_and_submits_purchase` — GET `/kitchen/purchases` 200; POST `/kitchen/purchases` (kitchen A, `branch_id` A, supplier aktif, 1 baris, key uuid) → `assertRedirect()`; DB: purchase + movement `Receipt` + saldo + audit.
-  2. `test_cashier_submits_via_pos` — POST `/pos/purchases` → 302 + purchase di branch kasir.
-  3. `test_owner_browses_admin_pages` — GET `/admin/purchases`, `/admin/purchases/create`, `/admin/purchases/{id}` 200; POST `/admin/purchases` → 302.
-  4. `test_role_branch_matrix` (dataProvider): kitchen A → POST `/pos/purchases` 403; kitchen A POST branch B 403; cashier GET `/kitchen/purchases` 403; kitchen GET `/admin/purchases` 403; cashier GET `/admin/purchases` 403; kitchen GET `/admin/suppliers` 403.
-  5. `test_validation_failures` (dataProvider → 422): qty `0`; qty `-5`; unit_price `-1`; `items` kosong; 2 baris bahan sama (key error `items`); supplier nonaktif (key `supplier_id`); tanggal besok (key `received_at`); tanggal 91 hari lalu 422; tanggal 90 hari lalu 302.
-  6. `test_missing_supplier_is_404` — POST `supplier_id: 999999` → `assertNotFound()`.
-  7. `test_http_idempotent_replay` — POST 2× payload + key sama → kedua 302; `Purchase::count() === 1`; movement 1; saldo +1×.
-  8. `test_manual_receipt_still_owner_only` (regression) — owner POST `/admin/stock/movements` `type=receipt` → 302; kitchen POST hal yang sama → 403.
+PurchaseHttpTest:
 
-  SupplierHttpTest:
-  9. `test_owner_creates_supplier` — POST `/admin/suppliers` 302 + `assertDatabaseHas('suppliers', …)` + audit `supplier.created`.
-  10. `test_duplicate_name_rejected` → 422.
-  11. `test_owner_updates_supplier` — PATCH nama/telepon/`is_active=false` → 302 + audit `supplier.updated` (before/after assert).
-  12. `test_non_owner_forbidden` — cashier POST `/admin/suppliers` → 403.
+1. `test_kitchen_sees_form_and_submits_purchase` — GET `/kitchen/purchases` 200; POST `/kitchen/purchases` (kitchen A, `branch_id` A, supplier aktif, 1 baris, key uuid) → `assertRedirect()`; DB: purchase + movement `Receipt` + saldo + audit.
+2. `test_cashier_submits_via_pos` — POST `/pos/purchases` → 302 + purchase di branch kasir.
+3. `test_owner_browses_admin_pages` — GET `/admin/purchases`, `/admin/purchases/create`, `/admin/purchases/{id}` 200; POST `/admin/purchases` → 302.
+4. `test_role_branch_matrix` (dataProvider): kitchen A → POST `/pos/purchases` 403; kitchen A POST branch B 403; cashier GET `/kitchen/purchases` 403; kitchen GET `/admin/purchases` 403; cashier GET `/admin/purchases` 403; kitchen GET `/admin/suppliers` 403.
+5. `test_validation_failures` (dataProvider → 422): qty `0`; qty `-5`; unit_price `-1`; `items` kosong; 2 baris bahan sama (key error `items`); supplier nonaktif (key `supplier_id`); tanggal besok (key `received_at`); tanggal 91 hari lalu 422; tanggal 90 hari lalu 302.
+6. `test_missing_supplier_is_404` — POST `supplier_id: 999999` → `assertNotFound()`.
+7. `test_http_idempotent_replay` — POST 2× payload + key sama → kedua 302; `Purchase::count() === 1`; movement 1; saldo +1×.
+8. `test_manual_receipt_still_owner_only` (regression) — owner POST `/admin/stock/movements` `type=receipt` → 302; kitchen POST hal yang sama → 403.
+
+SupplierHttpTest: 9. `test_owner_creates_supplier` — POST `/admin/suppliers` 302 + `assertDatabaseHas('suppliers', …)` + audit `supplier.created`. 10. `test_duplicate_name_rejected` → 422. 11. `test_owner_updates_supplier` — PATCH nama/telepon/`is_active=false` → 302 + audit `supplier.updated` (before/after assert). 12. `test_non_owner_forbidden` — cashier POST `/admin/suppliers` → 403.
 
 Run: `php artisan test --filter=PurchaseHttpTest --filter=SupplierHttpTest`
 Expected: FAIL (route belum ada).
@@ -353,12 +351,12 @@ git commit -m "feat: route & controller pembelian + supplier (HTTP, throttle, te
 
 - Consumes: props controller dari Task 3 (`branch, branches, canChooseBranch, suppliers, units, ingredients, default_date` — prop `default_date` dikirim underscore, wrapper memetakan ke `defaultDate`), `StaffLayout`, `Input`, `Select`, `formatRupiah` dari `@/lib/money`.
 - Produces:
-  - `ReceiveStockForm.vue` — props: `branch: BranchSummary | null; branches: BranchOption[]; canChooseBranch: boolean; suppliers: {id: number; name: string}[]; units: {id: number; code: string; name: string}[]; ingredients: {id: number; name: string; base_unit_id: number; unit: string | null}[]; defaultDate: string; submitUrl: string;`
-  - Perilaku: baris awal 1 (kosong); pilih bahan → `unit_id` otomatis `base_unit_id`; qty/harga input integer (input `type="number" step="1" min="0"`); total baris & total keseluruhan via `formatRupiah` (**paparan saja** — server re-itung); date input `max` hari ini `min` 90 hari lalu (diisi ulang `now()` di klien, server tetap otoritatif); `idempotency_key` = `crypto.randomUUID()` saat mount dan regenerasi tiap sukses; submit: guard klien ringan (supplier wajib, ≥1 baris bahan terpilih) lalu `router.post(props.submitUrl, payload, { preserveScroll: true, onSuccess: () => { reset baris; ulang idempotency key; } })`; error validasi dari `page.props.errors` ditampilkan di bawah field; sukses di-review lewat flash di wrapper.
-  - Wrapper (3 file, struktur identik): `StaffLayout` → `Head` judul "Terima barang" → banner flash `success`/`error` (copy persis pola `kitchen/Stock.vue` baris 186–199) → Link kembali (`/pos` | `/kitchen` | `/admin/purchases`) → `<ReceiveStockForm … :submit-url="'/pos/purchases'" />` (per wrapper URL-nya). Type props digandakan di tiap wrapper (pola rumah `kitchen/Stock.vue`).
-  - Tombol header:
-    - `pos/Index.vue`: 1 baris `Link href="/pos/purchases"` "Terima barang" (kelas button netral yang sama seperti Link lain di halaman POS), posisikan tepat setelah blok flash error (± baris 557, sebelum banner `stale_unpaid`).
-    - `kitchen/Index.vue` + `kitchen/Stock.vue`: 1 `Link href="/kitchen/purchases"` "Terima barang" di header, di samping Link Dapur/Admin yang sudah ada (kelas sama: `min-h-12 … border-white/15`).
+    - `ReceiveStockForm.vue` — props: `branch: BranchSummary | null; branches: BranchOption[]; canChooseBranch: boolean; suppliers: {id: number; name: string}[]; units: {id: number; code: string; name: string}[]; ingredients: {id: number; name: string; base_unit_id: number; unit: string | null}[]; defaultDate: string; submitUrl: string;`
+    - Perilaku: baris awal 1 (kosong); pilih bahan → `unit_id` otomatis `base_unit_id`; qty/harga input integer (input `type="number" step="1" min="0"`); total baris & total keseluruhan via `formatRupiah` (**paparan saja** — server re-itung); date input `max` hari ini `min` 90 hari lalu (diisi ulang `now()` di klien, server tetap otoritatif); `idempotency_key` = `crypto.randomUUID()` saat mount dan regenerasi tiap sukses; submit: guard klien ringan (supplier wajib, ≥1 baris bahan terpilih) lalu `router.post(props.submitUrl, payload, { preserveScroll: true, onSuccess: () => { reset baris; ulang idempotency key; } })`; error validasi dari `page.props.errors` ditampilkan di bawah field; sukses di-review lewat flash di wrapper.
+    - Wrapper (3 file, struktur identik): `StaffLayout` → `Head` judul "Terima barang" → banner flash `success`/`error` (copy persis pola `kitchen/Stock.vue` baris 186–199) → Link kembali (`/pos` | `/kitchen` | `/admin/purchases`) → `<ReceiveStockForm … :submit-url="'/pos/purchases'" />` (per wrapper URL-nya). Type props digandakan di tiap wrapper (pola rumah `kitchen/Stock.vue`).
+    - Tombol header:
+        - `pos/Index.vue`: 1 baris `Link href="/pos/purchases"` "Terima barang" (kelas button netral yang sama seperti Link lain di halaman POS), posisikan tepat setelah blok flash error (± baris 557, sebelum banner `stale_unpaid`).
+        - `kitchen/Index.vue` + `kitchen/Stock.vue`: 1 `Link href="/kitchen/purchases"` "Terima barang" di header, di samping Link Dapur/Admin yang sudah ada (kelas sama: `min-h-12 … border-white/15`).
 
 - [ ] **Step 1: Komponen form**
 
@@ -402,10 +400,10 @@ git commit -m "feat: form terima barang (1 komponen, 3 layar) + tombol di POS & 
 
 - Consumes: route/props Task 3 — `admin/purchases/Index` (`branch, branches, canChooseBranch, purchases`), `admin/purchases/Show` (`purchase` + `items`), `admin/suppliers/Index` (`suppliers: {id:number; name:string; phone:string|null; is_active:boolean}[]`).
 - Produces: (UI final)
-  - `admin/purchases/Index.vue`: h1 "Pembelian"; baris tombol: Link "Terima barang" → `/admin/purchases/create` (primer) + Link "Supplier" → `/admin/suppliers`; filter cabang (owner, `router.get` replace seperti halaman movements); tabel `Tanggal | Nota | Supplier | Cabang | Total | Pencatat` (total via `formatRupiah`, tanggal `Y-m-d` ditampilkan `d M Y`… ikuti format halaman existing); baris klik → `/admin/purchases/{id}`; `EmptyState` kalau kosong.
-  - `admin/purchases/Show.vue`: kartu header dokumen (supplier, cabang, tanggal diterima, nota, pencatat + waktu buat, total) + tabel baris `Bahan | Satuan entri | Jumlah | Harga/satuan | Total`; Link kembali ke `/admin/purchases`.
-  - `admin/suppliers/Index.vue`: formulir atas "Tambah/Ubah supplier" (name, phone, checkbox `is_active` — state edit internal: klik "Ubah" di tabel mengisi form + `router.patch('/admin/suppliers/' + id)`; mode tambah = `router.post('/admin/suppliers')`); tabel `Nama | Telepon | Status`; **tidak ada tombol hapus** (spec: tidak pernah dihapus). Flash success/error ditampilkan (pola yang ada).
-  - `StaffLayout.vue`: array nav owner — sisip `{ label: 'Pembelian', href: '/admin/purchases' }` setelah item "Stok". Nav kasir/dapur tidak berubah.
+    - `admin/purchases/Index.vue`: h1 "Pembelian"; baris tombol: Link "Terima barang" → `/admin/purchases/create` (primer) + Link "Supplier" → `/admin/suppliers`; filter cabang (owner, `router.get` replace seperti halaman movements); tabel `Tanggal | Nota | Supplier | Cabang | Total | Pencatat` (total via `formatRupiah`, tanggal `Y-m-d` ditampilkan `d M Y`… ikuti format halaman existing); baris klik → `/admin/purchases/{id}`; `EmptyState` kalau kosong.
+    - `admin/purchases/Show.vue`: kartu header dokumen (supplier, cabang, tanggal diterima, nota, pencatat + waktu buat, total) + tabel baris `Bahan | Satuan entri | Jumlah | Harga/satuan | Total`; Link kembali ke `/admin/purchases`.
+    - `admin/suppliers/Index.vue`: formulir atas "Tambah/Ubah supplier" (name, phone, checkbox `is_active` — state edit internal: klik "Ubah" di tabel mengisi form + `router.patch('/admin/suppliers/' + id)`; mode tambah = `router.post('/admin/suppliers')`); tabel `Nama | Telepon | Status`; **tidak ada tombol hapus** (spec: tidak pernah dihapus). Flash success/error ditampilkan (pola yang ada).
+    - `StaffLayout.vue`: array nav owner — sisip `{ label: 'Pembelian', href: '/admin/purchases' }` setelah item "Stok". Nav kasir/dapur tidak berubah.
 
 - [ ] **Step 1: Halaman**
 
@@ -471,13 +469,13 @@ Expected: PASS.
 
 - [ ] **Step 4: Dokumen**
 
-  - `PRD.md` §7.9 — tambahkan setelah baris P1 terakhir (sebelum `### 7.10`), gaya persis §7.6/§7.7:
-    > Implemented in the current release: supplier master data managed by the owner (editable, deactivatable, never deleted) and purchase receipts recorded per branch with per-line purchase prices in supplier units (e.g. kg, pack), converted to base stock units for the stock ledger via existing unit conversions. Purchase documents are immutable with server-calculated line totals, idempotent submission, audit logging, and branch-scoped authorization (kitchen and cashier receive for their own branch; owners across branches). Purchase history and price reporting remain P1. Detail: `docs/superpowers/specs/2026-10-30-purchasing-supplier-design.md`.
-  - `README.md` — seksi baru `## Purchasing & suppliers` (setelah `## Cashier shifts`, sebelum `## Operations`):
+    - `PRD.md` §7.9 — tambahkan setelah baris P1 terakhir (sebelum `### 7.10`), gaya persis §7.6/§7.7:
+        > Implemented in the current release: supplier master data managed by the owner (editable, deactivatable, never deleted) and purchase receipts recorded per branch with per-line purchase prices in supplier units (e.g. kg, pack), converted to base stock units for the stock ledger via existing unit conversions. Purchase documents are immutable with server-calculated line totals, idempotent submission, audit logging, and branch-scoped authorization (kitchen and cashier receive for their own branch; owners across branches). Purchase history and price reporting remain P1. Detail: `docs/superpowers/specs/2026-10-30-purchasing-supplier-design.md`.
+    - `README.md` — seksi baru `## Purchasing & suppliers` (setelah `## Cashier shifts`, sebelum `## Operations`):
 
-    > Suppliers live at `/admin/suppliers` (owner; edit/deactivate only, never deleted). Stock receipts against a supplier are recorded from `/admin/purchases`, the POS header, or the kitchen header: per line pick ingredient + supplier unit (kg, pack, …) + quantity + unit price. The server converts to the ingredient's base unit and appends `Receipt` stock movements. Purchase documents are immutable (corrections go through owner stock adjustments); each submission is idempotent and audited.
+        > Suppliers live at `/admin/suppliers` (owner; edit/deactivate only, never deleted). Stock receipts against a supplier are recorded from `/admin/purchases`, the POS header, or the kitchen header: per line pick ingredient + supplier unit (kg, pack, …) + quantity + unit price. The server converts to the ingredient's base unit and appends `Receipt` stock movements. Purchase documents are immutable (corrections go through owner stock adjustments); each submission is idempotent and audited.
 
-  - `AGENTS.md` — cek baris modul (± baris 77 sudah memuat "Purchasing & Warehouse" di daftar modularity); **jika sudah ada, jangan diubah** (verifikasi saja). Seksi repository layout sudah generik (`app/Modules/`) — tidak perlu perubahan.
+    - `AGENTS.md` — cek baris modul (± baris 77 sudah memuat "Purchasing & Warehouse" di daftar modularity); **jika sudah ada, jangan diubah** (verifikasi saja). Seksi repository layout sudah generik (`app/Modules/`) — tidak perlu perubahan.
 
 - [ ] **Step 5: Gerbang**
 
