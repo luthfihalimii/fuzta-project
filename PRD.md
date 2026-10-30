@@ -353,6 +353,8 @@ Implemented in the current release: realtime broadcast to the kitchen display an
 - **P1** Purchase orders and supplier price history.
 - **P1** Approval thresholds for purchasing and stock adjustments.
 
+Implemented in the current release: supplier master data managed by the owner (editable, deactivatable, never deleted) and purchase receipts recorded per branch with per-line purchase prices in supplier units (e.g. kg, pack), converted to base stock units for the stock ledger via existing unit conversions. Purchase documents are immutable with server-calculated line totals, idempotent submission, audit logging, and branch-scoped authorization (kitchen and cashier receive for their own branch; owners across branches). Purchase history and price reporting remain P1. Detail: `docs/superpowers/specs/2026-10-30-purchasing-supplier-design.md`.
+
 ### 7.10 Reporting
 
 - **P0** Daily sales by branch and consolidated total.

@@ -106,6 +106,10 @@ Every new POS order and payment must belong to an open cashier shift.
 - Closed shifts are immutable; voiding a payment from a closed shift is blocked until the refund module exists.
 - Owner reports live at `/admin/shifts`: per-shift list and a daily summary per branch and cashier.
 
+## Purchasing & suppliers
+
+Suppliers live at `/admin/suppliers` (owner; edit/deactivate only, never deleted). Stock receipts against a supplier are recorded from `/admin/purchases`, the POS header, or the kitchen header: per line pick ingredient + supplier unit (kg, pack, …) + quantity + unit price. The server converts to the ingredient's base unit and appends `Receipt` stock movements. Purchase documents are immutable (corrections go through owner stock adjustments); each submission is idempotent and audited.
+
 ## Operations
 
 - [Deployment](docs/operations/deployment.md)
