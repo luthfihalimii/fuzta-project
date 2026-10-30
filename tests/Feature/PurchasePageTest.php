@@ -4,6 +4,7 @@ namespace Tests\Feature;
 
 use App\Models\User;
 use App\Modules\Branches\Models\Branch;
+use App\Modules\Purchasing\Models\Purchase;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Tests\TestCase;
 
@@ -45,5 +46,42 @@ class PurchasePageTest extends TestCase
         $this->actingAs($owner)
             ->get('/admin/purchases/create')
             ->assertOk();
+    }
+
+    public function test_owner_can_open_admin_purchases_index(): void
+    {
+        $owner = User::factory()->owner()->create();
+
+        $this->actingAs($owner)
+            ->get('/admin/purchases')
+            ->assertOk();
+    }
+
+    public function test_owner_can_open_admin_purchase_detail(): void
+    {
+        $owner = User::factory()->owner()->create();
+        $purchase = Purchase::factory()->for($this->branchA)->create();
+
+        $this->actingAs($owner)
+            ->get("/admin/purchases/{$purchase->id}")
+            ->assertOk();
+    }
+
+    public function test_owner_can_open_admin_suppliers_index(): void
+    {
+        $owner = User::factory()->owner()->create();
+
+        $this->actingAs($owner)
+            ->get('/admin/suppliers')
+            ->assertOk();
+    }
+
+    public function test_cashier_cannot_open_admin_purchases_index(): void
+    {
+        $cashier = User::factory()->cashier()->for($this->branchA)->create();
+
+        $this->actingAs($cashier)
+            ->get('/admin/purchases')
+            ->assertForbidden();
     }
 }
