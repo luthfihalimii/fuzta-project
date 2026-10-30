@@ -51,20 +51,20 @@ const page = usePage();
                     href="/kitchen"
                     class="inline-flex min-h-12 items-center rounded-xl border border-line bg-white px-4 text-sm font-semibold text-ink transition hover:bg-canvas"
                 >
-                    POS
+                    Dapur
                 </Link>
             </div>
 
             <div
                 v-if="page.props.flash.success"
-                class="rounded-xl border border-kitchen-ready/40 bg-kitchen-ready/10 px-4 py-3 text-sm font-semibold text-kitchen-success-text"
+                class="rounded-xl border border-success/20 bg-success/10 px-4 py-3 text-sm text-success"
                 role="status"
             >
                 {{ page.props.flash.success }}
             </div>
             <div
                 v-if="page.props.flash.error"
-                class="rounded-xl border border-danger/40 bg-danger/10 px-4 py-3 text-sm font-semibold text-kitchen-danger-text"
+                class="rounded-xl border border-danger/20 bg-danger/10 px-4 py-3 text-sm text-danger"
                 role="alert"
             >
                 {{ page.props.flash.error }}
