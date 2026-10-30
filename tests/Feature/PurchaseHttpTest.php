@@ -10,6 +10,8 @@ use App\Modules\Inventory\Models\StockBalance;
 use App\Modules\Inventory\Models\StockMovement;
 use App\Modules\Inventory\Models\Unit;
 use App\Modules\Inventory\Models\UnitConversion;
+use App\Modules\Purchasing\Http\Controllers\PurchaseController;
+use App\Modules\Purchasing\Http\Controllers\SupplierController;
 use App\Modules\Purchasing\Models\Purchase;
 use App\Modules\Purchasing\Models\Supplier;
 use Illuminate\Foundation\Testing\RefreshDatabase;
@@ -81,6 +83,36 @@ class PurchaseHttpTest extends TestCase
 
         $this->assertSame('admin/purchases/create', Route::getRoutes()->getByName('admin.purchases.create')->uri());
         $this->assertSame('admin/purchases/{purchase}', Route::getRoutes()->getByName('admin.purchases.show')->uri());
+    }
+
+    public function test_route_actions_and_registration_order(): void
+    {
+        foreach ([
+            'pos.purchases.create' => PurchaseController::class.'@posCreate',
+            'pos.purchases.store' => PurchaseController::class.'@store',
+            'kitchen.purchases.create' => PurchaseController::class.'@kitchenCreate',
+            'kitchen.purchases.store' => PurchaseController::class.'@store',
+            'admin.purchases.index' => PurchaseController::class.'@index',
+            'admin.purchases.create' => PurchaseController::class.'@create',
+            'admin.purchases.store' => PurchaseController::class.'@store',
+            'admin.purchases.show' => PurchaseController::class.'@show',
+            'admin.suppliers.index' => SupplierController::class.'@index',
+            'admin.suppliers.store' => SupplierController::class.'@store',
+            'admin.suppliers.update' => SupplierController::class.'@update',
+        ] as $name => $action) {
+            $this->assertSame($action, Route::getRoutes()->getByName($name)?->getActionName(), "Route [{$name}] resolves to the wrong action.");
+        }
+
+        $names = array_map(
+            fn ($route) => $route->getName(),
+            Route::getRoutes()->getRoutes(),
+        );
+
+        $this->assertLessThan(
+            array_search('admin.purchases.show', $names, true),
+            array_search('admin.purchases.create', $names, true),
+            'admin.purchases.create must be registered before admin.purchases.show',
+        );
     }
 
     public function test_kitchen_form_and_submit_records_purchase_with_ledger_and_audit(): void
