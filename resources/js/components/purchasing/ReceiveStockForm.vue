@@ -272,7 +272,7 @@ function submit(): void {
                         v-model="row.unit_price"
                         type="number"
                         :min="0"
-                        :step="1000"
+                        :step="1"
                         inputmode="numeric"
                         label="Harga satuan"
                         :error="errors[`items.${index}.unit_price`]"
