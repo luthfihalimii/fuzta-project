@@ -50,6 +50,9 @@ class AppServiceProvider extends ServiceProvider
 
         RateLimiter::for('shifts', fn (Request $request): Limit => Limit::perMinute(10)
             ->by($request->user()?->id ?: $request->ip()));
+
+        RateLimiter::for('purchases', fn (Request $request): Limit => Limit::perMinute(10)
+            ->by($request->user()?->id ?: $request->ip()));
     }
 
     /**

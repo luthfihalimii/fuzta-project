@@ -19,6 +19,8 @@ use App\Modules\Kitchen\Http\Controllers\KitchenController;
 use App\Modules\Ordering\Http\Controllers\OrderController;
 use App\Modules\Ordering\Http\Controllers\PosController;
 use App\Modules\Payments\Http\Controllers\PaymentController;
+use App\Modules\Purchasing\Http\Controllers\PurchaseController;
+use App\Modules\Purchasing\Http\Controllers\SupplierController;
 use App\Modules\Reporting\Http\Controllers\ReportController;
 use App\Modules\Shifts\Http\Controllers\AdminShiftController;
 use App\Modules\Shifts\Http\Controllers\PosShiftController;
@@ -57,6 +59,9 @@ Route::middleware(['auth', 'role:cashier,owner'])->group(function () {
     Route::post('/pos/orders', [PosController::class, 'store'])->middleware('throttle:orders')->name('pos.orders.store');
     Route::get('/pos/orders', [OrderController::class, 'index'])->name('pos.orders.index');
 
+    Route::get('/pos/purchases', [PurchaseController::class, 'posCreate'])->name('pos.purchases.create');
+    Route::post('/pos/purchases', [PurchaseController::class, 'store'])->middleware('throttle:purchases')->name('pos.purchases.store');
+
     Route::get('/orders/{order}/receipt', [PaymentController::class, 'receipt'])->name('orders.receipt');
     Route::post('/orders/{order}/pay', [PaymentController::class, 'store'])->middleware('throttle:payments')->name('orders.pay');
     Route::post('/orders/{order}/cancel', [OrderController::class, 'cancel'])->middleware('throttle:payments')->name('orders.cancel');
@@ -71,6 +76,9 @@ Route::middleware(['auth', 'role:kitchen,owner'])->group(function () {
     Route::get('/kitchen/stock', [StockMovementController::class, 'kitchenIndex'])->name('kitchen.stock.index');
     Route::post('/kitchen/stock/waste', [StockMovementController::class, 'kitchenWaste'])->name('kitchen.stock.waste');
     Route::post('/kitchen/stock/counts', [StockCountController::class, 'kitchenStore'])->name('kitchen.stock.counts');
+
+    Route::get('/kitchen/purchases', [PurchaseController::class, 'kitchenCreate'])->name('kitchen.purchases.create');
+    Route::post('/kitchen/purchases', [PurchaseController::class, 'store'])->middleware('throttle:purchases')->name('kitchen.purchases.store');
 });
 
 Route::middleware(['auth', 'role:owner'])->prefix('admin')->group(function () {
@@ -97,6 +105,15 @@ Route::middleware(['auth', 'role:owner'])->prefix('admin')->group(function () {
     });
 
     Route::get('/audit', [AuditLogController::class, 'index'])->name('admin.audit.index');
+
+    Route::get('/purchases', [PurchaseController::class, 'index'])->name('admin.purchases.index');
+    Route::get('/purchases/create', [PurchaseController::class, 'create'])->name('admin.purchases.create');
+    Route::post('/purchases', [PurchaseController::class, 'store'])->middleware('throttle:purchases')->name('admin.purchases.store');
+    Route::get('/purchases/{purchase}', [PurchaseController::class, 'show'])->name('admin.purchases.show');
+
+    Route::get('/suppliers', [SupplierController::class, 'index'])->name('admin.suppliers.index');
+    Route::post('/suppliers', [SupplierController::class, 'store'])->name('admin.suppliers.store');
+    Route::patch('/suppliers/{supplier}', [SupplierController::class, 'update'])->name('admin.suppliers.update');
 
     Route::prefix('stock')->name('admin.stock.')->group(function () {
         Route::get('/ingredients', [IngredientController::class, 'index'])->name('ingredients.index');
