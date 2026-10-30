@@ -224,6 +224,41 @@ class PurchaseActionTest extends TestCase
         $this->assertSame(4_444_440_000_000, $purchase->items->sole()->line_total);
     }
 
+    public function test_multi_row_purchase_records_all_ledger_rows_in_ingredient_order(): void
+    {
+        $lower = Ingredient::factory()->create(['base_unit_id' => $this->g->id, 'name' => 'Keju']);
+        $higher = Ingredient::factory()->create(['base_unit_id' => $this->g->id, 'name' => 'Saus']);
+
+        $this->assertGreaterThan($lower->id, $higher->id);
+
+        // Descending ingredient_id on purpose: ledger order must not follow input order.
+        $purchase = app(RecordPurchase::class)($this->kitchen, $this->makeData([
+            $this->line($higher->id, $this->kg->id, 3, 50000),
+            $this->line($lower->id, $this->kg->id, 2, 10000),
+        ]));
+
+        $this->assertSame(170000, $purchase->total);
+
+        $items = $purchase->items->keyBy('ingredient_id');
+        $this->assertSame(150000, $items[$higher->id]->line_total);
+        $this->assertSame(20000, $items[$lower->id]->line_total);
+
+        $movements = StockMovement::query()
+            ->where('reference_type', Purchase::class)
+            ->where('reference_id', $purchase->id)
+            ->orderBy('id')
+            ->get();
+
+        $this->assertSame(
+            [$lower->id, $higher->id],
+            $movements->map(fn (StockMovement $movement): int => (int) $movement->ingredient_id)->all(),
+        );
+
+        $byIngredient = $movements->keyBy(fn (StockMovement $movement): int => (int) $movement->ingredient_id);
+        $this->assertSame(2000, $byIngredient[$lower->id]->quantity);
+        $this->assertSame(3000, $byIngredient[$higher->id]->quantity);
+    }
+
     /**
      * @param  list<array{ingredient_id: int, unit_id: int, quantity: int, unit_price: int}>  $items
      */
