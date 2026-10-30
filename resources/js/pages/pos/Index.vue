@@ -556,6 +556,14 @@ function switchBranch(): void {
             >
                 {{ page.props.flash.error }}
             </div>
+            <div>
+                <Link
+                    href="/pos/purchases"
+                    class="inline-flex min-h-12 items-center justify-center rounded-xl border border-line bg-white px-4 text-sm font-semibold text-ink transition hover:bg-canvas"
+                >
+                    Terima barang
+                </Link>
+            </div>
             <div
                 v-if="successMessage"
                 class="rounded-xl border border-success/20 bg-success/10 px-4 py-3 text-sm text-success"
