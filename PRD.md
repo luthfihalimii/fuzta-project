@@ -366,6 +366,8 @@ Implemented in the current release: supplier master data managed by the owner (e
 - **P1** Waste, stock variance, and low-stock reporting.
 - **P1** Export permitted reports to CSV.
 
+Implemented in the current release: sales breakdown by order channel (dine-in / takeaway) alongside the existing payment-method breakdown on the Sales page, filtered by date range and branch; only paid, non-cancelled orders are counted, so channel row amounts sum to gross sales. Cost/margin, waste reporting, and CSV export remain P1. Detail: `docs/superpowers/specs/2026-10-31-sales-by-channel-design.md`.
+
 Reports must clearly distinguish sales, discounts, refunds, tax/fees, payment receipts, and estimated costs. Revenue is not the same as profit; profit reporting requires validated cost and expense inputs.
 
 ### 7.11 Notifications

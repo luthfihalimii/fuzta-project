@@ -20,11 +20,19 @@ type PaymentSplit = {
     amount: number;
 };
 
+type ChannelSplit = {
+    channel: string;
+    label: string;
+    order_count: number;
+    amount: number;
+};
+
 type SalesSummary = {
     order_count: number;
     gross_sales: number;
     average_order_value: number;
     by_payment_method: PaymentSplit[];
+    by_channel: ChannelSplit[];
 };
 
 type ProductRow = {
@@ -183,6 +191,50 @@ function applyFilters(): void {
                                 <tr
                                     v-for="row in props.sales.by_payment_method"
                                     :key="row.method"
+                                >
+                                    <td class="px-5 py-4 font-medium text-ink">
+                                        {{ row.label }}
+                                    </td>
+                                    <td
+                                        class="px-5 py-4 text-right text-muted tabular-nums"
+                                    >
+                                        {{ row.order_count }}
+                                    </td>
+                                    <td
+                                        class="px-5 py-4 text-right font-semibold text-ink tabular-nums"
+                                    >
+                                        {{ formatRupiah(row.amount) }}
+                                    </td>
+                                </tr>
+                            </tbody>
+                        </table>
+                    </div>
+                </section>
+
+                <section class="rounded-2xl border border-line bg-white">
+                    <div class="border-b border-line px-5 py-4">
+                        <h2 class="font-semibold text-ink">
+                            Order per channel
+                        </h2>
+                    </div>
+
+                    <div class="overflow-x-auto">
+                        <table class="w-full min-w-[560px] text-left text-sm">
+                            <thead
+                                class="bg-canvas text-xs tracking-wide text-muted uppercase"
+                            >
+                                <tr>
+                                    <th class="px-5 py-3">Channel</th>
+                                    <th class="px-5 py-3 text-right">
+                                        Pesanan
+                                    </th>
+                                    <th class="px-5 py-3 text-right">Jumlah</th>
+                                </tr>
+                            </thead>
+                            <tbody class="divide-y divide-line">
+                                <tr
+                                    v-for="row in props.sales.by_channel"
+                                    :key="row.channel"
                                 >
                                     <td class="px-5 py-4 font-medium text-ink">
                                         {{ row.label }}
