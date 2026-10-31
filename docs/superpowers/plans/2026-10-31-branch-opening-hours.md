@@ -35,6 +35,7 @@
 ### Task 1: Schema + validasi + edit admin
 
 **Files:**
+
 - Create: `database/migrations/2026_10_31_000002_add_opening_hours_to_branches_table.php`
 - Modify: `app/Modules/Branches/Models/Branch.php`
 - Modify: `app/Modules/Branches/Http/Controllers/BranchController.php`
@@ -42,6 +43,7 @@
 - Test: `tests/Feature/BranchTest.php` (create)
 
 **Interfaces:**
+
 - Produces: kolom `branches.opens_at`/`closes_at` (`H:i`, NOT NULL, default); `snapshot()` + payload index memuat keduanya — dipakai `BranchPresenter`/UI di Task 2.
 
 - [ ] **Step 1: Tulis tes yang gagal** — `tests/Feature/BranchTest.php` baru (pola `RefreshDatabase`, factory `User::owner()`/`cashier()` dari tes lain):
@@ -180,6 +182,7 @@ Schema::table('branches', function (Blueprint $table) {
 **`Branch` model** — `#[Fillable]`: tambah `'opens_at'`, `'closes_at'`.
 
 **`BranchController`**:
+
 - `index()` mapping: tambah `'opens_at' => $branch->opens_at,` + `'closes_at' => $branch->closes_at,`.
 - `snapshot()`: tambah dua key yang sama.
 - `store()` rules: tambah `'opens_at' => ['sometimes', 'date_format:H:i'],` + `'closes_at' => ['sometimes', 'date_format:H:i'],`. Setelah `$data = $request->validate([...])` dan sebelum `DB::transaction`, cek nilai efektif (default DB = `'09:00'`/`'21:00'`):
@@ -193,6 +196,7 @@ if (($data['closes_at'] ?? '21:00') <= ($data['opens_at'] ?? '09:00')) {
 ```
 
 (import `Illuminate\Validation\ValidationException`.)
+
 - `update()` rules: dua aturan `['sometimes', 'date_format:H:i']` yang sama (setelah baris `'is_active'`). Setelah `$reason = ...`/`unset($data['reason']);` dan sebelum `DB::transaction`, cek terhadap DB:
 
 ```php
@@ -204,11 +208,11 @@ if (($data['closes_at'] ?? $branch->closes_at) <= ($data['opens_at'] ?? $branch-
 ```
 
 - `resources/js/pages/admin/branches/Index.vue`:
-  - `BranchRow`: tambah `opens_at: string;` + `closes_at: string;`.
-  - `useForm({...})`: tambah `opens_at: '09:00',` + `closes_at: '21:00',`.
-  - `startEdit()`: `form.opens_at = branch.opens_at;` + `form.closes_at = branch.closes_at;`.
-  - Form: dua `<Input>` `type="time"` (pola `<Input type="number">` yang sudah ada) label "Jam buka"/"Jam tutup", `:error="form.errors.opens_at"` / `:error="form.errors.closes_at"`.
-  - Tabel: kolom baru `Jam` (setelah `Telepon`): `{{ branch.opens_at }}–{{ branch.closes_at }}` (+ `<th>` koresponden).
+    - `BranchRow`: tambah `opens_at: string;` + `closes_at: string;`.
+    - `useForm({...})`: tambah `opens_at: '09:00',` + `closes_at: '21:00',`.
+    - `startEdit()`: `form.opens_at = branch.opens_at;` + `form.closes_at = branch.closes_at;`.
+    - Form: dua `<Input>` `type="time"` (pola `<Input type="number">` yang sudah ada) label "Jam buka"/"Jam tutup", `:error="form.errors.opens_at"` / `:error="form.errors.closes_at"`.
+    - Tabel: kolom baru `Jam` (setelah `Telepon`): `{{ branch.opens_at }}–{{ branch.closes_at }}` (+ `<th>` koresponden).
 
 - [ ] **Step 4: Jalankan, pastikan lulus**
 
@@ -227,6 +231,7 @@ git commit -m "feat(branches): opening hours (validasi, edit admin, audit)"
 ### Task 2: Presenter + `isOpenNow` + chip POS/dapur + flash lembut
 
 **Files:**
+
 - Modify: `app/Modules/Branches/Support/BranchPresenter.php`
 - Modify: `resources/js/lib/order.ts` (type `BranchSummary`)
 - Create: `resources/js/lib/opening-hours.ts`
@@ -237,6 +242,7 @@ git commit -m "feat(branches): opening hours (validasi, edit admin, audit)"
 - Modify: `PRD.md`
 
 **Interfaces:**
+
 - Consumes: Task 1 — payload index/branch sudah memuat `opens_at`/`closes_at`; `Branch::opens_at`/`closes_at`.
 - Produces: `isOpenNow(opensAt: string, closesAt: string, date: Date = new Date()): boolean` — satu-satunya logika status Buka/Tutup di klien; prop `branch.opens_at`/`branch.closes_at` di page POS + dapur.
 
@@ -247,7 +253,13 @@ import { describe, expect, it } from 'vitest';
 import { isOpenNow } from '../../resources/js/lib/opening-hours';
 
 function at(hhmm: string): Date {
-    return new Date(2026, 9, 31, Number(hhmm.slice(0, 2)), Number(hhmm.slice(3, 5)));
+    return new Date(
+        2026,
+        9,
+        31,
+        Number(hhmm.slice(0, 2)),
+        Number(hhmm.slice(3, 5)),
+    );
 }
 
 describe('isOpenNow', () => {
@@ -287,7 +299,11 @@ Expected: FAIL — modul belum ada.
 **`resources/js/lib/opening-hours.ts`**:
 
 ```ts
-export function isOpenNow(opensAt: string, closesAt: string, date: Date = new Date()): boolean {
+export function isOpenNow(
+    opensAt: string,
+    closesAt: string,
+    date: Date = new Date(),
+): boolean {
     const pad = (n: number): string => String(n).padStart(2, '0');
     const now = `${pad(date.getHours())}:${pad(date.getMinutes())}`;
 
@@ -325,6 +341,7 @@ Expected: PASS.
 - [ ] **Step 6: Chip UI POS + dapur**
 
 **POS `resources/js/pages/pos/Index.vue`**:
+
 - Import: `onMounted`/`onUnmounted` dari `vue` (ikuti import yang ada), `isOpenNow` dari `@/lib/opening-hours`.
 - Tick 60 s (pola interval yang sudah ada di page ini):
 
@@ -349,7 +366,11 @@ const isOpen = computed(
     () =>
         !!props.branch &&
         props.branch.is_active &&
-        isOpenNow(props.branch.opens_at, props.branch.closes_at, new Date(now.value)),
+        isOpenNow(
+            props.branch.opens_at,
+            props.branch.closes_at,
+            new Date(now.value),
+        ),
 );
 ```
 
@@ -367,6 +388,7 @@ const isOpen = computed(
 ```
 
 **Dapur `resources/js/pages/kitchen/Index.vue`**:
+
 - Import `isOpenNow`; tambah `const isOpen = computed(() => !!props.branch && props.branch.is_active && isOpenNow(props.branch.opens_at, props.branch.closes_at, new Date(now.value)));` — **pakai `now` (1 s) yang sudah ada, jangan bikin interval baru**.
 - Header dekat nama branch (area `~:299` `{{ branch.name }}`): chip persis pola POS.
 
