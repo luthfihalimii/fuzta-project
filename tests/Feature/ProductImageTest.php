@@ -249,6 +249,50 @@ class ProductImageTest extends TestCase
         imagedestroy($decoded);
     }
 
+    public function test_large_transparent_png_is_flattened_on_white_after_resize(): void
+    {
+        // Sumber: PNG 1600x900 (di atas max-width 1200) SELURUHNYA transparan.
+        // Jalur resize 1200x540 mengomposit alpha ke kanvas hitam DULU; hasil akhirnya harus putih.
+        $png = $this->transparentPngBytes(1600, 900);
+        $owner = User::factory()->owner()->create();
+        $category = Category::factory()->create();
+
+        $this->actingAs($owner)->post('/admin/catalog/products', [
+            'name' => 'Pizza',
+            'category_id' => $category->id,
+            'base_price' => 30000,
+            'image' => UploadedFile::fake()->createWithContent('foto.png', $png),
+        ])->assertRedirect();
+
+        $product = Product::query()->firstOrFail();
+        $bytes = (string) Storage::disk('public')->get((string) $product->image);
+
+        $decoded = imagecreatefromstring($bytes);
+        $this->assertNotFalse($decoded);
+        $c = imagecolorsforindex($decoded, imagecolorat($decoded, 0, 0));
+        $this->assertSame(255, $c['red']);
+        $this->assertSame(255, $c['green']);
+        $this->assertSame(255, $c['blue']);
+
+        imagedestroy($decoded);
+    }
+
+    private function transparentPngBytes(int $w, int $h): string
+    {
+        $img = imagecreatetruecolor($w, $h);
+        imagealphablending($img, false);
+        imagesavealpha($img, true);
+        $transparent = imagecolorallocatealpha($img, 0, 0, 0, 127);
+        imagefilledrectangle($img, 0, 0, $w - 1, $h - 1, $transparent);
+
+        ob_start();
+        imagepng($img);
+        $bytes = (string) ob_get_clean();
+        imagedestroy($img);
+
+        return $bytes;
+    }
+
     /**
      * Fixture 4x2: 4 warna pojok + 4 warna dalam, semua berbeda,
      * jadi transformasi yang salah pasti berbeda pada sudutnya.

@@ -41,12 +41,17 @@ final class ProcessProductImage
             $targetHeight = max(1, (int) round($height * self::MAX_WIDTH / $width));
 
             $resized = imagecreatetruecolor(self::MAX_WIDTH, $targetHeight);
+            // Alpha sumber dipertahankan (jangan dikomposit ke kanvas hitam);
+            // latar putih tetap satu titik: flattenOnWhite sebelum encode.
+            imagealphablending($resized, false);
+            imagesavealpha($resized, true);
             imagecopyresampled($resized, $image, 0, 0, 0, 0, self::MAX_WIDTH, $targetHeight, $width, $height);
             imagedestroy($image);
             $image = $resized;
         }
 
-        // PNG/WebP ber-alfa jadi latar hitam saat di-jpeg; flatten putih satu titik sebelum encode.
+        // PNG/WebP ber-alfa jadi latar hitam saat di-jpeg kalau alpha tak dipertahankan;
+        // semua jalur (resize >1200px maupun langsung) berakhir di flatten putih satu titik ini.
         $image = $this->flattenOnWhite($image);
 
         ob_start();
@@ -93,14 +98,25 @@ final class ProcessProductImage
     }
 
     /**
-     * shortcut: sebagian build GD memodifikasi gambar in-place dan mengembalikan true;
-     * upgrade: hapus shim jika semua target PHP menjalani GD upstream yang selalu mengembalikan GdImage baru.
+     * `imageflip` (PHP >= 8.0) memodifikasi gambar in-place: true saat sukses,
+     * false saat gagal. Branch GdImage dipertahankan agar tetap benar bila ada
+     * build yang mengembalikan salinan baru.
+     *
+     * @throws ValidationException 422 bila flip gagal (orientation 2/4/5/7 tak boleh senyap tanpa error)
      */
     private function flip(GdImage $image, int $mode): GdImage
     {
         $flipped = imageflip($image, $mode);
 
-        return $flipped instanceof GdImage ? $flipped : $image;
+        if ($flipped instanceof GdImage) {
+            return $flipped;
+        }
+
+        if ($flipped === true) {
+            return $image;
+        }
+
+        throw $this->invalidImage();
     }
 
     private function flattenOnWhite(GdImage $image): GdImage
