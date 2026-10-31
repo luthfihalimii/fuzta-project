@@ -6,6 +6,7 @@ use App\Http\Controllers\Controller;
 use App\Http\Requests\StoreProductRequest;
 use App\Http\Requests\UpdateProductRequest;
 use App\Modules\Branches\Models\Branch;
+use App\Modules\Catalog\Actions\StoreProductImage;
 use App\Modules\Catalog\Models\Category;
 use App\Modules\Catalog\Models\ModifierGroup;
 use App\Modules\Catalog\Models\Product;
@@ -64,11 +65,11 @@ class ProductController extends Controller
         ]);
     }
 
-    public function store(StoreProductRequest $request, WriteAuditLog $audit): RedirectResponse
+    public function store(StoreProductRequest $request, StoreProductImage $images, WriteAuditLog $audit): RedirectResponse
     {
         $data = $request->validated();
 
-        DB::transaction(function () use ($data, $request, $audit): void {
+        DB::transaction(function () use ($data, $request, $audit, $images): void {
             $product = Product::create([
                 'category_id' => $data['category_id'],
                 'name' => $data['name'],
@@ -85,6 +86,11 @@ class ProductController extends Controller
 
             if (array_key_exists('branch_availability', $data)) {
                 $this->syncBranchAvailability($product, $data['branch_availability'] ?? []);
+            }
+
+            if (($file = $request->file('image')) !== null) {
+                $product->image = $images->store($file, $product);
+                $product->save();
             }
 
             $product->load(['variants', 'modifierGroups', 'branches']);
@@ -106,12 +112,16 @@ class ProductController extends Controller
     public function update(
         UpdateProductRequest $request,
         Product $product,
+        StoreProductImage $images,
         WriteAuditLog $audit,
     ): RedirectResponse {
         $data = $request->validated();
 
-        DB::transaction(function () use ($product, $data, $request, $audit): void {
+        DB::transaction(function () use ($product, $data, $request, $audit, $images): void {
             $before = $this->snapshot($product);
+
+            $previousImage = $product->image;
+            $file = $request->file('image');
 
             $product->fill(Arr::only($data, [
                 'category_id',
@@ -121,6 +131,18 @@ class ProductController extends Controller
                 'is_active',
             ]));
             $product->save();
+
+            if ($file !== null) {
+                $product->image = $images->store($file, $product);
+                $product->save();
+                $images->forget($previousImage);
+            }
+
+            if ($file === null && $request->boolean('remove_image')) {
+                $product->image = null;
+                $product->save();
+                $images->forget($previousImage);
+            }
 
             if (array_key_exists('variants', $data)) {
                 $this->syncVariants($product, $data['variants'] ?? []);
