@@ -70,6 +70,7 @@ class PosController extends Controller
                     'category_id' => $product->category_id,
                     'category_name' => $product->category?->name,
                     'base_price' => $product->base_price,
+                    'image_url' => $product->imageUrl(),
                     'variants' => $product->variants
                         ->map(fn (ProductVariant $variant) => [
                             'id' => $variant->id,

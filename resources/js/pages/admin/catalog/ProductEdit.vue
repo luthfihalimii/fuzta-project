@@ -1,6 +1,6 @@
 <script setup lang="ts">
 import { Head, Link, useForm } from '@inertiajs/vue3';
-import { computed } from 'vue';
+import { computed, ref } from 'vue';
 import Button from '@/components/Button.vue';
 import Input from '@/components/Input.vue';
 import Select from '@/components/Select.vue';
@@ -25,6 +25,7 @@ type ProductData = {
     description: string | null;
     base_price: number;
     is_active: boolean;
+    image_url: string | null;
     variants: Array<{
         id: number;
         name: string;
@@ -98,7 +99,37 @@ const form = useForm({
     variants: initialVariants,
     modifier_group_ids: props.product?.modifier_group_ids ?? [],
     branch_availability: initialBranchAvailability,
+    image: null as File | null,
+    remove_image: false,
 });
+
+const previewUrl = ref<string | null>(null);
+
+function pickImage(event: Event): void {
+    const input = event.target as HTMLInputElement;
+    const file = input.files?.[0] ?? null;
+
+    form.image = file ?? null;
+
+    if (previewUrl.value) {
+        URL.revokeObjectURL(previewUrl.value);
+    }
+
+    previewUrl.value = file ? URL.createObjectURL(file) : null;
+
+    if (file) {
+        form.remove_image = false;
+    }
+}
+
+function hideImage(): void {
+    form.remove_image = true;
+    form.image = null;
+    if (previewUrl.value) {
+        URL.revokeObjectURL(previewUrl.value);
+    }
+    previewUrl.value = null;
+}
 
 const categoryOptions = computed(() =>
     props.categories.map((category) => ({
@@ -210,6 +241,80 @@ function submit(): void {
                             :error="form.errors.name"
                             required
                         />
+
+                        <div>
+                            <span
+                                class="mb-1.5 block text-sm font-medium text-ink"
+                            >
+                                Foto produk (opsional)
+                            </span>
+                            <div class="flex items-start gap-4">
+                                <span
+                                    class="flex h-20 w-20 shrink-0 items-center justify-center overflow-hidden rounded-lg border border-line bg-canvas text-xs text-muted"
+                                >
+                                    <img
+                                        v-if="previewUrl"
+                                        :src="previewUrl"
+                                        alt="Pratinjau foto"
+                                        class="h-full w-full object-cover"
+                                    />
+                                    <img
+                                        v-else-if="
+                                            !form.remove_image &&
+                                            props.product?.image_url
+                                        "
+                                        :src="props.product.image_url"
+                                        alt="Foto produk"
+                                        class="h-full w-full object-cover"
+                                    />
+                                    <span v-else>
+                                        {{
+                                            props.product?.name
+                                                ? props.product.name
+                                                      .charAt(0)
+                                                      .toUpperCase()
+                                                : '—'
+                                        }}
+                                    </span>
+                                </span>
+                                <div class="space-y-2">
+                                    <label
+                                        class="inline-block cursor-pointer rounded-lg border border-line bg-white px-3 py-2 text-sm font-medium text-ink hover:border-brand/40"
+                                    >
+                                        {{
+                                            props.product?.image_url &&
+                                            !form.remove_image &&
+                                            !previewUrl
+                                                ? 'Ganti foto'
+                                                : 'Pilih foto'
+                                        }}
+                                        <input
+                                            type="file"
+                                            accept=".jpg,.jpeg,.png,.webp"
+                                            class="hidden"
+                                            @change="pickImage"
+                                        />
+                                    </label>
+                                    <p class="text-xs text-muted">
+                                        JPG, PNG, atau WebP; maksimal 5 MB.
+                                    </p>
+                                    <Button
+                                        v-if="props.product?.image_url"
+                                        type="button"
+                                        variant="danger"
+                                        @click="hideImage"
+                                    >
+                                        Hapus foto
+                                    </Button>
+                                    <p
+                                        v-if="form.errors.image"
+                                        class="text-sm text-danger"
+                                    >
+                                        {{ form.errors.image }}
+                                    </p>
+                                </div>
+                            </div>
+                        </div>
 
                         <label class="block sm:col-span-2">
                             <span

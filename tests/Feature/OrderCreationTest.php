@@ -196,11 +196,14 @@ class OrderCreationTest extends TestCase
         $cashier = User::factory()->cashier()->for($branch)->create();
         $this->openShiftFor($cashier);
         $kitchen = User::factory()->kitchen()->for($branch)->create();
+        $this->pizzaForBranch($branch);
 
         $this->actingAs($cashier)
             ->get('/pos')
             ->assertOk()
-            ->assertInertia(fn (AssertableInertia $page) => $page->component('pos/Index'));
+            ->assertInertia(fn (AssertableInertia $page) => $page
+                ->component('pos/Index')
+                ->where('products.0.image_url', null));
 
         $this->actingAs($kitchen)->get('/pos')->assertForbidden();
     }

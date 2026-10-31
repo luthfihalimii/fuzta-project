@@ -37,6 +37,7 @@ class ProductController extends Controller
                     'base_price' => $product->base_price,
                     'is_active' => $product->is_active,
                     'variants_count' => $product->variants_count,
+                    'image_url' => $product->imageUrl(),
                     'branch_availability' => $product->branches
                         ->map(fn (Branch $branch) => [
                             'branch_id' => $branch->id,
@@ -322,6 +323,7 @@ class ProductController extends Controller
             'description' => $product->description,
             'base_price' => $product->base_price,
             'is_active' => $product->is_active,
+            'image_url' => $product->imageUrl(),
             'variants' => $product->variants
                 ->sortBy('sort_order')
                 ->values()

@@ -282,6 +282,8 @@ Priority labels:
 - **P1** Scheduled promotions and time-limited menus.
 - **P1** Product-level allergen information, if supplied and verified by Pizza Fruzta.
 
+Implemented in the current release: one photo per product, uploaded by the owner, re-encoded server-side as JPEG (max width 1200px) and stored on a configurable disk (`IMAGES_DISK`; Cloudflare R2 in production, local `public` disk in development), with the product/table listing, product form, and POS card all deriving display URLs from the stored disk key. Multi-photo, per-variant photos, and custom photo domains remain out of scope. Detail: `docs/superpowers/specs/2026-10-31-product-photo-r2-design.md`.
+
 ### 7.4 Ordering
 
 - **P0** A customer can create an order from the website or app.

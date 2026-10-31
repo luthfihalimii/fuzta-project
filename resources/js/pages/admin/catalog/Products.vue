@@ -17,6 +17,7 @@ type ProductRow = {
     base_price: number;
     is_active: boolean;
     variants_count: number;
+    image_url: string | null;
     branch_availability: BranchAvailability[];
 };
 
@@ -153,8 +154,33 @@ function toggleBranch(
                                 v-for="product in props.products"
                                 :key="product.id"
                             >
-                                <td class="px-5 py-4 font-medium text-ink">
-                                    {{ product.name }}
+                                <td class="px-5 py-4">
+                                    <div class="flex items-center gap-3">
+                                        <span
+                                            v-if="product.image_url"
+                                            class="h-10 w-10 shrink-0 overflow-hidden rounded-lg border border-line"
+                                        >
+                                            <img
+                                                :src="product.image_url"
+                                                :alt="product.name"
+                                                loading="lazy"
+                                                class="h-full w-full object-cover"
+                                            />
+                                        </span>
+                                        <span
+                                            v-else
+                                            class="flex h-10 w-10 shrink-0 items-center justify-center rounded-lg bg-canvas text-sm font-semibold text-muted"
+                                        >
+                                            {{
+                                                product.name
+                                                    .charAt(0)
+                                                    .toUpperCase()
+                                            }}
+                                        </span>
+                                        <span class="font-medium text-ink">{{
+                                            product.name
+                                        }}</span>
+                                    </div>
                                 </td>
                                 <td class="px-5 py-4 text-muted">
                                     {{ product.category_name ?? '—' }}

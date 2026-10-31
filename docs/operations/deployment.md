@@ -9,7 +9,7 @@ Replace `pizza.example.com` and `/var/www/pizza-fruzta` with the real domain and
 ```bash
 sudo apt update
 sudo apt install -y nginx postgresql php8.3-fpm php8.3-cli php8.3-pgsql \
-  php8.3-mbstring php8.3-xml php8.3-curl php8.3-zip \
+  php8.3-mbstring php8.3-xml php8.3-curl php8.3-zip php8.3-gd \
   unzip git curl
 ```
 
@@ -86,6 +86,13 @@ BACKUP_TIME=02:00
 BACKUP_DIR=/var/backups/pizza-fruzta
 BACKUP_RETENTION_DAYS=14
 BACKUP_S3_BUCKET=              # optional, see backup-restore.md
+
+IMAGES_DISK=r2
+R2_ACCESS_KEY_ID=...
+R2_SECRET_ACCESS_KEY=...
+R2_BUCKET=...
+R2_ENDPOINT=https://<ACCOUNT_ID>.r2.cloudflarestorage.com
+R2_PUBLIC_BASE_URL=https://pub-xxx.r2.dev
 ```
 
 `APP_TIMEZONE=UTC` is intentional: store UTC and display `Asia/Jakarta` through the app formatters. The backup schedule explicitly uses `Asia/Jakarta`.
@@ -205,7 +212,18 @@ Add one crontab entry for `www-data`:
 
 This runs the nightly backup when `BACKUP_ENABLED=true` and is the place for any future scheduled jobs. Test it with `php artisan schedule:test` or `php artisan schedule:list`.
 
-## 8. Release checklist
+## 8. PHP-FPM tuning
+
+Product photo upload needs a headroom above the 5 MB file limit. In `/etc/php/8.3/fpm/php.ini`:
+
+```ini
+upload_max_filesize = 8M
+post_max_size = 8M
+```
+
+Then `sudo systemctl restart php8.3-fpm`.
+
+## 9. Release checklist
 
 1. Take a database backup and confirm it is readable.
 2. Put the app in maintenance mode if the release changes schema: `php artisan down --retry=60`.

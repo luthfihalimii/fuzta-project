@@ -81,7 +81,9 @@ class CatalogTest extends TestCase
         $this->actingAs($owner)
             ->get('/admin/catalog/products')
             ->assertOk()
-            ->assertInertia(fn (AssertableInertia $page) => $page->component('admin/catalog/Products'));
+            ->assertInertia(fn (AssertableInertia $page) => $page
+                ->component('admin/catalog/Products')
+                ->where('products.0.image_url', null));
 
         $this->actingAs($owner)
             ->get('/admin/catalog/products/create')
@@ -98,7 +100,8 @@ class CatalogTest extends TestCase
             ->assertOk()
             ->assertInertia(fn (AssertableInertia $page) => $page
                 ->component('admin/catalog/ProductEdit')
-                ->where('product.id', $product->id));
+                ->where('product.id', $product->id)
+                ->where('product.image_url', null));
 
         $this->actingAs($owner)
             ->get('/admin/catalog/modifier-groups')

@@ -46,6 +46,7 @@ type PosProduct = {
     category_id: number;
     category_name: string | null;
     base_price: number;
+    image_url: string | null;
     variants: PosVariant[];
     modifier_groups: PosModifierGroup[];
 };
@@ -698,6 +699,19 @@ function switchBranch(): void {
                             class="flex min-h-32 flex-col rounded-2xl border border-line bg-white p-4 text-left transition hover:border-brand/40 hover:shadow-sm active:scale-[0.99]"
                             @click="openProduct(product)"
                         >
+                            <img
+                                v-if="product.image_url"
+                                :src="product.image_url"
+                                :alt="product.name"
+                                loading="lazy"
+                                class="mb-2 h-20 w-full rounded-lg object-cover"
+                            />
+                            <span
+                                v-else
+                                class="mb-2 flex h-20 w-full items-center justify-center rounded-lg bg-canvas text-[11px] text-muted"
+                            >
+                                Tanpa foto
+                            </span>
                             <span class="text-sm font-semibold text-ink">
                                 {{ product.name }}
                             </span>
