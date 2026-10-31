@@ -6,6 +6,7 @@ use App\Models\User;
 use App\Modules\Catalog\Actions\ProcessProductImage;
 use App\Modules\Catalog\Models\Category;
 use App\Modules\Catalog\Models\Product;
+use GdImage;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Http\UploadedFile;
 use Illuminate\Support\Facades\Storage;
@@ -174,5 +175,115 @@ class ProductImageTest extends TestCase
             'base_price' => 30000,
             'image' => UploadedFile::fake()->image('foto.jpg', 800, 600),
         ])->assertForbidden();
+    }
+
+    public function test_apply_orientation_matches_exif_canonical_transforms(): void
+    {
+        $action = app(ProcessProductImage::class);
+
+        // Setiap baris: orientation => [ [lebar, tinggi] hasil, [TL, TR, BL, BR] warna pojok ]
+        $cases = [
+            1 => [[4, 2], [[255, 0, 0], [255, 0, 255], [0, 255, 255], [0, 128, 128]]],
+            2 => [[4, 2], [[255, 0, 255], [255, 0, 0], [0, 128, 128], [0, 255, 255]]],
+            3 => [[4, 2], [[0, 128, 128], [0, 255, 255], [255, 0, 255], [255, 0, 0]]],
+            4 => [[4, 2], [[0, 255, 255], [0, 128, 128], [255, 0, 0], [255, 0, 255]]],
+            5 => [[2, 4], [[255, 0, 0], [0, 255, 255], [255, 0, 255], [0, 128, 128]]],
+            6 => [[2, 4], [[0, 255, 255], [255, 0, 0], [0, 128, 128], [255, 0, 255]]],
+            7 => [[2, 4], [[0, 128, 128], [255, 0, 255], [0, 255, 255], [255, 0, 0]]],
+            8 => [[2, 4], [[255, 0, 255], [0, 128, 128], [255, 0, 0], [0, 255, 255]]],
+        ];
+
+        foreach ($cases as $orientation => [$dims, $corners]) {
+            $result = $action->applyOrientation($this->orientationFixture(), $orientation);
+
+            $this->assertSame($dims[0], imagesx($result), "orientation {$orientation}: lebar");
+            $this->assertSame($dims[1], imagesy($result), "orientation {$orientation}: tinggi");
+            $this->assertSame($corners, $this->cornerColors($result), "orientation {$orientation}: sudut TL/TR/BL/BR");
+
+            imagedestroy($result);
+        }
+    }
+
+    public function test_apply_orientation_returns_image_unchanged_when_no_exif(): void
+    {
+        $action = app(ProcessProductImage::class);
+
+        $result = $action->applyOrientation($this->orientationFixture(), 6, hasExif: false);
+
+        $this->assertSame(4, imagesx($result));
+        $this->assertSame(2, imagesy($result));
+        $this->assertSame([[255, 0, 0], [255, 0, 255], [0, 255, 255], [0, 128, 128]], $this->cornerColors($result));
+
+        imagedestroy($result);
+    }
+
+    public function test_transparent_png_is_flattened_on_white(): void
+    {
+        $img = imagecreatetruecolor(2, 2);
+        imagealphablending($img, false);
+        imagesavealpha($img, true);
+        $transparent = imagecolorallocatealpha($img, 0, 0, 0, 127);
+        imagefilledrectangle($img, 0, 0, 1, 1, $transparent);
+
+        ob_start();
+        imagepng($img);
+        $png = (string) ob_get_clean();
+
+        $tmp = tempnam(sys_get_temp_dir(), 'gd');
+        file_put_contents($tmp, $png);
+        try {
+            $bytes = app(ProcessProductImage::class)(new UploadedFile($tmp, 'foto.png', 'image/png', null, true));
+        } finally {
+            @unlink($tmp);
+        }
+
+        $this->assertNotSame('', $bytes);
+
+        $decoded = imagecreatefromstring($bytes);
+        $this->assertNotFalse($decoded);
+        $c = imagecolorsforindex($decoded, imagecolorat($decoded, 0, 0));
+        $this->assertSame(255, $c['red']);
+        $this->assertSame(255, $c['green']);
+        $this->assertSame(255, $c['blue']);
+
+        imagedestroy($decoded);
+    }
+
+    /**
+     * Fixture 4x2: 4 warna pojok + 4 warna dalam, semua berbeda,
+     * jadi transformasi yang salah pasti berbeda pada sudutnya.
+     */
+    private function orientationFixture(): GdImage
+    {
+        $image = imagecreatetruecolor(4, 2);
+        $pixels = [[255, 0, 0], [0, 255, 0], [0, 0, 255], [255, 0, 255], [0, 255, 255], [255, 255, 0], [128, 0, 0], [0, 128, 128]];
+
+        foreach ($pixels as $i => [$r, $g, $b]) {
+            imagesetpixel($image, $i % 4, intdiv($i, 4), imagecolorallocate($image, $r, $g, $b));
+        }
+
+        return $image;
+    }
+
+    /**
+     * @return array<array{int, int, int}> warna [TL, TR, BL, BR]
+     */
+    private function cornerColors(GdImage $image): array
+    {
+        $at = function (int $x, int $y) use ($image): array {
+            $c = imagecolorsforindex($image, imagecolorat($image, $x, $y));
+
+            return [$c['red'], $c['green'], $c['blue']];
+        };
+
+        $w = imagesx($image);
+        $h = imagesy($image);
+
+        return [
+            $at(0, 0),
+            $at($w - 1, 0),
+            $at(0, $h - 1),
+            $at($w - 1, $h - 1),
+        ];
     }
 }

@@ -117,11 +117,12 @@ class ProductController extends Controller
     ): RedirectResponse {
         $data = $request->validated();
 
-        DB::transaction(function () use ($product, $data, $request, $audit, $images): void {
-            $before = $this->snapshot($product);
+        $previousImage = $product->image;
+        $file = $request->file('image');
+        $removingImage = $file === null && $request->boolean('remove_image');
 
-            $previousImage = $product->image;
-            $file = $request->file('image');
+        DB::transaction(function () use ($product, $data, $request, $audit, $images, $file, $removingImage): void {
+            $before = $this->snapshot($product);
 
             $product->fill(Arr::only($data, [
                 'category_id',
@@ -135,13 +136,11 @@ class ProductController extends Controller
             if ($file !== null) {
                 $product->image = $images->store($file, $product);
                 $product->save();
-                $images->forget($previousImage);
             }
 
-            if ($file === null && $request->boolean('remove_image')) {
+            if ($removingImage) {
                 $product->image = null;
                 $product->save();
-                $images->forget($previousImage);
             }
 
             if (array_key_exists('variants', $data)) {
@@ -166,6 +165,11 @@ class ProductController extends Controller
                 $this->snapshot($product),
             );
         });
+
+        // Key lama dihapus setelah transaksi commit; rollback tak boleh meninggalkan foto lama hilang.
+        if ($file !== null || $removingImage) {
+            $images->forget($previousImage);
+        }
 
         return redirect()
             ->route('admin.catalog.products.index')
