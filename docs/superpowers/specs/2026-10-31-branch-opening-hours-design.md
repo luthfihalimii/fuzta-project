@@ -16,31 +16,33 @@ Model `Branch` belum punya jam operasional, padahal PRD P0 mencantumkannya sebag
 
 ## Desain
 
-**Schema** (1 migrasi): `branches.opens_at` dan `branches.closes_at`, string(5) `HH:MM`, NOT NULL default `'09:00'`/`'21:00'` (branch yang sudah ada langsung dapat default). Validasi `date_format:H:i`.
+**Schema** (1 migrasi): `branches.opens_at` dan `branches.closes_at`, string(5) `HH:MM`, NOT NULL default `'09:00'`/`'21:00'` (branch yang sudah ada langsung dapat default). Validasi `date_format:H:i` (keduanya) + `closes_at` harus setelah `opens_at` (banding leksikografis `H:i` aman). Batas: buka dari `opens_at` (inklusif), tutup di `closes_at` (eksklusif — jam persis 21:00 sudah `Tutup`).
 
-**Aturan "sedang buka":** `now('Asia/Jakarta')` antara `opens_at` dan `closes_at` (tanpa dukungan jam yang lewat tengah malam, non-goal).
+**Dihitung di klien (keputusan builder):** halaman POS/kitchen tidak pernah me-reload props, jadi boolean dari server akan basi (POS yang dibiarkan terbuka sejak 08:45 masih menampilkan `Buka` lewat 21:00). Status dihitung oleh satu fungsi kecil `resources/js/lib/opening-hours.ts`: `isOpenNow(opensAt, closesAt, date = new Date())`; dapur sudah punya ref `now` (interval 1 s), POS menambah interval 60 s. Jam device staff = jam cabang (kedua branch satu zona). `BranchPresenter::summary()` hanya mengirim `opens_at` + `closes_at`.
 
 **Di mana terlihat:**
 
-- `BranchPresenter::summary()` (sudah dipakai POS + dapur + halaman cabang): tambah `opens_at`, `closes_at`, `is_open_now` (boolean dihitung di presenter, timezone Asia/Jakarta).
+- `BranchPresenter::summary()` (sudah dipakai POS + dapur + halaman cabang): tambah `opens_at`, `closes_at` (lihat "Dihitung di klien" di atas).
 - POS (`pos/Index.vue`) + Dapur (`kitchen/Index.vue`): chip kecil di header dekat info cabang: `"Buka 09:00-21:00"` + status `Buka`/`Tutup`.
-- POS: satu baris flash lembut seperti banner yang sudah ada saat `is_open_now === false` (informasi saja, tidak menghalangi; keputusan gue, owner setuju warning-only).
+- POS: satu baris flash lembut seperti banner yang sudah ada saat status `Tutup` (informasi saja, tidak menghalangi; owner setuju warning-only).
+- Cabang nonaktif (`is_active = false`): chip menampilkan `Tutup` meskipun sedang dalam jam (banner nonaktif sudah ada).
 
 **Edit (admin):**
 
 - `BranchController@index` sudah memetakan field; tambah dua field.
-- `@update` (owner-only sudah ada via grup `role:owner` + policy `update`): terima `opens_at`/`closes_at` dengan `date_format:H:i`; audit `branch.updated` before/after sudah dipakai (WriteAuditLog); nilai baru ikut snapshot.
+- `@update` (owner-only sudah ada via grup `role:owner` + policy `update`): terima `opens_at`/`closes_at` dengan validation di atas; audit `branch.updated` before/after sudah dipakai (WriteAuditLog), nilai baru ikut snapshot.
+- `store()`: terima `opens_at`/`closes_at` juga (form create+edit satu; tidak masuk `store()` = field di-discard silent); default tetap berlaku kalau tidak diisi.
 - `admin/branches/Index.vue`: 2 input `<input type="time">` di form cabang + ditampilkan di tabel.
 
 ## Non-goal
 
-- Jam per hari minggu, jam beda per cabang otomatis, penutupan sementara, block order.
-- Setengah jam sebagai unit (resolusi 1 menit sudah cukup).
+- Jam per hari minggu, jam beda per cabang otomatis, penutupan sementara, block order, jam lewat tengah malam.
+- Situs publik (PRD §6.1 "Branch locations and opening hours"): halaman publik belum ada di repo; data sudah ada di `Branch` + presenter, jadi UI publik menyusul saat halaman publik dibangun.
 
 ## Tes
 
-- Schema: dua branch baru mendapat default 09:00/21:00 (NOT NULL default di migrasi); bukti via assert model setelah create.
-- Logic `is_open_now`: `Carbon::setTestNow` (atau `Date::fake()`) 3 kasus: sebelum buka, sedang buka (termasuk jam persis opens_at), setelah close.
-- Update: valid H:i, invalid (misal `25:00`, `0900`) → 422; non-owner → 403.
-- Props POS/kitchen halaman memuat `opens_at`/`closes_at`/`is_open_now` (expand tes halaman yang sudah ada).
+- Schema: branch mendapat default 09:00/21:00 (NOT NULL default di migrasi); bukti via assert model setelah create (dengan dan tanpa jam eksplisit).
+- Helper `isOpenNow` (vitest): sebelum buka → false, tepat `opens_at` → true, tengah rentang → true, tepat `closes_at` → false, setelah → false; rentang terbalik → false.
+- Update: valid H:i tersimpan; invalid (`25:00`, `0900`) → 422; `closes_at <= opens_at` (misal 21:00→09:00) → 422; non-owner → 403.
+- Props halaman POS/kitchen memuat `opens_at`/`closes_at` (expand tes halaman yang sudah ada).
 - Audit: baris `branch.updated` memuat before/after jam.

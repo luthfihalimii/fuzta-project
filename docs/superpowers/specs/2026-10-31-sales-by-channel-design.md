@@ -39,3 +39,4 @@ Laporan penjualan (`/admin/reports/sales`) sudah menampilkan breakdown per **met
 
 - Pola halaman + query sudah ada; ini sekadar 1 groupBy tambahan + 1 tabel.
 - Konsistensi angka: `sum(by_channel[].amount)` untuk order yang sama harus == `gross_sales` (tes memandangnya).
+- Urutan baris: `orderBy('orders.channel')` deterministik (susunan sama dengan urutan enum `dine_in`, `takeaway`).

@@ -32,8 +32,9 @@ Katalog produk belum punya foto. Kasir dan owner memilih rasa dari teks di layar
 - Field opsional `image` (file) + `remove_image` (boolean) di FormRequest yang ada (`StoreProductRequest`/`UpdateProductRequest`, cek nama sebenarnya saat implementasi).
 - Validasi server: `file`, `mimes:jpg,jpeg,png,webp`, `max:5120` (KB).
 - Proses (GD, sudah ada): re-encode jadi JPEG, lebar maksimum 1200px, quality 82. Key: `products/{product_id}/{uniqid}.jpg`.
-- Ganti foto: hapus key lama dari disk dulu (disk yang sama), simpan key baru.
-- Error disk (misal R2 tak terjangkau) = 500 yang jujur, transaksi product tidak ter-rollback (foto gagal tidak merusak data katalog).
+- Ganti foto: upload key baru DULU, lalu simpan ke DB, baru hapus key lama (DB gagal = foto lama masih utuh; key baru yatim tanpa nama di bucket).
+- Store (produk baru): proses + upload foto DULU, baru buat produk. GD tak bisa decode (foto rusak/HEIC) = error validasi 422 pada `image`; disk gagal saat tulis = 500 dan produk BELUM dibuat (owner retry tidak bikin duplikat).
+- Error disk saat update = 500 yang jujur, kolom `image` lama tetap menunjuk ke file yang masih ada.
 
 **Tampilan:**
 
@@ -42,6 +43,13 @@ Katalog produk belum punya foto. Kasir dan owner memilih rasa dari teks di layar
 - `pos/Index.vue`: thumbnail kecil di baris produk (kotak abu kecil jika null).
 
 **URL foto:** domain URL publik R2 (dan URL lokal `/storage/...`) diambil dari `.env` VPS; checklist owner: buat bucket **public**, R2 API token (Access Key ID + Secret), Account ID (untuk endpoint), catat `pub-xxx.r2.dev`.
+
+## Keputusan builder (2026-10-31, hasil builder-check)
+
+1. **Tanpa HEIC.** Daftar mime tetap `jpg/jpeg/png/webp`; foto iPhone (HEIC) auto-convert jadi JPG via WA/TG sebelum upload (dicatat di panduan README). Tidak tambah dependensi (Imagick) untuk kasus spekulatif.
+2. **Tanpa varian thumbnail.** Satu file per produk; `loading="lazy"` + size CSS di POS/admin. Tambah derivatif hanya kalau tablet POS terbukti lambat.
+3. **Urutan deploy:** bucket + token + env R2 disiapkan di VPS DULU, baru deploy fitur dengan `IMAGES_DISK=r2`. Foto produk belum ada sama sekali saat fitur rilis, jadi tidak ada file yang perlu dimigrasikan dari disk `public`. (Kalau nanti foto sempat terupload saat disk masih `public`: satu perintah salin sekali, catat di deployment.md.)
+4. **VPS:** tambah `php8.3-gd` di daftar paket deployment + `upload_max_filesize = 8M` / `post_max_size = 8M` di php.ini FPM (default PHP 2M memotong upload sebelum validasi 5 MB).
 
 ## Non-goal
 
@@ -63,4 +71,4 @@ Katalog produk belum punya foto. Kasir dan owner memilih rasa dari teks di layar
 
 - PRD: paragraf "Implemented in the current release" di bagian branch/catalog untuk foto produk (gaya §7.9 purchasing).
 - README: seksi `## Product photos` (cepat): di mana upload, disk aktif via env, checklist R2.
-- `docs/operations/deployment.md`: env VPS foto (`IMAGES_DISK=r2`, `R2_ACCESS_KEY_ID`, `R2_SECRET_ACCESS_KEY`, `R2_BUCKET`, `R2_ENDPOINT`, `R2_PUBLIC_BASE_URL`).
+- `docs/operations/deployment.md`: env VPS foto (`IMAGES_DISK=r2`, `R2_ACCESS_KEY_ID`, `R2_SECRET_ACCESS_KEY`, `R2_BUCKET`, `R2_ENDPOINT`, `R2_PUBLIC_BASE_URL`) + paket `php8.3-gd` + `upload_max_filesize`/`post_max_size`.
