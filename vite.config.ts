@@ -91,4 +91,9 @@ export default defineConfig({
             stylesheet: 'resources/css/app.css',
         },
     },
+    // Vitest: spec E2E Playwright di e2e/ bukan unit test; vitest default
+    // include (**/*.spec.ts) akan memakannya dan gagal boot.
+    test: {
+        exclude: ['e2e/**'],
+    },
 });
