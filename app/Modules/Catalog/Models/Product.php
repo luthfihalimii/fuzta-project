@@ -10,8 +10,9 @@ use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\BelongsToMany;
 use Illuminate\Database\Eloquent\Relations\HasMany;
+use Illuminate\Support\Facades\Storage;
 
-#[Fillable(['category_id', 'name', 'description', 'base_price', 'is_active'])]
+#[Fillable(['category_id', 'name', 'description', 'base_price', 'is_active', 'image'])]
 class Product extends Model
 {
     /** @use HasFactory<ProductFactory> */
@@ -55,5 +56,14 @@ class Product extends Model
             ->whereKey($branchId)
             ->wherePivot('is_available', true)
             ->exists();
+    }
+
+    public function imageUrl(): ?string
+    {
+        if ($this->image === null) {
+            return null;
+        }
+
+        return Storage::disk(config('images.disk'))->url($this->image);
     }
 }
