@@ -9,6 +9,7 @@ use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Validation\Rule;
+use Illuminate\Validation\ValidationException;
 use Inertia\Inertia;
 use Inertia\Response;
 
@@ -31,6 +32,8 @@ class BranchController extends Controller
                     'phone' => $branch->phone,
                     'cash_float' => $branch->cash_float,
                     'is_active' => $branch->is_active,
+                    'opens_at' => $branch->opens_at,
+                    'closes_at' => $branch->closes_at,
                     'users_count' => $branch->users_count,
                 ]),
         ]);
@@ -47,7 +50,15 @@ class BranchController extends Controller
             'phone' => ['nullable', 'string', 'max:30'],
             'cash_float' => ['sometimes', 'integer', 'min:0', 'max:1000000000'],
             'is_active' => ['sometimes', 'boolean'],
+            'opens_at' => ['sometimes', 'date_format:H:i'],
+            'closes_at' => ['sometimes', 'date_format:H:i'],
         ]);
+
+        if (($data['closes_at'] ?? '21:00') <= ($data['opens_at'] ?? '09:00')) {
+            throw ValidationException::withMessages([
+                'closes_at' => 'Jam tutup harus setelah jam buka.',
+            ]);
+        }
 
         $branch = DB::transaction(function () use ($data, $request, $audit) {
             $branch = Branch::create($data);
@@ -86,12 +97,20 @@ class BranchController extends Controller
             'phone' => ['sometimes', 'nullable', 'string', 'max:30'],
             'cash_float' => ['sometimes', 'integer', 'min:0', 'max:1000000000'],
             'is_active' => ['sometimes', 'boolean'],
+            'opens_at' => ['sometimes', 'date_format:H:i'],
+            'closes_at' => ['sometimes', 'date_format:H:i'],
             'reason' => ['nullable', 'string', 'max:500'],
         ]);
 
         $reason = $data['reason'] ?? null;
 
         unset($data['reason']);
+
+        if (($data['closes_at'] ?? $branch->closes_at) <= ($data['opens_at'] ?? $branch->opens_at)) {
+            throw ValidationException::withMessages([
+                'closes_at' => 'Jam tutup harus setelah jam buka.',
+            ]);
+        }
 
         DB::transaction(function () use ($branch, $data, $reason, $request, $audit) {
             $before = $this->snapshot($branch);
@@ -125,6 +144,8 @@ class BranchController extends Controller
             'phone' => $branch->phone,
             'cash_float' => $branch->cash_float,
             'is_active' => $branch->is_active,
+            'opens_at' => $branch->opens_at,
+            'closes_at' => $branch->closes_at,
         ];
     }
 }

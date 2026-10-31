@@ -9,7 +9,7 @@ use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\HasMany;
 
-#[Fillable(['name', 'code', 'address', 'phone', 'cash_float', 'is_active'])]
+#[Fillable(['name', 'code', 'address', 'phone', 'cash_float', 'is_active', 'opens_at', 'closes_at'])]
 class Branch extends Model
 {
     /** @use HasFactory<BranchFactory> */

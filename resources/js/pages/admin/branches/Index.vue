@@ -16,6 +16,8 @@ type BranchRow = {
     phone: string | null;
     cash_float: number;
     is_active: boolean;
+    opens_at: string;
+    closes_at: string;
     users_count: number;
 };
 
@@ -33,6 +35,8 @@ const form = useForm({
     phone: '',
     cash_float: '0',
     is_active: true,
+    opens_at: '09:00',
+    closes_at: '21:00',
     reason: '',
 });
 
@@ -50,6 +54,8 @@ function startEdit(branch: BranchRow): void {
     form.phone = branch.phone ?? '';
     form.cash_float = String(branch.cash_float);
     form.is_active = branch.is_active;
+    form.opens_at = branch.opens_at;
+    form.closes_at = branch.closes_at;
     form.reason = '';
     form.clearErrors();
 }
@@ -171,6 +177,18 @@ function toggleActive(branch: BranchRow): void {
                         :error="form.errors.phone"
                     />
                     <Input
+                        v-model="form.opens_at"
+                        label="Jam buka"
+                        type="time"
+                        :error="form.errors.opens_at"
+                    />
+                    <Input
+                        v-model="form.closes_at"
+                        label="Jam tutup"
+                        type="time"
+                        :error="form.errors.closes_at"
+                    />
+                    <Input
                         v-model="form.cash_float"
                         label="Float kas"
                         type="number"
@@ -232,6 +250,7 @@ function toggleActive(branch: BranchRow): void {
                                 <th class="px-5 py-3">Nama</th>
                                 <th class="px-5 py-3">Alamat</th>
                                 <th class="px-5 py-3">Telepon</th>
+                                <th class="px-5 py-3">Jam</th>
                                 <th class="px-5 py-3">Float kas</th>
                                 <th class="px-5 py-3">Staf</th>
                                 <th class="px-5 py-3">Status</th>
@@ -256,6 +275,9 @@ function toggleActive(branch: BranchRow): void {
                                 </td>
                                 <td class="px-5 py-4 text-muted">
                                     {{ branch.phone ?? '—' }}
+                                </td>
+                                <td class="px-5 py-4 text-muted">
+                                    {{ branch.opens_at }}–{{ branch.closes_at }}
                                 </td>
                                 <td class="px-5 py-4 text-muted">
                                     {{ formatRupiah(branch.cash_float) }}
