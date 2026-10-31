@@ -6,6 +6,8 @@ export type BranchSummary = {
     phone: string | null;
     cash_float: number;
     is_active: boolean;
+    opens_at: string;
+    closes_at: string;
 };
 
 export type BranchOption = {

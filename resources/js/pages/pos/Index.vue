@@ -1,6 +1,6 @@
 <script setup lang="ts">
 import { Head, Link, router, usePage } from '@inertiajs/vue3';
-import { computed, ref } from 'vue';
+import { computed, onMounted, onUnmounted, ref } from 'vue';
 import Button from '@/components/Button.vue';
 import EmptyState from '@/components/EmptyState.vue';
 import Input from '@/components/Input.vue';
@@ -16,6 +16,7 @@ import StaffLayout from '@/layouts/StaffLayout.vue';
 import { HttpError, postJson } from '@/lib/http';
 import type { BranchOption, BranchSummary, PosOrder } from '@/lib/order';
 import { formatSignedRupiah } from '@/lib/money';
+import { isOpenNow } from '@/lib/opening-hours';
 import type { ShiftReminder, ShiftSummaryData, ShiftWindow } from '@/lib/shift';
 
 type PosVariant = {
@@ -486,6 +487,33 @@ function switchBranch(): void {
         { preserveState: false, preserveScroll: true },
     );
 }
+
+const now = ref(Date.now());
+
+let hoursTimer: number | null = null;
+
+onMounted(() => {
+    hoursTimer = window.setInterval(() => {
+        now.value = Date.now();
+    }, 60_000);
+});
+
+onUnmounted(() => {
+    if (hoursTimer !== null) {
+        window.clearInterval(hoursTimer);
+    }
+});
+
+const isOpen = computed(
+    () =>
+        !!props.branch &&
+        props.branch.is_active &&
+        isOpenNow(
+            props.branch.opens_at,
+            props.branch.closes_at,
+            new Date(now.value),
+        ),
+);
 </script>
 
 <template>
@@ -499,6 +527,15 @@ function switchBranch(): void {
                     <p class="mt-1 text-sm text-muted">
                         <template v-if="props.branch">
                             {{ props.branch.name }} · {{ props.branch.code }}
+                            <span
+                                :class="isOpen ? 'text-success' : 'text-danger'"
+                                class="ml-2 font-semibold"
+                            >
+                                {{ isOpen ? 'Buka' : 'Tutup' }}
+                                {{ props.branch.opens_at }}–{{
+                                    props.branch.closes_at
+                                }}
+                            </span>
                         </template>
                         <template v-else-if="props.canChooseBranch">
                             Pilih cabang untuk mulai menerima pesanan.
@@ -583,6 +620,14 @@ function switchBranch(): void {
                 class="rounded-xl border border-warning/20 bg-warning/10 px-4 py-3 text-sm text-warning"
             >
                 Cabang ini nonaktif. Pesanan baru tidak dapat dibuat.
+            </div>
+            <div
+                v-if="props.branch && props.branch.is_active && !isOpen"
+                class="rounded-xl border border-warning/20 bg-warning/10 px-4 py-3 text-sm text-warning"
+            >
+                Di luar jam operasional ({{ props.branch.opens_at }}–{{
+                    props.branch.closes_at
+                }}). Pesanan tetap bisa dibuat.
             </div>
 
             <div

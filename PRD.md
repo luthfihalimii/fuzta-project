@@ -272,6 +272,8 @@ Priority labels:
 - **P0** Branch-specific availability and inventory are supported.
 - **P1** Temporary closures and special operating hours can be configured.
 
+Implemented in the current release: each branch stores a daily opening/closing time (`H:i`, default 09:00–21:00), editable by the owner on the branch page; the open/closed status is computed on the client (not the server) from the device time — opening inclusive, closing exclusive, and inverted ranges treated as closed — and shown as a chip on the POS and kitchen pages. The status never blocks order creation: the POS shows a soft warning when the active branch is outside its hours. Weekly schedules, temporary closures, and order blocking remain P1. Detail: `docs/superpowers/specs/2026-10-31-branch-opening-hours-design.md`.
+
 ### 7.3 Product Catalog and Pricing
 
 - **P0** Admin can manage categories, products, descriptions, images, and availability.

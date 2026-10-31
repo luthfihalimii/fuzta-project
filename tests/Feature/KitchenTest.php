@@ -160,6 +160,8 @@ class KitchenTest extends TestCase
             ->assertInertia(fn (AssertableInertia $page) => $page
                 ->component('kitchen/Index')
                 ->where('branch.id', $branch->id)
+                ->where('branch.opens_at', '09:00')
+                ->where('branch.closes_at', '21:00')
                 ->where('canChooseBranch', false)
                 ->has('branches', 0)
             );
@@ -177,6 +179,8 @@ class KitchenTest extends TestCase
             ->assertInertia(fn (AssertableInertia $page) => $page
                 ->component('kitchen/Index')
                 ->where('branch.id', $branchB->id)
+                ->where('branch.opens_at', '09:00')
+                ->where('branch.closes_at', '21:00')
                 ->where('canChooseBranch', true)
                 ->has('branches', 2)
             );

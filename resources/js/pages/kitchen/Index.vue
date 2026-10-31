@@ -5,6 +5,7 @@ import { realtimeEcho } from '@/bootstrap/echo';
 import { formatElapsed } from '@/lib/datetime';
 import { getJson, HttpError, patchJson } from '@/lib/http';
 import type { BranchOption, BranchSummary, PosOrder } from '@/lib/order';
+import { isOpenNow } from '@/lib/opening-hours';
 import { isLate, shouldRing, type RealtimeNotification } from '@/lib/realtime';
 import { playBeep, unlockAudio } from '@/lib/sound';
 import { channelLabel } from '@/lib/status';
@@ -75,6 +76,17 @@ let unbindConnection: (() => void) | null = null;
 
 const activeTab = computed(
     () => tabs.find((tab) => tab.value === activeStatus.value) ?? tabs[0],
+);
+
+const isOpen = computed(
+    () =>
+        !!props.branch &&
+        props.branch.is_active &&
+        isOpenNow(
+            props.branch.opens_at,
+            props.branch.closes_at,
+            new Date(now.value),
+        ),
 );
 
 const emptyMessage = computed(() => {
@@ -297,6 +309,18 @@ onUnmounted(() => {
                         class="truncate text-sm font-semibold text-white/80"
                     >
                         {{ branch.name }}
+                    </span>
+                    <span
+                        v-if="branch"
+                        :class="
+                            isOpen
+                                ? 'text-kitchen-success-text'
+                                : 'text-kitchen-danger-text'
+                        "
+                        class="shrink-0 text-xs font-semibold"
+                    >
+                        {{ isOpen ? 'Buka' : 'Tutup' }}
+                        {{ branch.opens_at }} –{{ branch.closes_at }}
                     </span>
                 </div>
 

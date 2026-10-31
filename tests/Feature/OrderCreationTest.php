@@ -203,6 +203,8 @@ class OrderCreationTest extends TestCase
             ->assertOk()
             ->assertInertia(fn (AssertableInertia $page) => $page
                 ->component('pos/Index')
+                ->where('branch.opens_at', '09:00')
+                ->where('branch.closes_at', '21:00')
                 ->where('products.0.image_url', null));
 
         $this->actingAs($kitchen)->get('/pos')->assertForbidden();
