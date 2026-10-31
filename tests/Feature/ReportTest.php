@@ -9,6 +9,7 @@ use App\Modules\Catalog\Models\Product;
 use App\Modules\Inventory\Actions\RecordStockMovement;
 use App\Modules\Inventory\Enums\StockMovementType;
 use App\Modules\Inventory\Models\Ingredient;
+use App\Modules\Ordering\Enums\OrderChannel;
 use App\Modules\Ordering\Models\Order;
 use App\Modules\Ordering\Models\OrderItem;
 use App\Modules\Payments\Enums\PaymentMethod;
@@ -17,6 +18,7 @@ use App\Modules\Reporting\Queries\ProductSalesQuery;
 use App\Modules\Reporting\Queries\StockReportQuery;
 use Carbon\CarbonImmutable;
 use Illuminate\Foundation\Testing\RefreshDatabase;
+use Illuminate\Support\Facades\DB;
 use Inertia\Testing\AssertableInertia;
 use Tests\TestCase;
 
@@ -103,6 +105,63 @@ class ReportTest extends TestCase
                 'amount' => 50000,
             ],
         ], $result['by_payment_method']);
+    }
+
+    public function test_daily_sales_includes_by_channel_breakdown_matching_gross_sales(): void
+    {
+        $branchA = Branch::factory()->create();
+        $branchB = Branch::factory()->create();
+
+        Order::factory()->paid()->for($branchA)->create(['total' => 120000, 'channel' => OrderChannel::DineIn]);
+        Order::factory()->paid()->for($branchA)->create(['total' => 80000]); // default factory: takeaway
+        Order::factory()->paid()->for($branchB)->create(['total' => 90000]); // branch lain, jangan bocor
+        Order::factory()->unpaid()->for($branchA)->create(['total' => 5000, 'channel' => OrderChannel::DineIn]);
+        Order::factory()->voided()->for($branchA)->create(['total' => 7000, 'channel' => OrderChannel::DineIn]);
+
+        $result = app(DailySalesQuery::class)(
+            CarbonImmutable::now('Asia/Jakarta')->startOfDay(),
+            CarbonImmutable::now('Asia/Jakarta')->endOfDay(),
+            $branchA->id,
+        );
+
+        $this->assertSame([
+            ['channel' => 'dine_in', 'label' => 'Dine-in', 'order_count' => 1, 'amount' => 120000],
+            ['channel' => 'takeaway', 'label' => 'Takeaway', 'order_count' => 1, 'amount' => 80000],
+        ], $result['by_channel']);
+        $this->assertSame(
+            array_sum(array_column($result['by_channel'], 'amount')),
+            $result['gross_sales'],
+        );
+    }
+
+    public function test_by_channel_falls_back_to_raw_value_for_unknown_channel(): void
+    {
+        $branch = Branch::factory()->create();
+        $order = Order::factory()->paid()->for($branch)->create(['total' => 10000]);
+        DB::table('orders')->where('id', $order->id)->update(['channel' => 'whatsapp']);
+
+        $result = app(DailySalesQuery::class)(
+            CarbonImmutable::now('Asia/Jakarta')->startOfDay(),
+            CarbonImmutable::now('Asia/Jakarta')->endOfDay(),
+            $branch->id,
+        );
+
+        $this->assertSame([
+            ['channel' => 'whatsapp', 'label' => 'whatsapp', 'order_count' => 1, 'amount' => 10000],
+        ], $result['by_channel']);
+    }
+
+    public function test_by_channel_is_empty_array_when_no_qualifying_orders(): void
+    {
+        $branch = Branch::factory()->create();
+
+        $result = app(DailySalesQuery::class)(
+            CarbonImmutable::now('Asia/Jakarta')->startOfDay(),
+            CarbonImmutable::now('Asia/Jakarta')->endOfDay(),
+            $branch->id,
+        );
+
+        $this->assertSame([], $result['by_channel']);
     }
 
     public function test_product_sales_only_include_paid_orders_and_weight_modifiers_by_item_quantity(): void

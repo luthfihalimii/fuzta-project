@@ -2,6 +2,7 @@
 
 namespace App\Modules\Reporting\Queries;
 
+use App\Modules\Ordering\Enums\OrderChannel;
 use App\Modules\Ordering\Enums\OrderStatus;
 use App\Modules\Payments\Enums\PaymentMethod;
 use App\Modules\Payments\Enums\PaymentStatus;
@@ -15,7 +16,8 @@ class DailySalesQuery
      *     order_count: int,
      *     gross_sales: int,
      *     average_order_value: int,
-     *     by_payment_method: list<array{method: string, label: string, order_count: int, amount: int}>
+     *     by_payment_method: list<array{method: string, label: string, order_count: int, amount: int}>,
+     *     by_channel: list<array{channel: string, label: string, order_count: int, amount: int}>
      * }
      */
     public function __invoke(
@@ -57,11 +59,30 @@ class DailySalesQuery
             ->values()
             ->all();
 
+        $byChannel = DB::table('orders')
+            ->where('payment_status', PaymentStatus::Paid->value)
+            ->where('status', '!=', OrderStatus::Cancelled->value)
+            ->whereBetween('created_at', [$fromUtc, $toUtc])
+            ->when($branchId !== null, fn ($query) => $query->where('branch_id', $branchId))
+            ->groupBy('channel')
+            ->orderBy('channel')
+            ->selectRaw('channel, COUNT(*) as order_count, COALESCE(SUM(total), 0) as amount')
+            ->get()
+            ->map(fn (object $row) => [
+                'channel' => (string) $row->channel,
+                'label' => OrderChannel::tryFrom($row->channel)?->label() ?? $row->channel,
+                'order_count' => (int) $row->order_count,
+                'amount' => (int) $row->amount,
+            ])
+            ->values()
+            ->all();
+
         return [
             'order_count' => $orderCount,
             'gross_sales' => $grossSales,
             'average_order_value' => $orderCount > 0 ? intdiv($grossSales, $orderCount) : 0,
             'by_payment_method' => $byPaymentMethod,
+            'by_channel' => $byChannel,
         ];
     }
 }
