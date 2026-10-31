@@ -11,6 +11,7 @@ use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Http\UploadedFile;
 use Illuminate\Support\Facades\Storage;
 use Illuminate\Validation\ValidationException;
+use Mockery;
 use Tests\TestCase;
 
 class ProductImageTest extends TestCase
@@ -104,6 +105,27 @@ class ProductImageTest extends TestCase
         ]);
 
         $response->assertStatus(422)->assertJsonValidationErrors('image');
+    }
+
+    public function test_store_fails_and_rolls_back_when_disk_put_returns_false(): void
+    {
+        $owner = User::factory()->owner()->create();
+        $category = Category::factory()->create();
+
+        // Simulasi R2 down: disk pakai 'throw' => false, jadi put() gagal senyap (return false).
+        $mock = Mockery::mock(Storage::disk('public'));
+        $mock->shouldReceive('put')->andReturn(false);
+        Storage::set('public', $mock);
+
+        $response = $this->actingAs($owner)->post('/admin/catalog/products', [
+            'name' => 'Pizza Fruzta',
+            'category_id' => $category->id,
+            'base_price' => 50000,
+            'image' => UploadedFile::fake()->image('foto.jpg', 800, 600),
+        ]);
+
+        $response->assertStatus(500);
+        $this->assertDatabaseCount('products', 0);
     }
 
     public function test_replace_image_removes_previous_key(): void

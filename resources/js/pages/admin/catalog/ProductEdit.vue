@@ -122,6 +122,7 @@ function pickImage(event: Event): void {
     }
 }
 
+// ponytail: re-pick file sama setelah hapus tak fire change; upgrade: template ref + input.value = '' bila owner komplain.
 function hideImage(): void {
     form.remove_image = true;
     form.image = null;

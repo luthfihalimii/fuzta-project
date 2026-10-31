@@ -6,6 +6,7 @@ use App\Modules\Catalog\Models\Product;
 use Illuminate\Http\UploadedFile;
 use Illuminate\Support\Facades\Storage;
 use Illuminate\Support\Str;
+use RuntimeException;
 use Throwable;
 
 final class StoreProductImage
@@ -23,7 +24,10 @@ final class StoreProductImage
 
         $key = sprintf('products/%d/%s.jpg', $product->id, Str::random(10));
 
-        Storage::disk(config('images.disk'))->put($key, $bytes);
+        // Disk 'throw' => false: kegagalan (R2 down, kredensial, quota) senyap → cek return.
+        if (! Storage::disk(config('images.disk'))->put($key, $bytes)) {
+            throw new RuntimeException('Gagal menyimpan foto produk.');
+        }
 
         return $key;
     }

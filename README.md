@@ -119,7 +119,7 @@ Production R2 checklist (owner):
 1. Create a Cloudflare R2 bucket as **public** (publicly browseable).
 2. Create an R2 API token with object read/write access; the token's Access Key ID goes to `R2_ACCESS_KEY_ID`, its secret to `R2_SECRET_ACCESS_KEY`.
 3. Set `R2_ENDPOINT` to `https://<ACCOUNT_ID>.r2.cloudflarestorage.com` (Account ID from the Cloudflare dashboard) and `R2_BUCKET` to the bucket name.
-4. Set `R2_PUBLIC_BASE_URL` to the bucket's public domain (`pub-xxx.r2.dev`).
+4. Set `R2_PUBLIC_BASE_URL` to the bucket's public domain (`https://pub-xxx.r2.dev` — include the `https://` scheme).
 5. Set `IMAGES_DISK=r2`, then `php artisan optimize:clear && php artisan optimize`.
 
 HEIC photos (raw iPhone captures) are not supported — send them via WhatsApp/Telegram first so they arrive as JPG.
