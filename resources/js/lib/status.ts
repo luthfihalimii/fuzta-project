@@ -33,6 +33,7 @@ export function paymentStatusLabel(status: string): string {
     return (
         {
             unpaid: 'Belum dibayar',
+            pending: 'Menunggu pembayaran',
             paid: 'Lunas',
             voided: 'Dibatalkan',
         }[status] ?? status
@@ -42,6 +43,7 @@ export function paymentStatusLabel(status: string): string {
 export function paymentStatusTone(status: string): Tone {
     return ({
         unpaid: 'warning',
+        pending: 'warning',
         paid: 'success',
         voided: 'danger',
     }[status] ?? 'neutral') as Tone;
@@ -52,9 +54,15 @@ export function channelLabel(channel: string): string {
         {
             dine_in: 'Dine-in',
             takeaway: 'Takeaway',
+            delivery: 'Delivery',
         }[channel] ?? channel
     );
 }
+
+// Jangan memasukkan metode online ke paymentMethods: array itu juga tombol PaymentSheet POS.
+const otherMethodLabels: Record<string, string> = {
+    doku_qris: 'QRIS online (DOKU)',
+};
 
 export function paymentMethodLabel(method: string | null): string {
     if (method === null) {
@@ -62,6 +70,8 @@ export function paymentMethodLabel(method: string | null): string {
     }
 
     return (
-        paymentMethods.find((item) => item.value === method)?.label ?? method
+        paymentMethods.find((item) => item.value === method)?.label
+            ?? otherMethodLabels[method]
+            ?? method
     );
 }

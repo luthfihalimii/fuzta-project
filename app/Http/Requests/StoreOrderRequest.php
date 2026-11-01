@@ -42,7 +42,13 @@ class StoreOrderRequest extends FormRequest
                 'exists:branches,id',
                 Rule::requiredIf(fn () => $this->user()?->isOwner() ?? false),
             ],
-            'channel' => ['required', Rule::enum(OrderChannel::class)],
+            'channel' => [
+                'required',
+                Rule::enum(OrderChannel::class)->only([
+                    OrderChannel::DineIn,
+                    OrderChannel::Takeaway,
+                ]),
+            ],
             'table_number' => ['nullable', 'string', 'max:20'],
             'customer_name' => ['nullable', 'string', 'max:255'],
             'note' => ['nullable', 'string', 'max:1000'],

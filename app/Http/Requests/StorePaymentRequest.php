@@ -19,7 +19,13 @@ class StorePaymentRequest extends FormRequest
     public function rules(): array
     {
         return [
-            'method' => ['required', Rule::enum(PaymentMethod::class)],
+            'method' => [
+                'required',
+                Rule::enum(PaymentMethod::class)->only([
+                    PaymentMethod::Cash,
+                    PaymentMethod::QrisStatic,
+                ]),
+            ],
             'cash_received' => [
                 'nullable',
                 'integer',
