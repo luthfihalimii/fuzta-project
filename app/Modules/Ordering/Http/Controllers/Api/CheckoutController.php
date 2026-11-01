@@ -10,6 +10,7 @@ use App\Modules\Delivery\Actions\QuoteDelivery;
 use App\Modules\Ordering\Actions\CreateCustomerOrder;
 use App\Modules\Ordering\Data\CustomerOrderData;
 use App\Modules\Ordering\Support\CustomerOrderPayload;
+use App\Modules\Payments\Actions\CreateDokuPayment;
 use Illuminate\Http\Client\ConnectionException;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Validation\ValidationException;
@@ -23,6 +24,7 @@ class CheckoutController extends Controller
         private readonly QuoteDelivery $quoteDelivery,
         private readonly CreateCustomerOrder $createCustomerOrder,
         private readonly CustomerOrderPayload $payload,
+        private readonly CreateDokuPayment $createDokuPayment,
     ) {}
 
     public function quote(QuoteCustomerOrderRequest $request): JsonResponse
@@ -77,72 +79,82 @@ class CheckoutController extends Controller
 
         // Replay key yang sudah ada: langsung kembalikan order lama — tanpa harga/quote
         // (Biteship down pun tidak boleh menghalangi melihat order yang sudah dibuat).
-        $existing = $this->createCustomerOrder->findExistingByKey($branchId, $idempotencyKey);
+        $order = $this->createCustomerOrder->findExistingByKey($branchId, $idempotencyKey);
 
-        if ($existing !== null) {
-            return response()->json(
-                ['order' => ($this->payload)($existing), 'token' => $existing->public_token],
-                200,
-            );
-        }
+        if ($order === null) {
+            $items = $request->validated('items');
+            $fulfillment = (string) $request->validated('fulfillment');
 
-        $items = $request->validated('items');
-        $fulfillment = (string) $request->validated('fulfillment');
+            // Harga dihitung ulang server; fee ongkir client (kalau dikirim) diabaikan total.
+            $priced = ($this->priceOrderItems)($branchId, $items);
 
-        // Harga dihitung ulang server; fee ongkir client (kalau dikirim) diabaikan total.
-        $priced = ($this->priceOrderItems)($branchId, $items);
+            $deliveryFee = 0;
+            $courierName = null;
+            $courierService = null;
 
-        $deliveryFee = 0;
-        $courierName = null;
-        $courierService = null;
+            if ($fulfillment === 'delivery') {
+                $options = $this->quoteFor($branchId, (string) $request->validated('delivery_area_id'), $priced);
 
-        if ($fulfillment === 'delivery') {
-            $options = $this->quoteFor($branchId, (string) $request->validated('delivery_area_id'), $priced);
-
-            if ($options instanceof JsonResponse) {
-                return $options; // 502: Biteship tidak bisa dihubungi.
-            }
-
-            $chosen = null;
-
-            foreach ($options as $option) {
-                if ($option['courier_name'] === $request->validated('courier_name')
-                    && $option['courier_service'] === $request->validated('courier_service')) {
-                    $chosen = $option;
-
-                    break;
+                if ($options instanceof JsonResponse) {
+                    return $options; // 502: Biteship tidak bisa dihubungi.
                 }
+
+                $chosen = null;
+
+                foreach ($options as $option) {
+                    if ($option['courier_name'] === $request->validated('courier_name')
+                        && $option['courier_service'] === $request->validated('courier_service')) {
+                        $chosen = $option;
+
+                        break;
+                    }
+                }
+
+                if ($chosen === null) {
+                    throw ValidationException::withMessages([
+                        'courier_name' => 'Kurir atau layanan tidak tersedia untuk alamat ini.',
+                    ]);
+                }
+
+                $deliveryFee = $chosen['fee'];
+                $courierName = $chosen['courier_name'];
+                $courierService = $chosen['courier_service'];
             }
 
-            if ($chosen === null) {
-                throw ValidationException::withMessages([
-                    'courier_name' => 'Kurir atau layanan tidak tersedia untuk alamat ini.',
-                ]);
-            }
-
-            $deliveryFee = $chosen['fee'];
-            $courierName = $chosen['courier_name'];
-            $courierService = $chosen['courier_service'];
+            $order = ($this->createCustomerOrder)(new CustomerOrderData(
+                branchId: $branchId,
+                fulfillment: $fulfillment,
+                customerName: (string) $request->validated('customer_name'),
+                customerPhone: (string) $request->validated('customer_phone'),
+                note: $request->validated('note'),
+                deliveryAddress: $fulfillment === 'delivery' ? (string) $request->validated('delivery_address') : null,
+                deliveryAreaId: $fulfillment === 'delivery' ? (string) $request->validated('delivery_area_id') : null,
+                deliveryFee: $deliveryFee,
+                courierName: $courierName,
+                courierService: $courierService,
+                items: $items,
+                idempotencyKey: $idempotencyKey,
+            ));
         }
 
-        $order = ($this->createCustomerOrder)(new CustomerOrderData(
-            branchId: $branchId,
-            fulfillment: $fulfillment,
-            customerName: (string) $request->validated('customer_name'),
-            customerPhone: (string) $request->validated('customer_phone'),
-            note: $request->validated('note'),
-            deliveryAddress: $fulfillment === 'delivery' ? (string) $request->validated('delivery_address') : null,
-            deliveryAreaId: $fulfillment === 'delivery' ? (string) $request->validated('delivery_area_id') : null,
-            deliveryFee: $deliveryFee,
-            courierName: $courierName,
-            courierService: $courierService,
-            items: $items,
-            idempotencyKey: $idempotencyKey,
-        ));
+        try {
+            $payment = ($this->createDokuPayment)($order);
+        } catch (RuntimeException) {
+            // DOKU down/miskonfigurasi: order tetap aman (unpaid, tanpa payment
+            // row palsu). Client retry dengan Idempotency-Key yang sama.
+            return response()->json([
+                'message' => 'Pembayaran online sedang tidak tersedia. Coba lagi dengan Idempotency-Key yang sama.',
+                'token' => $order->public_token,
+            ], 502);
+        }
 
-        return response()->json(
-            ['order' => ($this->payload)($order), 'token' => $order->public_token],
-            $order->wasRecentlyCreated ? 201 : 200,
-        );
+        $status = $order->wasRecentlyCreated ? 201 : 200;
+
+        return response()->json([
+            'order' => ($this->payload)($order),
+            'token' => $order->public_token,
+            'payment_url' => $payment?->payment_url,
+            'payment_expires_at' => $payment?->expires_at?->toIso8601String(),
+        ], $status);
     }
 }

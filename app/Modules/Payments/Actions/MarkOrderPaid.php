@@ -33,6 +33,12 @@ class MarkOrderPaid
 
             $existing = $locked->payment()->first();
 
+            if ($existing !== null && $existing->status === PaymentStatus::Pending && $existing->provider !== null) {
+                throw ValidationException::withMessages([
+                    'order' => 'Pesanan menunggu pembayaran online.',
+                ]);
+            }
+
             if ($existing !== null) {
                 return $existing;
             }

@@ -72,11 +72,12 @@ class BiteshipClient
                 'items' => $items,
             ]);
 
-        // 4xx = parameter/area tidak valid (salah client) → bukan kegagalan upstream.
-        if ($response->status() >= 400 && $response->status() < 500) {
+        // 400/404/422 = parameter/area tidak valid (salah client) → 422 ke customer.
+        if (in_array($response->status(), [400, 404, 422], true)) {
             throw new InvalidArgumentException('Biteship menolak request rates (area/parameter tidak valid).');
         }
 
+        // 401/403/429 = miskonfigurasi API key / rate limit provider → 502 (bukan salah customer).
         if ($response->failed()) {
             throw new RuntimeException('Biteship rates request failed.');
         }

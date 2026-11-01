@@ -4,6 +4,7 @@ use App\Modules\Branches\Http\Controllers\Api\BranchApiController;
 use App\Modules\Catalog\Http\Controllers\Api\CatalogProductController;
 use App\Modules\Delivery\Http\Controllers\DeliveryAreaController;
 use App\Modules\Ordering\Http\Controllers\Api\CheckoutController;
+use App\Modules\Payments\Http\Controllers\Api\DokuWebhookController;
 use Illuminate\Support\Facades\Route;
 
 /*
@@ -22,4 +23,9 @@ Route::prefix('v1')->group(function (): void {
         Route::post('/checkout/quote', [CheckoutController::class, 'quote']);
         Route::post('/orders', [CheckoutController::class, 'store']);
     });
+
+    // Webhook DOKU: tanpa throttle/auth — verifikasi signature HMAC (di
+    // controller) adalah gerbang. Throttle per IP berisiko memblokir retry
+    // notifikasi sah dari IP DOKU.
+    Route::post('/webhooks/doku', DokuWebhookController::class);
 });

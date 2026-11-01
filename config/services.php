@@ -35,6 +35,15 @@ return [
         ],
     ],
 
+    'doku' => [
+        'client_id' => env('DOKU_CLIENT_ID'),
+        'secret_key' => env('DOKU_SECRET_KEY'),
+        'base_url' => env('DOKU_BASE_URL', 'https://api-sandbox.doku.com'),
+        // Path Notification URL yang terdaftar di dashboard DOKU (tanpa host).
+        'notification_path' => env('DOKU_NOTIFICATION_PATH', '/api/v1/webhooks/doku'),
+        'payment_due_minutes' => (int) env('DOKU_PAYMENT_DUE_MINUTES', 30),
+    ],
+
     'biteship' => [
         'api_key' => env('BITESHIP_API_KEY'),
         'base_url' => env('BITESHIP_BASE_URL', 'https://api.biteship.com'),

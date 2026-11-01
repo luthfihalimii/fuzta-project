@@ -42,6 +42,11 @@ Schedule::command('shifts:auto-close')
     ->timezone('Asia/Jakarta')
     ->withoutOverlapping();
 
+Schedule::command('orders:expire-unpaid')
+    ->everyTenMinutes()
+    ->timezone('Asia/Jakarta')
+    ->withoutOverlapping();
+
 if (config('backup.enabled')) {
     Schedule::command('backup:database')
         ->dailyAt(config('backup.time'))

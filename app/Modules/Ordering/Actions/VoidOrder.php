@@ -34,6 +34,12 @@ class VoidOrder
 
             $payment = $locked->payment()->first();
 
+            if ($payment !== null && $payment->provider !== null) {
+                throw ValidationException::withMessages([
+                    'order' => 'Pembayaran online tidak dapat di-void. Refund manual lewat dashboard DOKU.',
+                ]);
+            }
+
             if ($payment !== null && $payment->shift_id !== null && $payment->shift?->closed_at !== null) {
                 throw ValidationException::withMessages([
                     'order' => 'Pembayaran pada shift yang sudah ditutup tidak dapat di-void. Gunakan modul refund.',

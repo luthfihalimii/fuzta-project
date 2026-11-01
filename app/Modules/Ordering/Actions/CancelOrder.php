@@ -7,6 +7,7 @@ use App\Modules\Identity\Actions\WriteAuditLog;
 use App\Modules\Ordering\Enums\OrderStatus;
 use App\Modules\Ordering\Events\OrderStatusChanged;
 use App\Modules\Ordering\Models\Order;
+use App\Modules\Payments\Enums\PaymentStatus;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Validation\ValidationException;
 
@@ -39,6 +40,31 @@ class CancelOrder
                 'actor_id' => $actor->id,
                 'note' => $reason,
             ]);
+
+            // Invoice online yang masih pending ikut void: webhook SUCCESS
+            // telat tidak boleh menghidupkan order (refund manual di DOKU).
+            $payment = $locked->payment()->first();
+
+            if ($payment !== null && $payment->status === PaymentStatus::Pending && $payment->provider !== null) {
+                $payment->forceFill([
+                    'status' => PaymentStatus::Voided,
+                    'voided_at' => now(),
+                ])->save();
+
+                ($this->writeAuditLog)(
+                    $actor,
+                    'payment.voided_on_cancel',
+                    $payment,
+                    [
+                        'status' => PaymentStatus::Pending->value,
+                        'order_id' => $locked->id,
+                    ],
+                    [
+                        'status' => PaymentStatus::Voided->value,
+                        'voided_at' => $payment->voided_at?->toIso8601String(),
+                    ],
+                );
+            }
 
             ($this->writeAuditLog)(
                 $actor,

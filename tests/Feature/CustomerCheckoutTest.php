@@ -24,6 +24,22 @@ class CustomerCheckoutTest extends TestCase
         parent::setUp();
         // Bekukan ke 12:00 WIB agar cek jam buka deterministik (pola CatalogApiTest).
         CarbonImmutable::setTestNow(CarbonImmutable::parse('2026-11-01 12:00', 'Asia/Jakarta'));
+        // Task 4: setiap store memanggil CreateDokuPayment — kredensial dummy
+        // agar tidak jatuh ke 502 "DOKU belum dikonfigurasi".
+        config(['services.doku' => [
+            'client_id' => 'CLIENT-TEST',
+            'secret_key' => 'SECRET-TEST',
+            'base_url' => 'https://api-sandbox.doku.com',
+            'notification_path' => '/api/v1/webhooks/doku',
+            'payment_due_minutes' => 30,
+        ]]);
+        // Checkout page DOKU sukses (Task 4: setiap store memanggil CreateDokuPayment).
+        Http::fake([
+            'api-sandbox.doku.com/checkout/v1/payment' => Http::response([
+                'message' => ['SUCCESS'],
+                'response' => ['payment' => ['url' => 'https://sandbox.doku.com/checkout-link-v2/TEST']],
+            ]),
+        ]);
     }
 
     protected function tearDown(): void
@@ -202,6 +218,24 @@ class CustomerCheckoutTest extends TestCase
         ])->assertStatus(502);
 
         $this->assertDatabaseCount('orders', 0);
+    }
+
+    public function test_quote_returns_502_when_biteship_auth_fails_or_rate_limited(): void
+    {
+        // 401/403/429 = miskonfigurasi/limit provider, BUKAN "alamat tidak dikenali" (422).
+        foreach ([401, 403, 429] as $status) {
+            Http::fake(['api.biteship.com/*' => Http::response(['error' => 'blocked'], $status)]);
+            $branch = $this->deliveryBranch();
+            $product = $this->availableProductAt($branch);
+
+            $this->postJson('/api/v1/checkout/quote', [
+                'branch_id' => $branch->id,
+                'fulfillment' => 'delivery',
+                'destination_area_id' => 'IDNP10',
+                'items' => [['product_id' => $product->id, 'quantity' => 1]],
+            ])->assertStatus(502)
+                ->assertJsonPath('message', 'Layanan pengiriman sedang tidak tersedia.');
+        }
     }
 
     public function test_create_pickup_order_snapshots_items_and_returns_token(): void
