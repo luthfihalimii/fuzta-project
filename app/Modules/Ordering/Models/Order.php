@@ -63,6 +63,7 @@ class Order extends Model
             'subtotal' => 'integer',
             'total' => 'integer',
             'delivery_fee' => 'integer',
+            'customer_id' => 'integer',
             'accepted_at' => 'datetime',
         ];
     }

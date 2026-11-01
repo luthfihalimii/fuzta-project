@@ -25,10 +25,11 @@ Route::prefix('v1')->group(function (): void {
         Route::get('/orders/{token}', [CustomerOrderController::class, 'show']);
     });
 
-    // Mutasi lebih ketat: 10/menit per IP (plan Task 3).
+    // Mutasi lebih ketat: 10/menit per IP (plan Task 3) — throttle SEGALA
+    // request (termasuk token invalid) sebelum auth dijudge.
     // customer.auth:optional: guest tetap jalan; bearer invalid/expired
     // tetap 401 (middleware), bearer valid menghubungkan order ke akun.
-    Route::middleware(['customer.auth:optional', 'throttle:customer-checkout'])->group(function (): void {
+    Route::middleware(['throttle:customer-checkout', 'customer.auth:optional'])->group(function (): void {
         Route::post('/checkout/quote', [CheckoutController::class, 'quote']);
         Route::post('/orders', [CheckoutController::class, 'store']);
     });

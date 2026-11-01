@@ -8,6 +8,8 @@ use App\Modules\Customers\Models\Customer;
 use App\Modules\Customers\Models\CustomerToken;
 use App\Modules\Ordering\Enums\OrderStatus;
 use App\Modules\Ordering\Models\Order;
+use App\Modules\Payments\Enums\PaymentStatus;
+use App\Modules\Payments\Models\Payment;
 use Carbon\CarbonImmutable;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Support\Facades\Http;
@@ -175,6 +177,57 @@ class CustomerAccountCheckoutTest extends TestCase
 
         $this->assertSame(1, Order::count());
         $this->assertSame($customerA->id, Order::first()->customer_id);
+
+        // 409 tidak boleh menyentuh order/payment lama: tetap satu
+        // payment pending milik order A, tanpa void/re-invoice.
+        $this->assertSame(1, Payment::count());
+        $payment = Order::first()->payment;
+        $this->assertSame(PaymentStatus::Pending, $payment->status);
+        $this->assertNull($payment->voided_at);
+    }
+
+    public function test_guest_order_key_replayed_by_customer_is_conflict(): void
+    {
+        [$customer, $token] = $this->customerWithToken();
+        $branch = Branch::factory()->create();
+        $product = $this->availableProductAt($branch);
+        $payload = $this->pickupPayload($branch, $product);
+
+        // Key dibuat tamu lebih dulu, lalu dipakai customer login.
+        $this->withHeader('Idempotency-Key', 'acct-guest-then-customer')
+            ->postJson('/api/v1/orders', $payload)
+            ->assertCreated();
+
+        $this->withHeaders([
+            'Idempotency-Key' => 'acct-guest-then-customer',
+            'Authorization' => 'Bearer '.$token,
+        ])->postJson('/api/v1/orders', $payload)
+            ->assertStatus(409)
+            ->assertJsonPath('message', 'Kunci idempotensi sudah dipakai.');
+
+        $this->assertSame(1, Order::count());
+        $this->assertNull(Order::first()->customer_id);
+    }
+
+    public function test_logged_in_customer_can_omit_contact_fields(): void
+    {
+        [$customer, $token] = $this->customerWithToken();
+        $branch = Branch::factory()->create();
+        $product = $this->availableProductAt($branch);
+
+        // Body tanpa nama/HP sepenuhnya: prefill profil harus memuaskan
+        // validasi required.
+        $payload = $this->pickupPayload($branch, $product);
+        unset($payload['customer_name'], $payload['customer_phone']);
+
+        $this->withHeaders([
+            'Idempotency-Key' => 'acct-omit-contact',
+            'Authorization' => 'Bearer '.$token,
+        ])->postJson('/api/v1/orders', $payload)->assertCreated();
+
+        $order = Order::query()->firstOrFail();
+        $this->assertSame($customer->name, $order->customer_name);
+        $this->assertSame($customer->phone, $order->customer_phone);
     }
 
     public function test_unpaid_customer_order_still_expires(): void

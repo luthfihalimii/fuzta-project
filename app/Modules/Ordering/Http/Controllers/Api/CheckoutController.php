@@ -85,7 +85,7 @@ class CheckoutController extends Controller
         // Replay key yang sudah ada: langsung kembalikan order lama — tanpa harga/quote
         // (Biteship down pun tidak boleh menghalangi melihat order yang sudah dibuat).
         // Key milik customer lain → 409 (guard di dalam findExistingByKey).
-        $order = $this->createCustomerOrder->findExistingByKey($branchId, $idempotencyKey, $customerId);
+        $order = $this->createCustomerOrder->findExistingByKey($branchId, $idempotencyKey, customerId: $customerId);
 
         if ($order === null) {
             $items = $request->validated('items');

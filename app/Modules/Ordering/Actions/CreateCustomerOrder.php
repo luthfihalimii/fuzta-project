@@ -140,7 +140,7 @@ class CreateCustomerOrder
      * lain (termasuk tamu null vs customer) → 409; order lama tidak
      * boleh disentuh.
      */
-    public function findExistingByKey(int $branchId, string $idempotencyKey, ?int $customerId = null, bool $lock = false): ?Order
+    public function findExistingByKey(int $branchId, string $idempotencyKey, bool $lock = false, ?int $customerId = null): ?Order
     {
         $query = Order::query()
             ->where('branch_id', $branchId)
@@ -161,7 +161,7 @@ class CreateCustomerOrder
 
     private function findExisting(CustomerOrderData $data, bool $lock = false): ?Order
     {
-        return $this->findExistingByKey($data->branchId, $data->idempotencyKey, $data->customerId, $lock);
+        return $this->findExistingByKey($data->branchId, $data->idempotencyKey, lock: $lock, customerId: $data->customerId);
     }
 
     private function isIdempotencyViolation(QueryException $exception): bool
