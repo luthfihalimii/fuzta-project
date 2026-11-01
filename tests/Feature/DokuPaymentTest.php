@@ -100,6 +100,43 @@ class DokuPaymentTest extends TestCase
         });
     }
 
+    public function test_midflight_cancel_during_invoice_returns_422_without_live_invoice(): void
+    {
+        // Simulasi cancel staf yang mendarat DI TENGAH panggilan invoice DOKU
+        // (antara baca status dan persist) via side effect di fake HTTP.
+        Http::fake(['api-sandbox.doku.com/*' => function (Request $request) {
+            $order = Order::query()->where('idempotency_key', 'mid-cancel')->firstOrFail();
+            $order->forceFill(['status' => OrderStatus::Cancelled])->save();
+
+            return Http::response([
+                'message' => ['SUCCESS'],
+                'response' => ['payment' => ['url' => 'https://sandbox.doku.com/checkout-link-v2/MID']],
+            ]);
+        }]);
+        $branch = Branch::factory()->create(['opens_at' => '09:00', 'closes_at' => '21:00']);
+        $product = $this->availableProductAt($branch);
+        $payload = $this->pickupPayload($branch, $product);
+
+        $response = $this->withHeader('Idempotency-Key', 'mid-cancel')
+            ->postJson('/api/v1/orders', $payload)
+            ->assertStatus(422)
+            ->assertJsonValidationErrors('order')
+            ->assertJsonPath('errors.order.0', 'Pesanan sudah dibatalkan.');
+
+        // Tidak ada invoice hidup untuk order mati; order tetap cancelled.
+        $this->assertNull($response->json('payment_url'));
+        $this->assertSame(OrderStatus::Cancelled, Order::firstWhere('idempotency_key', 'mid-cancel')->fresh()->status);
+        $this->assertSame(0, Payment::count());
+
+        // Retry key sama: order sudah dibatalkan → tetap 422, tanpa re-invoice.
+        $this->withHeader('Idempotency-Key', 'mid-cancel')
+            ->postJson('/api/v1/orders', $payload)
+            ->assertStatus(422)
+            ->assertJsonPath('errors.order.0', 'Pesanan sudah dibatalkan.');
+
+        $this->assertSame(0, Payment::count());
+    }
+
     public function test_replay_same_key_returns_existing_payment_without_new_invoice(): void
     {
         Http::fake(['api-sandbox.doku.com/*' => Http::response([
@@ -121,6 +158,9 @@ class DokuPaymentTest extends TestCase
         $this->assertSame(1, Order::count());
         $this->assertSame(1, Payment::count());
         $this->assertSame(PaymentStatus::Pending, Payment::first()->status);
+
+        // Hanya SATU invoice boleh terbit (replay tidak boleh bikin invoice baru).
+        Http::assertSentCount(1);
     }
 
     public function test_checkout_doku_down_returns_502_and_same_key_recovers_with_payment(): void
@@ -190,6 +230,9 @@ class DokuPaymentTest extends TestCase
         $this->assertNull(Payment::first()->fresh()->voided_at);
         $this->assertSame(PaymentStatus::Pending, Payment::first()->fresh()->status);
         $this->assertTrue(Payment::first()->fresh()->expires_at->isFuture());
+
+        // Persis dua invoice: satu pertama, satu re-invoice (bukan lebih banyak).
+        Http::assertSentCount(2);
     }
 
     // ============ webhook ============
@@ -300,6 +343,57 @@ class DokuPaymentTest extends TestCase
             'transaction' => ['status' => 'SUCCESS'],
             'order' => ['invoice_number' => 'PF-TIDAK-ADA', 'amount' => 10000],
         ])->assertStatus(422);
+    }
+
+    public function test_late_payment_audit_is_written_once_per_payment(): void
+    {
+        $order = Order::factory()->unpaid()->create(['placed_by_id' => null, 'total' => 50000]);
+        $payment = $this->dokuPendingPayment($order);
+
+        // Order sudah dibatalkan + payment voided sebelum notifikasi DOKU
+        // (mis. oleh scheduler expiry) — notifikasi SUCCESS datang telat.
+        $payment->forceFill(['status' => PaymentStatus::Voided, 'voided_at' => now()])->save();
+        $order->forceFill(['status' => OrderStatus::Cancelled])->save();
+
+        // DOKU retry notifikasi: body persis sama dua kali.
+        $body = $this->dokuWebhookBody($order, 'SUCCESS');
+        $this->postSignedWebhook($body)->assertOk();
+        $this->postSignedWebhook($body)->assertOk();
+
+        // Audit payment.late_payment harus PERSIS SATU baris, target = payment.
+        $this->assertSame(1, DB::table('audit_logs')->where('action', 'payment.late_payment')->count());
+        $this->assertDatabaseHas('audit_logs', [
+            'action' => 'payment.late_payment',
+            'target_type' => Payment::class,
+            'target_id' => $payment->id,
+        ]);
+        $this->assertSame(OrderStatus::Cancelled, $order->fresh()->status);
+        $this->assertSame(PaymentStatus::Unpaid, $order->fresh()->payment_status);
+        $this->assertSame(PaymentStatus::Voided, $payment->fresh()->status);
+    }
+
+    public function test_webhook_rejects_malformed_invoice_number_or_amount(): void
+    {
+        $order = Order::factory()->unpaid()->create(['placed_by_id' => null, 'total' => 50000]);
+        $this->dokuPendingPayment($order);
+
+        $badOrderFields = [
+            ['invoice_number' => ['nested' => 'array'], 'amount' => 50000],
+            ['invoice_number' => 'PF-1', 'amount' => '12.5'],
+            ['invoice_number' => 'PF-1', 'amount' => 12.5],
+            ['invoice_number' => 'PF-1', 'amount' => '1e4'],
+        ];
+
+        foreach ($badOrderFields as $fields) {
+            $this->postSignedWebhook([
+                'transaction' => ['status' => 'SUCCESS'],
+                'order' => $fields,
+            ])->assertStatus(422);
+        }
+
+        // Tanpa efek: tidak paid, tidak ada audit.
+        $this->assertSame(PaymentStatus::Unpaid, $order->fresh()->payment_status);
+        $this->assertSame(0, DB::table('audit_logs')->count());
     }
 
     public function test_success_after_staff_cancel_keeps_cancelled_and_audits_late_payment(): void
@@ -415,6 +509,13 @@ class DokuPaymentTest extends TestCase
         $noPayment = Order::factory()->unpaid()->create(['branch_id' => $branch->id, 'placed_by_id' => null]);
         $noPayment->forceFill(['created_at' => now()->subHours(2)])->save();
 
+        // Payment pending tapi expires_at NULL + sudah lama: fallback
+        // created_at + due minutes, tetap bisa expired.
+        $nullExpire = Order::factory()->unpaid()->create(['branch_id' => $branch->id, 'placed_by_id' => null, 'total' => 50000]);
+        $nullExpirePayment = $this->dokuPendingPayment($nullExpire);
+        $nullExpirePayment->forceFill(['expires_at' => null])->save();
+        $nullExpire->forceFill(['created_at' => now()->subHours(2)])->save();
+
         // Paid: tidak boleh disentuh.
         $orderPaid = Order::factory()->paid()->create(['branch_id' => $branch->id, 'placed_by_id' => null]);
 
@@ -422,15 +523,17 @@ class DokuPaymentTest extends TestCase
 
         $this->assertSame(OrderStatus::Cancelled, $expired->fresh()->status);
         $this->assertSame(OrderStatus::Cancelled, $noPayment->fresh()->status);
+        $this->assertSame(OrderStatus::Cancelled, $nullExpire->fresh()->status);
         $this->assertSame(OrderStatus::Queued, $fresh->fresh()->status);
         $this->assertSame(OrderStatus::Queued, $pos->fresh()->status);
         $this->assertSame(OrderStatus::Queued, $orderPaid->fresh()->status);
 
         $this->assertSame(PaymentStatus::Voided, $expiredPayment->fresh()->status);
         $this->assertNotNull($expiredPayment->fresh()->voided_at);
-        $this->assertSame(2, DB::table('audit_logs')->where('action', 'order.expired')->count());
+        $this->assertSame(PaymentStatus::Voided, $nullExpirePayment->fresh()->status);
+        $this->assertSame(3, DB::table('audit_logs')->where('action', 'order.expired')->count());
 
-        foreach ([$expired, $noPayment] as $order) {
+        foreach ([$expired, $noPayment, $nullExpire] as $order) {
             $this->assertDatabaseHas('order_status_events', [
                 'order_id' => $order->id,
                 'to_status' => 'cancelled',

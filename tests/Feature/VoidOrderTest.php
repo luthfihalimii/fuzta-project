@@ -6,7 +6,10 @@ use App\Models\User;
 use App\Modules\Branches\Models\Branch;
 use App\Modules\Ordering\Enums\OrderStatus;
 use App\Modules\Ordering\Models\Order;
+use App\Modules\Payments\Enums\PaymentMethod;
 use App\Modules\Payments\Enums\PaymentStatus;
+use App\Modules\Payments\Models\Payment;
+use App\Modules\Shifts\Models\CashierShift;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Tests\TestCase;
 
@@ -152,6 +155,37 @@ class VoidOrderTest extends TestCase
             ->post("/orders/{$order->id}/void", ['reason' => 'Salah input'])
             ->assertForbidden();
 
+        $this->assertSame(PaymentStatus::Unpaid, $order->fresh()->payment_status);
+    }
+
+    public function test_voided_payment_cannot_be_reported_paid_again(): void
+    {
+        // State tidak konsisten (payment voided tapi order tetap unpaid) tak
+        // bisa lewat alur normal karena OrderPolicy::pay menolak duluan;
+        // rakit manual untuk memvalidasi invariant di MarkOrderPaid.
+        $order = Order::factory()->unpaid()->create(['total' => 170000]);
+        Payment::create([
+            'order_id' => $order->id,
+            'shift_id' => null,
+            'method' => PaymentMethod::Cash,
+            'amount' => $order->total,
+            'status' => PaymentStatus::Voided,
+            'voided_at' => now(),
+        ]);
+
+        $cashier = User::factory()->cashier()->for($order->branch)->create();
+
+        CashierShift::factory()->open()->for($cashier, 'user')->create([
+            'branch_id' => $cashier->branch_id,
+        ]);
+
+        $this->actingAs($cashier)
+            ->postJson("/orders/{$order->id}/pay", ['method' => 'cash', 'cash_received' => 170000])
+            ->assertStatus(422)
+            ->assertJsonValidationErrors('order')
+            ->assertJsonPath('errors.order.0', 'Pembayaran sudah dibatalkan.');
+
+        $this->assertSame(1, Payment::count());
         $this->assertSame(PaymentStatus::Unpaid, $order->fresh()->payment_status);
     }
 

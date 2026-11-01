@@ -11,18 +11,19 @@ use Carbon\CarbonImmutable;
 use Illuminate\Console\Command;
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\Log;
+use Throwable;
 
 /**
  * Batalkan order customer (placed_by_id null) yang belum dibayar dan sudah
  * lewat batas waktu pembayaran:
- * - ada payment row → payments.expires_at < now;
- * - tanpa payment row (mis. invoice gagal dibuat) → created_at < now - due_minutes.
+ * - ada payment row dengan expires_at → payments.expires_at < now;
+ * - payment tanpa expires_at, atau tanpa payment row (mis. invoice gagal
+ *   dibuat) → created_at + payment_due_minutes.
  *
- * Order yang sudah paid tidak pernah disentuh. Di dalam transaksi: lock
- * order dulu, lalu payment, dan verifikasi ulang status setelah lock.
- * shortcut: SettleDokuPayment mengunci kebalikannya (payment → order);
- * aman sekarang karena keduanya verifikasi ulang setelah lock,
- * satukan urutan lock bila ada laporan deadlock.
+ * Order yang sudah paid tidak pernah disentuh. Urutan lock SERENDIA di
+ * seluruh kodebase yang menyentuh order+payment: order dulu, lalu payment
+ * (sama dengan SettleDokuPayment/CancelOrder/VoidOrder) — cegah deadlock.
  */
 class ExpireUnpaidOrders extends Command
 {
@@ -30,9 +31,6 @@ class ExpireUnpaidOrders extends Command
 
     protected $description = 'Batalkan order customer belum dibayar yang lewat batas waktu pembayaran online';
 
-    /**
-     * @param  CarbonImmutable  $expiredBefore
-     */
     public function handle(WriteAuditLog $writeAuditLog): int
     {
         $dueMinutes = (int) config('services.doku.payment_due_minutes', 30);
@@ -43,11 +41,14 @@ class ExpireUnpaidOrders extends Command
             ->where('payment_status', PaymentStatus::Unpaid)
             ->where('status', '!=', OrderStatus::Cancelled)
             ->where(function (Builder $query) use ($expiredBefore): void {
-                $query->whereHas('payment', fn (Builder $payment): Builder => $payment
-                    ->whereNotNull('expires_at')
-                    ->where('expires_at', '<', now()))
+                $query
+                    ->whereHas('payment', fn (Builder $payment): Builder => $payment->where('expires_at', '<', now()))
                     ->orWhere(function (Builder $query) use ($expiredBefore): void {
-                        $query->whereDoesntHave('payment')->where('created_at', '<', $expiredBefore);
+                        $query->where('created_at', '<', $expiredBefore)
+                            ->where(function (Builder $query): void {
+                                $query->whereDoesntHave('payment')
+                                    ->orWhereHas('payment', fn (Builder $payment): Builder => $payment->whereNull('expires_at'));
+                            });
                     });
             })
             ->pluck('id');
@@ -55,7 +56,16 @@ class ExpireUnpaidOrders extends Command
         $expired = 0;
 
         foreach ($candidates as $orderId) {
-            $expired += $this->expireOne((int) $orderId, $expiredBefore, $writeAuditLog);
+            try {
+                $expired += $this->expireOne((int) $orderId, $expiredBefore, $writeAuditLog);
+            } catch (Throwable $exception) {
+                // Satu baris rusak tidak boleh menghentikan sweep; log
+                // tanpa PII (nama exception saja, bukan detail SQL).
+                Log::warning('orders:expire-unpaid: satu pesanan gagal diproses.', [
+                    'order_id' => (int) $orderId,
+                    'exception' => $exception::class,
+                ]);
+            }
         }
 
         $this->info("Dibatalkan {$expired} pesanan kadaluarsa.");
@@ -86,8 +96,9 @@ class ExpireUnpaidOrders extends Command
 
             $payment = $locked->payment()->lockForUpdate()->first();
 
-            $pastDue = $payment !== null
-                ? ($payment->expires_at !== null && $payment->expires_at->isPast())
+            // Payment ada tapi tanpa expires_at → fallback created_at + due.
+            $pastDue = $payment !== null && $payment->expires_at !== null
+                ? $payment->expires_at->isPast()
                 : $locked->created_at->isBefore($expiredBefore);
 
             if (! $pastDue) {

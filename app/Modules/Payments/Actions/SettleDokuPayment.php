@@ -2,6 +2,7 @@
 
 namespace App\Modules\Payments\Actions;
 
+use App\Modules\Audit\Models\AuditLog;
 use App\Modules\Identity\Actions\WriteAuditLog;
 use App\Modules\Ordering\Enums\OrderStatus;
 use App\Modules\Ordering\Events\OrderPaymentChanged;
@@ -18,16 +19,15 @@ use Illuminate\Validation\ValidationException;
  * webhook terlambat/kadaluarsa:
  * - nominal webhook !== order.total → 422 (log, tanpa PII), tidak paid;
  * - order dibatalkan / payment voided → tidak menghidupkan order, audit
- *   payment.late_payment (refund manual lewat dashboard DOKU);
+ *   payment.late_payment SEKALI per payment (DOKU bisa retry notifikasi);
  * - payment sudah paid → no-op (replay aman);
  * - sukses → paid + broadcast OrderPaymentChanged SETELAH commit.
+ *
+ * Urutan lock seragam di seluruh kodebase: order dulu, lalu payment
+ * (sama dengan CancelOrder/VoidOrder/ExpireUnpaidOrders) — cegah deadlock.
  */
 class SettleDokuPayment
 {
-    /**
-     * Kunci urutan lock: payment dulu, order kemudian (sama dengan
-     * ExpireUnpaidOrders) untuk menghindari deadlock.
-     */
     public function __construct(
         private readonly WriteAuditLog $writeAuditLog,
     ) {}
@@ -35,9 +35,9 @@ class SettleDokuPayment
     public function __invoke(string $invoiceNumber, int $amount): void
     {
         DB::transaction(function () use ($invoiceNumber, $amount): void {
+            // Baca datar (tanpa lock) hanya untuk mengambil order_id.
             $payment = Payment::query()
                 ->where('provider_reference', $invoiceNumber)
-                ->lockForUpdate()
                 ->first();
 
             if ($payment === null) {
@@ -48,6 +48,13 @@ class SettleDokuPayment
 
             $order = Order::query()
                 ->whereKey($payment->order_id)
+                ->lockForUpdate()
+                ->firstOrFail();
+
+            // Fetch ulang dengan lock: baris bisa berubah antara baca
+            // datar dan lock (re-invoice/cancel/settle konkuren).
+            $payment = Payment::query()
+                ->whereKey($payment->id)
                 ->lockForUpdate()
                 ->firstOrFail();
 
@@ -65,19 +72,29 @@ class SettleDokuPayment
             }
 
             if ($order->status === OrderStatus::Cancelled || $payment->status === PaymentStatus::Voided) {
-                ($this->writeAuditLog)(
-                    null,
-                    'payment.late_payment',
-                    $order,
-                    [
-                        'status' => $order->status->value,
-                        'payment_status' => $payment->status->value,
-                    ],
-                    [
-                        'provider' => $payment->provider,
-                        'invoice_number' => $invoiceNumber,
-                    ],
-                );
+                // Target audit = paymen: cek dulu agar retry notifikasi DOKU
+                // tidak menuliskan baris audit duplikat.
+                $alreadyAudited = AuditLog::query()
+                    ->where('action', 'payment.late_payment')
+                    ->where('target_type', Payment::class)
+                    ->where('target_id', $payment->id)
+                    ->exists();
+
+                if (! $alreadyAudited) {
+                    ($this->writeAuditLog)(
+                        null,
+                        'payment.late_payment',
+                        $payment,
+                        [
+                            'order_status' => $order->status->value,
+                            'payment_status' => $payment->status->value,
+                        ],
+                        [
+                            'provider' => $payment->provider,
+                            'invoice_number' => $invoiceNumber,
+                        ],
+                    );
+                }
 
                 return;
             }

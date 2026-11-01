@@ -39,6 +39,12 @@ class MarkOrderPaid
                 ]);
             }
 
+            if ($existing !== null && $existing->status === PaymentStatus::Voided) {
+                throw ValidationException::withMessages([
+                    'order' => 'Pembayaran sudah dibatalkan.',
+                ]);
+            }
+
             if ($existing !== null) {
                 return $existing;
             }

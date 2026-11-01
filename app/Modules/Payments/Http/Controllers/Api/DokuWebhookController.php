@@ -39,14 +39,27 @@ class DokuWebhookController extends Controller
             return response()->json(['message' => 'OK']);
         }
 
-        $invoiceNumber = (string) ($payload['order']['invoice_number'] ?? '');
-        $amount = $payload['order']['amount'] ?? null;
+        $orderData = $payload['order'] ?? [];
+        $invoiceNumber = $orderData['invoice_number'] ?? null;
+        $amountRaw = $orderData['amount'] ?? null;
 
-        if ($invoiceNumber === '' || ! is_numeric($amount)) {
-            return response()->json(['message' => 'Nominal pembayaran tidak valid.'], 422);
+        // Parsing tahan tipe: invoice_number harus string non-kosong, amount
+        // hanya integer (penolakan desimal/eksponen/string) — 422, bukan 500.
+        $invoice = is_string($invoiceNumber) ? trim($invoiceNumber) : '';
+
+        $amount = null;
+
+        if (is_int($amountRaw)) {
+            $amount = $amountRaw;
+        } elseif (is_string($amountRaw) && preg_match('/^\d+$/', trim($amountRaw)) === 1) {
+            $amount = (int) trim($amountRaw);
         }
 
-        $settle($invoiceNumber, (int) $amount);
+        if ($invoice === '' || $amount === null) {
+            return response()->json(['message' => 'Pembayaran tidak valid.'], 422);
+        }
+
+        $settle($invoice, $amount);
 
         return response()->json(['message' => 'OK']);
     }
