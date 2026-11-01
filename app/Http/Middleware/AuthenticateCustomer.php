@@ -13,7 +13,12 @@ class AuthenticateCustomer
     {
         $header = (string) $request->header('Authorization', '');
 
-        if (! preg_match('/^Bearer\s+(\S+)$/i', $header, $matches)) {
+        // Header ada tapi rusak bukan tamu: selalu 401, jangan jatuh ke guest.
+        if ($header !== '' && ! preg_match('/^Bearer\s+(\S+)$/i', $header, $matches)) {
+            abort(401, 'Silakan masuk terlebih dahulu.');
+        }
+
+        if ($header === '') {
             if ($mode === 'optional') {
                 return $next($request);
             }

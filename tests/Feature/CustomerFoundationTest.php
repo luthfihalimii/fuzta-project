@@ -83,6 +83,33 @@ class CustomerFoundationTest extends TestCase
         $this->getJson('/api/v1/_probe', ['Authorization' => 'Bearer ngawur'])
             ->assertUnauthorized()
             ->assertJson(['message' => 'Silakan masuk terlebih dahulu.']);
+
+        // Header ada tapi rusak (tanpa token): 401, bukan guest.
+        $this->getJson('/api/v1/_probe', ['Authorization' => 'Bearer'])
+            ->assertUnauthorized()
+            ->assertJson(['message' => 'Silakan masuk terlebih dahulu.']);
+    }
+
+    public function test_customer_auth_middleware_default_mode_required(): void
+    {
+        Route::middleware('customer.auth')->get('/api/v1/_probe_required', fn (Request $request) => response()->json([
+            'mode' => $request->attributes->has('customer') ? 'customer' : 'guest',
+        ]));
+
+        // Tanpa parameter mode: default required, tanpa header → 401.
+        $this->getJson('/api/v1/_probe_required')
+            ->assertUnauthorized()
+            ->assertJson(['message' => 'Silakan masuk terlebih dahulu.']);
+
+        CustomerToken::create([
+            'customer_id' => Customer::factory()->create()->id,
+            'token_hash' => hash('sha256', 'token-required'),
+            'expires_at' => now()->addHour(),
+        ]);
+
+        $this->getJson('/api/v1/_probe_required', ['Authorization' => 'Bearer token-required'])
+            ->assertOk()
+            ->assertJson(['mode' => 'customer']);
     }
 
     public function test_customer_auth_middleware_valid_expired_and_inactive_tokens(): void
@@ -102,6 +129,23 @@ class CustomerFoundationTest extends TestCase
             ->assertJson(['mode' => 'customer']);
 
         $this->assertNotNull(CustomerToken::query()->first()->last_used_at);
+
+        // Throttle tulis last_used_at (1x/jam): masih baru (10 menit) → tidak ditulis ulang.
+        $token = CustomerToken::query()->first();
+        $recent = now()->subMinutes(10)->startOfSecond();
+        $token->forceFill(['last_used_at' => $recent])->save();
+
+        $this->getJson('/api/v1/_probe', ['Authorization' => 'Bearer token-valid'])->assertOk();
+
+        $this->assertTrue(CustomerToken::query()->first()->last_used_at->eq($recent));
+
+        // Lebih dari 1 jam (2 jam) → diupdate.
+        $old = now()->subHours(2)->startOfSecond();
+        $token->forceFill(['last_used_at' => $old])->save();
+
+        $this->getJson('/api/v1/_probe', ['Authorization' => 'Bearer token-valid'])->assertOk();
+
+        $this->assertTrue(CustomerToken::query()->first()->last_used_at->gt($old));
 
         CustomerToken::create([
             'customer_id' => $customer->id,
