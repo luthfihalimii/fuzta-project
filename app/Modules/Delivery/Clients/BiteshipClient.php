@@ -43,4 +43,44 @@ class BiteshipClient
             array_filter($areas, 'is_array'),
         ));
     }
+
+    /**
+     * Cari tarif kurir (POST /v1/rates).
+     * shortcut: bentuk body mengikuti plan (docs Biteship tak terjangkau saat implementasi).
+     *
+     * @param  list<array{name: string, description: string, value: int, quantity: int, weight: int, height: int, length: int, width: int}>  $items
+     * @return array<int, array<string, mixed>>
+     */
+    public function rates(string $originAreaId, string $destinationAreaId, array $items): array
+    {
+        $couriers = config('services.biteship.couriers');
+
+        if (! is_array($couriers) || $couriers === []) {
+            $couriers = ['jne', 'jnt', 'sicepat', 'anteraja', 'gojek', 'grab', 'sentral'];
+        }
+
+        $response = Http::withToken((string) config('services.biteship.api_key'))
+            ->baseUrl((string) config('services.biteship.base_url'))
+            ->acceptJson()
+            ->timeout(10)
+            ->connectTimeout(3)
+            ->post('/v1/rates', [
+                'origin_area_id' => $originAreaId,
+                'destination_area_id' => $destinationAreaId,
+                'couriers' => $couriers,
+                'items' => $items,
+            ]);
+
+        if ($response->failed()) {
+            throw new RuntimeException('Biteship rates request failed.');
+        }
+
+        $rates = $response->json('pricing');
+
+        if (! is_array($rates)) {
+            throw new RuntimeException('Biteship rates request returned unexpected payload.');
+        }
+
+        return array_values(array_filter($rates, 'is_array'));
+    }
 }

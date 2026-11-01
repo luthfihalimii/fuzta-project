@@ -38,6 +38,12 @@ return [
     'biteship' => [
         'api_key' => env('BITESHIP_API_KEY'),
         'base_url' => env('BITESHIP_BASE_URL', 'https://api.biteship.com'),
+        // Daftar kurir aktif di akun Biteship (ops final).
+        // UNVERIFIED: nilai default belum dikonfirmasi vs docs Biteship (docs tak terjangkau).
+        'couriers' => array_values(array_filter(array_map(
+            'trim',
+            explode(',', (string) env('BITESHIP_COURIERS', 'jne,jnt,sicepat,anteraja,gojek,grab,sentral')),
+        ))),
     ],
 
 ];
