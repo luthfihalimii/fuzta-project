@@ -15,13 +15,18 @@ class RegisterCustomerRequest extends FormRequest
 
     /**
      * Normalisasi HP sebelum validasi agar `+62`/`62`/spasi tetap lolos
-     * regex `08...` dan unique check.
+     * regex `08...` dan unique check. Hanya string: tipe lain (array/null)
+     * dibiarkan agar aturan `string` yang menjawab (422, bukan 500).
      */
     protected function prepareForValidation(): void
     {
-        $this->merge([
-            'phone' => PhoneNumber::normalize((string) $this->input('phone', '')),
-        ]);
+        $phone = $this->input('phone');
+
+        if (is_string($phone)) {
+            $this->merge([
+                'phone' => PhoneNumber::normalize($phone),
+            ]);
+        }
     }
 
     /**

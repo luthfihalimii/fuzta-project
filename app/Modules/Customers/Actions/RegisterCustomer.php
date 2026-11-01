@@ -24,7 +24,8 @@ class RegisterCustomer
         } catch (QueryException $exception) {
             // Unique constraint `phone` adalah guard akhir: request sudah
             // memvalidasi, tapi dua register bersamaan masih mungkin lolos.
-            if (($exception->errorInfo[0] ?? null) === '23505') {
+            if (($exception->errorInfo[0] ?? null) === '23505'
+                && str_contains($exception->getMessage(), 'customers_phone_unique')) {
                 throw ValidationException::withMessages([
                     'phone' => 'Nomor HP sudah terdaftar.',
                 ]);

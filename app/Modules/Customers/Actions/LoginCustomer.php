@@ -23,7 +23,11 @@ class LoginCustomer
         $customer = Customer::query()->where('phone', $phone)->first();
         $hash = $customer?->password ?? self::DUMMY_PASSWORD_HASH;
 
-        if ($customer === null || ! Hash::check($password, $hash)) {
+        // Hash::check selalu dijalankan duluan (nomor tak ditemukan → dummy
+        // hash): waktu respons tak boleh membocorkan keberadaan akun.
+        $passwordOk = Hash::check($password, $hash);
+
+        if ($customer === null || ! $passwordOk) {
             throw ValidationException::withMessages([
                 'phone' => 'Nomor HP atau password salah.',
             ]);
