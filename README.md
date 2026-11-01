@@ -83,6 +83,8 @@ Deploy produksi mengikuti checklist di [docs/superpowers/specs/2026-10-29-realti
 
 API publik untuk customer: katalog, checkout (pickup/delivery), bayar QRIS via DOKU, pengiriman via Biteship. Kontrak lengkap (request/response, aturan `Idempotency-Key`, status) ada di `docs/api.md`.
 
+Ada juga **akun customer** (bagian "Akun customer" di `docs/api.md`): daftar/login dengan nomor HP + password, token bearer 30 hari, riwayat order, dan alamat tersimpan (maks 10, satu default). Checkout tamu tetap jalan tanpa akun; checkout dengan bearer valid otomatis menghubungan order ke akun (kontak diambil dari profil). Password reset/OTP customer **belum tersedia**.
+
 Variabel env yang disyaratkan (lihat `.env.example`):
 
 - DOKU: `DOKU_CLIENT_ID`, `DOKU_SECRET_KEY`, `DOKU_BASE_URL`, `DOKU_NOTIFICATION_PATH`, `DOKU_PAYMENT_DUE_MINUTES`.
@@ -98,7 +100,7 @@ Tiga proses yang harus jalan di produksi (di samping web server):
 
 1. `php artisan queue:work` — job shipment Biteship + broadcast realtime.
 2. `php artisan reverb:start` — WebSocket (lihat Realtime).
-3. Scheduler — cron `* * * * * php artisan schedule:run` (atau `schedule:work`); menjalankan `orders:expire-unpaid` tiap 10 menit yang membatalkan order online unpaid lewat jatuh tempo bayar.
+3. Scheduler — cron `* * * * * php artisan schedule:run` (atau `schedule:work`); menjalankan `orders:expire-unpaid` tiap 10 menit yang membatalkan order online unpaid lewat jatuh tempo bayar, dan `customers:prune-tokens` harian 03:00 Asia/Jakarta yang menghapus token customer kedaluwarsa.
 
 Prasyarat ops sebelum pilot:
 
@@ -168,3 +170,4 @@ Production reminders: `APP_ENV=production`, `APP_DEBUG=false`, HTTPS, `SESSION_S
 - Thermal printer model, connection, and paper width must be confirmed per branch before printing is considered ready.
 - Brand yellow/orange hex values are provisional.
 - The non-production sample catalog, prices, ingredients, and thresholds are placeholders. Replace them with business-approved data before production; production seeding skips demo data.
+- Customer password reset/OTP belum ada (butuh kanal SMS/email — keputusan terbuka); deaktifasi akun sementara lewat `is_active`.

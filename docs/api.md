@@ -1,6 +1,6 @@
 # Kontrak API Customer — Pizza Fruzta
 
-Dokumen ini adalah kontrak REST untuk developer frontend (website/aplikasi customer). Semua rute publik, tanpa autentikasi. Sumber kebenaran perilaku = kode (`routes/api.php` + modul `app/Modules`); bila dokumen ini dan kode berbeda, kode yang benar.
+Dokumen ini adalah kontrak REST untuk developer frontend (website/aplikasi customer). Route katalog & checkout tamu publik (tanpa autentikasi); endpoint akun customer (`/me*`, `/auth/logout`) menuntut token bearer (lihat **Autentikasi customer** di bawah). Sumber kebenaran perilaku = kode (`routes/api.php` + modul `app/Modules`); bila dokumen ini dan kode berbeda, kode yang benar.
 
 ## Dasar
 
@@ -9,6 +9,24 @@ Dokumen ini adalah kontrak REST untuk developer frontend (website/aplikasi custo
 - **Uang:** integer IDR (satuan rupiah). `15000` = Rp 15.000. Tarif Biteship yang desimal dibulatkan ke integer saat di-quote.
 - **Server otoritatif:** harga, ongkir, dan total selalu dihitung ulang di server. Nilai harga/ongkir/total yang dikirim client diabaikan; yang diproses hanyalah pilihan produk/varian/opsi + kurir.
 - **CORS:** origin yang diizinkan diatur oleh env `CORS_ALLOWED_ORIGINS` (dev default `*`).
+
+### Autentikasi customer
+
+Endpoint akun (`/auth/logout`, `/me`, `/me/orders`, `/me/addresses`) menuntut token bearer dari `POST /auth/register` atau `POST /auth/login`:
+
+```
+Authorization: Bearer <token>
+```
+
+Aturan token:
+
+- Opaque, 40 karakter; dikembalikan server **sekali** di respons. DB menyimpan hash SHA-256-nya saja.
+- Berlaku **30 hari** dari penerbitan (lihat `expires_at` di respons).
+- Setiap register/login menerbitkan token baru; token lama tetap valid sampai kedaluwarsa.
+- `POST /auth/logout` mencabut **token yang dipakai saja**; token lain customer yang sama tetap valid.
+- Simpan token dengan aman di sisi client; **jangan pernah di-log**.
+
+`POST /checkout/quote` dan `POST /orders` **opsional** autentikasi: guest tetap bisa checkout; bila header `Authorization` dikirim, bearer harus valid (`401` bila tidak), dan bearer valid menghubungkan order ke akun (lihat `## 9. Akun customer`).
 
 ### Format error
 
@@ -33,7 +51,9 @@ Semua error memakai format standar Laravel:
 | ----- | ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
 | `200` | Sukses (juga untuk replay `Idempotency-Key` yang sudah pernah dipakai).                                                                                                                                                                                    |
 | `201` | Order baru berhasil dibuat.                                                                                                                                                                                                                                |
+| `401` | Token bearer hilang/tidak valid/kedaluwarsa/tercabut, atau akun customer nonaktif (di `/me*`, `/auth/logout`, dan `POST /checkout/quote`/`POST /orders` bila bearer dikirim). Pesan: `Silakan masuk terlebih dahulu.`                                      |
 | `404` | Resource tidak ditemukan (token order tidak dikenal, dsb.)                                                                                                                                                                                                 |
+| `409` | `Idempotency-Key` sudah dipakai pemilik lain (customer lain, atau guest vs customer). Pesan: `Kunci idempotensi sudah dipakai.` — tidak ada order yang dibuat maupun diubah.                                                                               |
 | `422` | Validasi / aturan bisnis gagal (cabang tutup, produk tidak tersedia, kurir tak cocok, area tak dikenali, `Idempotency-Key` kosong, dsb.).                                                                                                                  |
 | `429` | Rate limit terlampaui.                                                                                                                                                                                                                                     |
 | `502` | Provider upstream (Biteship/DOKU) tidak tersedia (down/http client menolak=miskonfigurasi sisi kita). Tampilkan "layanan sedang tidak tersedia, coba lagi nanti"; untuk `/orders`, retry dengan `Idempotency-Key` yang sama — order lama tidak akan dobel. |
@@ -41,25 +61,39 @@ Semua error memakai format standar Laravel:
 
 ### Rate limit
 
-| Limiter             | Batas                   | Berlaku untuk                                                                  |
-| ------------------- | ----------------------- | ------------------------------------------------------------------------------ |
-| `customer-public`   | 60 request/menit per IP | `GET /branches`, `GET /products`, `GET /delivery/areas`, `GET /orders/{token}` |
-| `customer-checkout` | 10 request/menit per IP | `POST /checkout/quote`, `POST /orders`                                         |
+| Limiter             | Batas                         | Berlaku untuk                                                                                                                          |
+| ------------------- | ----------------------------- | -------------------------------------------------------------------------------------------------------------------------------------- |
+| `customer-public`   | 60 request/menit per IP       | `GET /branches`, `GET /products`, `GET /delivery/areas`, `GET /orders/{token}`                                                         |
+| `customer-checkout` | 10 request/menit per IP       | `POST /checkout/quote`, `POST /orders`                                                                                                 |
+| `customer-auth`     | 5 request/menit per IP        | `POST /auth/register`, `POST /auth/login` (keduanya berbagi satu bucket)                                                               |
+| `customer-me`       | 60 request/menit per customer | `POST /auth/logout`, `GET/PATCH /me`, `GET /me/orders`, `GET/POST /me/addresses`, `PATCH/DELETE /me/addresses/{id}` (fallback: per IP) |
 
 Webhook tidak di-throttle (verifikasi signature adalah gerbangnya).
 
 ### Daftar endpoint
 
-| Method | Path                     | Keterangan                                                                   |
-| ------ | ------------------------ | ---------------------------------------------------------------------------- |
-| GET    | `/branches`              | Cabang aktif (jam buka & status buka hari ini).                              |
-| GET    | `/products?branch_id=`   | Menu cabang: kategori, varian, opsi (modifier).                              |
-| GET    | `/delivery/areas?query=` | Pencarian area Biteship (untuk memilih alamat pengiriman).                   |
-| POST   | `/checkout/quote`        | Perkiraan ongkir + opsi kurir untuk keranjang.                               |
-| POST   | `/orders`                | Buat order customer + invoice DOKU (header `Idempotency-Key` wajib).         |
-| GET    | `/orders/{token}`        | Cek status order customer via token (tanpa auth).                            |
-| POST   | `/webhooks/doku`         | **Internal** — notifikasi pembayaran DOKU. Jangan dipanggil frontend.        |
-| POST   | `/webhooks/biteship`     | **Internal** — update status pengiriman Biteship. Jangan dipanggil frontend. |
+| Method | Path                     | Keterangan                                                                                                           |
+| ------ | ------------------------ | -------------------------------------------------------------------------------------------------------------------- |
+| GET    | `/branches`              | Cabang aktif (jam buka & status buka hari ini).                                                                      |
+| GET    | `/products?branch_id=`   | Menu cabang: kategori, varian, opsi (modifier).                                                                      |
+| GET    | `/delivery/areas?query=` | Pencarian area Biteship (untuk memilih alamat pengiriman).                                                           |
+| POST   | `/checkout/quote`        | Perkiraan ongkir + opsi kurir untuk keranjang. Auth opsional (lihat **Autentikasi customer**).                       |
+| POST   | `/orders`                | Buat order customer + invoice DOKU (header `Idempotency-Key` wajib). Auth opsional (lihat **Autentikasi customer**). |
+| GET    | `/orders/{token}`        | Cek status order customer via token (tanpa auth).                                                                    |
+| POST   | `/auth/register`         | Daftar akun customer + terbitkan token (bagian `## 9`).                                                              |
+| POST   | `/auth/login`            | Login + terbitkan token (bagian `## 9`).                                                                             |
+| POST   | `/auth/logout`           | **Bearer** — cabut token yang dipakai → 204.                                                                         |
+| GET    | `/me`                    | **Bearer** — profil customer.                                                                                        |
+| PATCH  | `/me`                    | **Bearer** — ubah nama profil.                                                                                       |
+| GET    | `/me/orders`             | **Bearer** — riwayat order (10/halaman).                                                                             |
+| GET    | `/me/addresses`          | **Bearer** — daftar alamat tersimpan.                                                                                |
+| POST   | `/me/addresses`          | **Bearer** — tambah alamat tersimpan (maks 10).                                                                      |
+| PATCH  | `/me/addresses/{id}`     | **Bearer** — ubah alamat (semantik PATCH).                                                                           |
+| DELETE | `/me/addresses/{id}`     | **Bearer** — hapus alamat → 204.                                                                                     |
+| POST   | `/webhooks/doku`         | **Internal** — notifikasi pembayaran DOKU. Jangan dipanggil frontend.                                                |
+| POST   | `/webhooks/biteship`     | **Internal** — update status pengiriman Biteship. Jangan dipanggil frontend.                                         |
+
+Auth opsional pada `POST /checkout/quote` / `POST /orders`: tanpa token tetap jalan (guest). Bila ada token, harus valid (`401` bila tidak); bila valid, order terhubung ke akun dan kontak diambil dari profil.
 
 ---
 
@@ -368,6 +402,192 @@ Payload adalah bentuk **customer-safe**: tidak memuat `placed_by_id`, `shift_id`
 - Verifikasi: satu header custom. **Nama header = env `BITESHIP_WEBHOOK_KEY`** (default `X-Biteship-Signature`), **isi header = env `BITESHIP_WEBHOOK_SECRET`**; dibanding `hash_equals`. Salah/hilang/secret kosong di server → `403` tanpa efek. Saat membuat webhook di dashboard, isi field _header name_ dan _header value_ dengan kedua nilai yang sama persis.
 - `body` membawa `order_id` (= `biteship_order_id`) + opsional `status`, `courier_waybill_id`.
 - Perilaku: `order_id` tak dikenal → `404`; payload tanpa `order_id` → `422`; event valid → `200` (event boleh diulang Biteship; handler idempotent). `status` yang dikenal disimpan ke `delivery_status`; `courier_waybill_id` → `tracking_url` (`https://track.biteship.com/{waybill}`); `delivered` → order selesai (`completed`).
+
+## 9. Akun customer
+
+Customer masuk dengan nomor HP + password. Tanpa OTP/SMS, dan reset password mandiri **belum tersedia** (membutuhkan kanal SMS/email — keputusan terbuka). Aturan token diringkas di **Autentikasi customer** di atas.
+
+Semua endpoint ber-bearer mengembalikan `401` `{"message": "Silakan masuk terlebih dahulu."}` bila token hilang/tidak valid/kedaluwarsa/tercabut, atau akun customer tidak aktif.
+
+### `POST /auth/register`
+
+Publik (limiter `customer-auth`). Registration + penerbitan token dalam satu request.
+
+Request:
+
+```json
+{
+    "name": "Budi Santoso",
+    "phone": "081234567890",
+    "password": "rahasia123"
+}
+```
+
+Field:
+
+| Field      | Aturan                                                                                                                                                        |
+| ---------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `name`     | wajib, string, max 255.                                                                                                                                       |
+| `phone`    | wajib; menerima `08…`, `62…`, `+62…`, spasi/tanda hubung; server menormalisasi ke `08…` **sebelum** validasi (regex `^08\d{8,12}$`). Tersimpan sebagai `08…`. |
+| `password` | wajib, minimal 8 karakter (kurang → `422` `Password minimal 8 karakter.`). Tidak pernah dikembalikan atau di-log.                                             |
+
+Nomor sudah terdaftar → `422` pada `phone`: `Nomor HP sudah terdaftar.`
+
+Respons `201`:
+
+```json
+{
+    "customer": {
+        "id": 7,
+        "name": "Budi Santoso",
+        "phone": "081234567890",
+        "created_at": "2026-11-01T12:00:00+07:00"
+    },
+    "token": "vJ8kQ2pXwN4mR6tYzL0cB7dFgH3sA9eK1uWqP5oDx",
+    "expires_at": "2026-12-01T12:00:00+07:00"
+}
+```
+
+`token` (40 char) hanya muncul sekali di respons. `expires_at` = diterbitkan + 30 hari.
+
+### `POST /auth/login`
+
+Publik (limiter sama, berbagi bucket dengan register). Request: `{ "phone": "081234567890", "password": "rahasia123" }` (normalisasi HP sama seperti register).
+
+- Sukses → `200`, bentuk sama seperti respons register (**token baru diterbitkan** setiap login; token lama tetap valid sampai kedaluwarsa).
+- Password salah **atau** nomor tak dikenal → `422` pada `phone`: `Nomor HP atau password salah.` (pesan sengaja sama untuk keduanya).
+- Password benar tapi akun tidak aktif → `422` pada `phone`: `Akun tidak aktif.`
+
+### `POST /auth/logout` — bearer
+
+Tanpa body. Mencabut **token yang dipakai request ini saja**; token lain milik customer yang sama tetap valid. Respons `204` (tanpa body). Token yang sudah dicabut → `401`.
+
+### `GET /me` — bearer
+
+Respons `200`:
+
+```json
+{
+    "customer": {
+        "id": 7,
+        "name": "Budi Santoso",
+        "phone": "081234567890",
+        "created_at": "2026-11-01T12:00:00+07:00",
+        "addresses_count": 2
+    }
+}
+```
+
+### `PATCH /me` — bearer
+
+Hanya `name` yang diterima (wajib, max 255); field lain di body diabaikan. **Nomor HP tidak bisa diubah via API.** Respons `200` = bentuk `GET /me`.
+
+### `GET /me/orders` — bearer
+
+```
+GET /me/orders?page=2
+```
+
+Respons `200`:
+
+```json
+{
+    "orders": [
+        {
+            "order_number": "PF-PF-01-20261101-0001",
+            "token": "6f1e2a84-9b7c-4d1e-8f2a-1c9b3d5e7f10",
+            "created_at": "2026-11-01T12:00:00+07:00",
+            "channel": "delivery",
+            "status": "queued",
+            "payment_status": "unpaid",
+            "delivery_status": null,
+            "total": 155000
+        }
+    ],
+    "meta": {
+        "current_page": 2,
+        "last_page": 4,
+        "per_page": 10,
+        "total": 33
+    }
+}
+```
+
+- 10/halaman, order terbaru dulu.
+- Hanya order yang dibuat **sambil login** ke akun ini. Order tamu (termasuk yang nomor HP-nya sama) tidak pernah muncul dan tidak pernah diklaim.
+- `token` di tiap baris bisa dipakai di `GET /orders/{token}` untuk detail lengkap order.
+
+### Alamat tersimpan `/me/addresses` — bearer
+
+Setiap operasi mengembalikan `404` untuk id alamat milik customer lain (tidak ada bocoran keberadaan).
+
+Field:
+
+| Field            | Aturan                                                        |
+| ---------------- | ------------------------------------------------------------- |
+| `label`          | wajib (`POST`), max 40.                                       |
+| `recipient_name` | wajib (`POST`), max 255.                                      |
+| `phone`          | wajib (`POST`), format `08…` (normalisasi sama seperti akun). |
+| `address`        | wajib (`POST`), max 500.                                      |
+| `area_id`        | wajib (`POST`), max 64 (hasil `GET /delivery/areas`).         |
+| `notes`          | opsional, max 500.                                            |
+| `is_default`     | `POST` opsional boolean; `PATCH` opsional boolean.            |
+
+`GET /me/addresses` → `200`, diurutkan default dulu, lalu lama dulu:
+
+```json
+{
+    "addresses": [
+        {
+            "id": 3,
+            "label": "Rumah",
+            "recipient_name": "Budi Santoso",
+            "phone": "081234567890",
+            "address": "Jl. Kemang Raya No. 10, Jakarta Selatan",
+            "area_id": "IDJP10",
+            "notes": "Beli di depan, ada gerbang",
+            "is_default": true
+        }
+    ]
+}
+```
+
+`POST /me/addresses` → `201` `{ "address": { "...": "field di atas + id" } }`:
+
+- Alamat pertama otomatis menjadi default.
+- Penambahan berikutnya: `is_default: true` memindah default (default lama jadi `false`) — maksimal satu default.
+- Maksimal 10 alamat per customer → `422` pada `addresses`: `Maksimal 10 alamat tersimpan.`
+
+`PATCH /me/addresses/{id}` → `200` bentuk `{ "address": { ... } }`:
+
+- Semantik PATCH: hanya field yang dikirim yang divalidasi dan ditulis.
+- `is_default: false` pada alamat yang sedang default → `422` pada `is_default`: `Pilih alamat default lain sebelum menonaktifkan alamat ini.`
+- `is_default: true` = memindah default ke alamat ini.
+
+`DELETE /me/addresses/{id}` → `204`:
+
+- Default yang dihapus → alamat terlama dari sisa menjadi default (bila masih ada).
+
+Catatan frontend: alamat tersimpan **tidak** otomatis terisi ke checkout — `POST /orders` tetap perlu `delivery_address`/`delivery_area_id`/kurir (frontend boleh prefill dari alamat tersimpan).
+
+### Checkout dengan bearer
+
+`POST /checkout/quote` dan `POST /orders` menerima `Authorization: Bearer` opsional:
+
+- Tanpa token → jalur guest tak berubah (`customer_name`/`customer_phone` dari body).
+- Token tidak valid/kedaluwarsa/tercabut → `401` (ditolak di middleware; request tidak diproses).
+- Token valid:
+    - `customer_name` & `customer_phone` diambil dari **profil**; nilai di body **diabaikan** (boleh tidak dikirim).
+    - `customer_id` **tidak pernah** dipercaya dari body — server menetapkan dari token saja.
+    - Order tercatat `customer_id` = akun, sehingga muncul di `GET /me/orders`.
+    - Aturan `Idempotency-Key` (bagian 5) tetap, dengan **tambahan**: replay key yang sudah dipakai pemilik berbeda (customer lain, atau guest vs customer) → `409`: `Kunci idempotensi sudah dipakai.` — tidak ada order yang dibuat, order lama tidak disentuh. Replay pemilik sama tetap `200` (order yang sama, aturan DOKU-502 tetap berlaku).
+    - Order customer tetap dibatalkan `orders:expire-unpaid` bila melewati jatuh tempo, sama seperti order tamu.
+
+### Batasan
+
+- Tanpa reset password mandiri dan tanpa verifikasi nomor HP (P1; membutuhkan kanal SMS/email).
+- Order tamu lama tidak pernah dihubungkan ke akun, walau nomor HP sama.
+- Profil hanya bisa mengubah `name`; nomor HP akun tetap seperti saat daftar.
 
 ---
 

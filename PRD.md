@@ -264,6 +264,8 @@ Priority labels:
 - **P1** Customers can sign in to view saved details and order history.
 - **P1** Password reset and account recovery are available.
 
+Implemented in the current release: customers sign in over `/api/v1` with a phone number + password (separate `customers` table, opaque bearer token hashed in the database, 30-day validity) and can view their profile, order history (orders placed while signed in), and saved addresses (max 10, one default). Checkout remains optional-auth: the guest flow is unchanged, and a signed-in checkout uses the profile contact details and attaches the order to the account; cross-customer `Idempotency-Key` replay is rejected. Self-service password reset/recovery and phone verification remain P1 (they require an SMS/email channel). Detail: `docs/superpowers/specs/2026-11-01-customer-accounts-design.md`.
+
 ### 7.2 Branch Management
 
 - **P0** Admin can create and update branch records.
