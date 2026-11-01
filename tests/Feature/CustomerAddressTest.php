@@ -39,6 +39,19 @@ class CustomerAddressTest extends TestCase
         $this->assertSame(1, $this->defaultCount($customer));
     }
 
+    public function test_first_address_forces_default_even_if_false_requested(): void
+    {
+        [$customer, $token] = $this->customerWithToken();
+
+        $response = $this->postJson('/api/v1/me/addresses', array_merge($this->payload, ['is_default' => false]), ['Authorization' => 'Bearer '.$token])
+            ->assertCreated()
+            ->assertJsonPath('address.is_default', true);
+
+        $id = (int) $response->json('address.id');
+        $this->assertDatabaseHas('customer_addresses', ['id' => $id, 'is_default' => true]);
+        $this->assertSame(1, $this->defaultCount($customer));
+    }
+
     public function test_only_one_default_survives_repeated_default_posts(): void
     {
         [, $token] = $this->customerWithToken();
@@ -115,6 +128,18 @@ class CustomerAddressTest extends TestCase
         $this->assertDatabaseHas('customer_addresses', ['id' => $foreign->id, 'label' => 'Rumah']);
     }
 
+    public function test_delete_on_other_customer_address_is_not_found(): void
+    {
+        [, $token] = $this->customerWithToken();
+        $foreign = CustomerAddress::factory()->create();
+
+        $this->deleteJson('/api/v1/me/addresses/'.$foreign->id, [], ['Authorization' => 'Bearer '.$token])
+            ->assertNotFound();
+
+        // Alamat orang lain tak terhapus.
+        $this->assertDatabaseHas('customer_addresses', ['id' => $foreign->id]);
+    }
+
     public function test_cannot_unset_the_only_default(): void
     {
         [$customer, $token] = $this->customerWithToken();
@@ -150,6 +175,30 @@ class CustomerAddressTest extends TestCase
 
         $this->assertSame(1, $this->defaultCount($customer));
         $this->assertDatabaseHas('customer_addresses', ['id' => $second, 'is_default' => true]);
+    }
+
+    public function test_partial_update_keeps_other_fields_intact(): void
+    {
+        [$customer, $token] = $this->customerWithToken();
+
+        $response = $this->postJson('/api/v1/me/addresses', $this->payload, ['Authorization' => 'Bearer '.$token])
+            ->assertCreated();
+        $id = (int) $response->json('address.id');
+
+        // Hanya `notes` dikirim: field lain tak boleh berubah atau kena null.
+        $this->patchJson('/api/v1/me/addresses/'.$id, ['notes' => 'Gerbang biru'], ['Authorization' => 'Bearer '.$token])
+            ->assertOk()
+            ->assertJsonPath('address.notes', 'Gerbang biru');
+
+        $this->assertDatabaseHas('customer_addresses', [
+            'id' => $id,
+            'label' => 'Rumah',
+            'recipient_name' => 'Ibu',
+            'phone' => '081234567890',
+            'address' => 'Jl. Kenanga No. 1',
+            'area_id' => 'area-001',
+            'notes' => 'Gerbang biru',
+        ]);
     }
 
     public function test_delete_non_default_keeps_default(): void
@@ -210,6 +259,13 @@ class CustomerAddressTest extends TestCase
 
         $this->deleteJson('/api/v1/me/addresses/'.$foreign->id, [])
             ->assertUnauthorized();
+    }
+
+    public function test_index_without_token_is_unauthorized(): void
+    {
+        $this->getJson('/api/v1/me/addresses')
+            ->assertUnauthorized()
+            ->assertJson(['message' => 'Silakan masuk terlebih dahulu.']);
     }
 
     public function test_store_rejects_non_string_phone_with_422(): void
