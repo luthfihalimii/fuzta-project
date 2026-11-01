@@ -2,6 +2,8 @@
 
 namespace App\Providers;
 
+use App\Modules\Delivery\Listeners\QueueShipmentOnReady;
+use App\Modules\Ordering\Events\OrderStatusChanged;
 use App\Modules\Shifts\Models\CashierShift;
 use App\Modules\Shifts\Policies\CashierShiftPolicy;
 use Carbon\CarbonImmutable;
@@ -10,6 +12,7 @@ use Illuminate\Database\Eloquent\Factories\Factory;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Date;
 use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\Event;
 use Illuminate\Support\Facades\Gate;
 use Illuminate\Support\Facades\RateLimiter;
 use Illuminate\Support\ServiceProvider;
@@ -35,6 +38,9 @@ class AppServiceProvider extends ServiceProvider
         $this->configureRateLimiting();
 
         Gate::policy(CashierShift::class, CashierShiftPolicy::class);
+
+        // Order delivery paid + ready → antrekan shipment Biteship.
+        Event::listen(OrderStatusChanged::class, QueueShipmentOnReady::class);
     }
 
     protected function configureRateLimiting(): void

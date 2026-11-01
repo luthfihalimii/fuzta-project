@@ -2,6 +2,7 @@
 
 namespace App\Modules\Delivery\Clients;
 
+use Illuminate\Http\Client\ConnectionException;
 use Illuminate\Support\Facades\Http;
 use InvalidArgumentException;
 use RuntimeException;
@@ -89,5 +90,54 @@ class BiteshipClient
         }
 
         return array_values(array_filter($rates, 'is_array'));
+    }
+
+    /**
+     * Buat order kurir (POST /v1/orders). Dikirim oleh job (bukan request
+     * user) → tidak ada data customer di luar field yang memang disyaratkan
+     * provider; jangan log body/PII.
+     *
+     * @param  array<string, mixed>  $payload
+     * @return array{id: string, courier_name: string, courier_service: string, tracking_url: ?string}
+     */
+    public function createOrder(array $payload): array
+    {
+        try {
+            $response = Http::withToken((string) config('services.biteship.api_key'))
+                ->baseUrl((string) config('services.biteship.base_url'))
+                ->acceptJson()
+                ->timeout(10)
+                ->connectTimeout(3)
+                ->post('/v1/orders', $payload);
+        } catch (ConnectionException) {
+            throw new RuntimeException('Biteship order connection failed.');
+        }
+
+        // 4xx = payload/kurir tidak valid (miskonfigurasi data kita sendiri).
+        if ($response->status() >= 400 && $response->status() < 500) {
+            throw new InvalidArgumentException('Biteship menolak pembuatan order (payload/kurir tidak valid).');
+        }
+
+        // 5xx = gangguan sisi provider.
+        if ($response->failed()) {
+            throw new RuntimeException('Biteship order request failed.');
+        }
+
+        $id = $response->json('id');
+
+        if (! is_string($id) || $id === '') {
+            throw new RuntimeException('Biteship order response missing id.');
+        }
+
+        $waybill = $response->json('courier.waybill_id');
+
+        return [
+            'id' => $id,
+            'courier_name' => (string) $response->json('courier.company', ''),
+            'courier_service' => (string) $response->json('courier.type', ''),
+            'tracking_url' => is_string($waybill) && $waybill !== ''
+                ? "https://track.biteship.com/{$waybill}"
+                : null,
+        ];
     }
 }

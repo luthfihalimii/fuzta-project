@@ -30,6 +30,11 @@ class OrderPayload
             'payment_status' => $order->payment_status->value,
             'subtotal' => $order->subtotal,
             'total' => $order->total,
+            'delivery_fee' => $order->delivery_fee,
+            'delivery_status' => $order->delivery_status,
+            'courier_name' => $order->courier_name,
+            'courier_service' => $order->courier_service,
+            'tracking_url' => $order->tracking_url,
             'created_at' => $order->created_at?->toIso8601String(),
             'accepted_at' => $order->accepted_at?->toIso8601String(),
             'items' => $order->items

@@ -53,6 +53,17 @@ return [
             'trim',
             explode(',', (string) env('BITESHIP_COURIERS', 'jne,jnt,sicepat,anteraja,gojek,grab,sentral')),
         ))),
+        // Profil shipper (penaggung) untuk shipment; cabang tetap sumber origin.
+        'shipper_name' => env('BITESHIP_SHIPPER_NAME'),
+        'shipper_phone' => env('BITESHIP_SHIPPER_PHONE'),
+        'shipper_email' => env('BITESHIP_SHIPPER_EMAIL'),
+        // Webhook: dashboard Biteship mengirim SATU header custom —
+        // webhook_key = NAMA header-nya, webhook_secret = isinya
+        // (docs: "Complete Guide to Understanding Biteship Webhooks").
+        // Verifikasi = hash_equals(secret, isi header). Kosongkan secret kalau
+        // webhook belum dibuat (semua panggilan webhooks Biteship → 403).
+        'webhook_key' => env('BITESHIP_WEBHOOK_KEY', 'X-Biteship-Signature'),
+        'webhook_secret' => env('BITESHIP_WEBHOOK_SECRET'),
     ],
 
 ];

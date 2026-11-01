@@ -19,6 +19,8 @@ import type {
 } from '@/lib/order';
 import {
     channelLabel,
+    deliveryStatusLabel,
+    deliveryStatusTone,
     orderStatusLabel,
     orderStatusTone,
     paymentStatusLabel,
@@ -330,6 +332,18 @@ onUnmounted(() => {
                         </Badge>
                         <Badge :tone="paymentStatusTone(order.payment_status)">
                             {{ paymentStatusLabel(order.payment_status) }}
+                        </Badge>
+                        <Badge
+                            v-if="order.payment?.method === 'doku_qris'"
+                            tone="info"
+                        >
+                            Online · QRIS
+                        </Badge>
+                        <Badge
+                            v-if="order.channel === 'delivery' && order.delivery_status"
+                            :tone="deliveryStatusTone(order.delivery_status)"
+                        >
+                            Kurir: {{ deliveryStatusLabel(order.delivery_status) }}
                         </Badge>
                     </div>
 

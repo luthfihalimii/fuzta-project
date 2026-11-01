@@ -56,6 +56,11 @@ export type PosOrder = {
     payment_status: string;
     subtotal: number;
     total: number;
+    delivery_fee: number;
+    delivery_status: string | null;
+    courier_name: string | null;
+    courier_service: string | null;
+    tracking_url: string | null;
     created_at: string | null;
     accepted_at: string | null;
     items: OrderItem[];

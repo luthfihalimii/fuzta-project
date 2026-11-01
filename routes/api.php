@@ -2,6 +2,7 @@
 
 use App\Modules\Branches\Http\Controllers\Api\BranchApiController;
 use App\Modules\Catalog\Http\Controllers\Api\CatalogProductController;
+use App\Modules\Delivery\Http\Controllers\BiteshipWebhookController;
 use App\Modules\Delivery\Http\Controllers\DeliveryAreaController;
 use App\Modules\Ordering\Http\Controllers\Api\CheckoutController;
 use App\Modules\Payments\Http\Controllers\Api\DokuWebhookController;
@@ -28,4 +29,8 @@ Route::prefix('v1')->group(function (): void {
     // controller) adalah gerbang. Throttle per IP berisiko memblokir retry
     // notifikasi sah dari IP DOKU.
     Route::post('/webhooks/doku', DokuWebhookController::class);
+
+    // Webhook Biteship: pola sama — verifikasi header signature (di
+    // controller) adalah gerbang; event boleh berulang (handler idempotent).
+    Route::post('/webhooks/biteship', BiteshipWebhookController::class);
 });

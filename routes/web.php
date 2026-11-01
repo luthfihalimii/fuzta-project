@@ -8,6 +8,7 @@ use App\Modules\Branches\Http\Controllers\BranchController;
 use App\Modules\Catalog\Http\Controllers\CategoryController;
 use App\Modules\Catalog\Http\Controllers\ModifierGroupController;
 use App\Modules\Catalog\Http\Controllers\ProductController;
+use App\Modules\Delivery\Http\Controllers\RetryShipmentController;
 use App\Modules\Identity\Enums\Role;
 use App\Modules\Inventory\Http\Controllers\IngredientController;
 use App\Modules\Inventory\Http\Controllers\RecipeController;
@@ -105,6 +106,11 @@ Route::middleware(['auth', 'role:owner'])->prefix('admin')->group(function () {
     });
 
     Route::get('/audit', [AuditLogController::class, 'index'])->name('admin.audit.index');
+
+    // Retry pengiriman Biteship manual (hanya failed); audit order.delivery_retried.
+    Route::post('/orders/{order}/delivery/retry', [RetryShipmentController::class, 'retry'])
+        ->middleware('throttle:payments')
+        ->name('admin.orders.delivery.retry');
 
     Route::get('/purchases', [PurchaseController::class, 'index'])->name('admin.purchases.index');
     Route::get('/purchases/create', [PurchaseController::class, 'create'])->name('admin.purchases.create');

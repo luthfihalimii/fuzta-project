@@ -17,7 +17,7 @@ class TransitionOrderStatus
         private readonly ConsumeOrderIngredients $consumeOrderIngredients,
     ) {}
 
-    public function __invoke(Order $order, User $actor, OrderStatus $next): Order
+    public function __invoke(Order $order, ?User $actor, OrderStatus $next): Order
     {
         return DB::transaction(function () use ($order, $actor, $next): Order {
             $locked = Order::query()->lockForUpdate()->findOrFail($order->id);
@@ -52,7 +52,7 @@ class TransitionOrderStatus
                 'order_id' => $locked->id,
                 'from_status' => $from,
                 'to_status' => $next,
-                'actor_id' => $actor->id,
+                'actor_id' => $actor?->id,
             ]);
 
             event(new OrderStatusChanged($locked, $from, $next));
