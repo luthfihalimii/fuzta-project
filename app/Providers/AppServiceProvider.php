@@ -63,6 +63,12 @@ class AppServiceProvider extends ServiceProvider
         RateLimiter::for('customer-public', fn (Request $request): Limit => Limit::perMinute(60)
             ->by($request->ip()));
 
+        RateLimiter::for('customer-auth', fn (Request $request): Limit => Limit::perMinute(5)
+            ->by($request->ip()));
+
+        RateLimiter::for('customer-me', fn (Request $request): Limit => Limit::perMinute(60)
+            ->by($request->attributes->get('customer')?->id ?? $request->ip()));
+
         RateLimiter::for('customer-checkout', fn (Request $request): Limit => Limit::perMinute(10)
             ->by($request->ip()));
     }

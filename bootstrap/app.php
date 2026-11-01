@@ -1,5 +1,6 @@
 <?php
 
+use App\Http\Middleware\AuthenticateCustomer;
 use App\Http\Middleware\EnsureRole;
 use App\Http\Middleware\EnsureUserIsActive;
 use App\Http\Middleware\HandleInertiaRequests;
@@ -29,6 +30,7 @@ return Application::configure(basePath: dirname(__DIR__))
 
         $middleware->alias([
             'role' => EnsureRole::class,
+            'customer.auth' => AuthenticateCustomer::class,
         ]);
     })
     ->withExceptions(function (Exceptions $exceptions): void {

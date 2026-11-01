@@ -152,7 +152,7 @@ class CatalogApiTest extends TestCase
         ])
             ->assertStatus(204)
             ->assertHeader('Access-Control-Allow-Origin', '*')
-            ->assertHeader('Access-Control-Allow-Methods', 'GET, POST, OPTIONS');
+            ->assertHeader('Access-Control-Allow-Methods', 'GET, POST, PATCH, DELETE, OPTIONS');
     }
 
     public function test_customer_public_limiter_blocks_after_60_requests_per_minute(): void

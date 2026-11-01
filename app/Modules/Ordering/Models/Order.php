@@ -4,6 +4,7 @@ namespace App\Modules\Ordering\Models;
 
 use App\Models\User;
 use App\Modules\Branches\Models\Branch;
+use App\Modules\Customers\Models\Customer;
 use App\Modules\Ordering\Enums\OrderChannel;
 use App\Modules\Ordering\Enums\OrderStatus;
 use App\Modules\Payments\Enums\PaymentStatus;
@@ -22,6 +23,7 @@ use Illuminate\Database\Eloquent\Relations\HasOne;
     'order_number',
     'branch_id',
     'placed_by_id',
+    'customer_id',
     'shift_id',
     'channel',
     'table_number',
@@ -73,6 +75,11 @@ class Order extends Model
     public function placedBy(): BelongsTo
     {
         return $this->belongsTo(User::class, 'placed_by_id');
+    }
+
+    public function customer(): BelongsTo
+    {
+        return $this->belongsTo(Customer::class);
     }
 
     public function shift(): BelongsTo

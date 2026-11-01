@@ -17,7 +17,7 @@ return [
 
     'paths' => ['api/*'],
 
-    'allowed_methods' => ['GET', 'POST', 'OPTIONS'],
+    'allowed_methods' => ['GET', 'POST', 'PATCH', 'DELETE', 'OPTIONS'],
 
     'allowed_origins' => array_filter(array_map(
         static fn (string $origin): string => trim($origin),
