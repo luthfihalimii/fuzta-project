@@ -40,6 +40,8 @@ class ReceiptPayload
                 ])
                 ->values()
                 ->all(),
+            'subtotal' => $order->subtotal,
+            'delivery_fee' => $order->delivery_fee,
             'total' => $order->total,
             'payment_status' => $order->payment_status->value,
             'payment_method' => $order->payment?->method->value,

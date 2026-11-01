@@ -54,6 +54,9 @@ const reasonOrder = ref<OrderRow | null>(null);
 const reason = ref('');
 const processing = ref(false);
 const reasonError = ref('');
+const isOwner = computed(() => page.props.auth.user?.role === 'owner');
+const retryingId = ref<number | null>(null);
+const retryFailures = ref<Record<number, string>>({});
 
 let realtimeChannel: string | null = null;
 let unbindConnection: (() => void) | null = null;
@@ -128,6 +131,32 @@ function submitReason(): void {
             },
             onFinish: () => {
                 processing.value = false;
+            },
+        },
+    );
+}
+
+function retryShipment(order: OrderRow): void {
+    if (retryingId.value !== null) {
+        return;
+    }
+
+    retryingId.value = order.id;
+    delete retryFailures.value[order.id];
+
+    router.post(
+        `/admin/orders/${order.id}/delivery/retry`,
+        {},
+        {
+            preserveScroll: true,
+            onError: (errors) => {
+                retryFailures.value[order.id] =
+                    errors.order ?? 'Kirim ulang kurir gagal.';
+            },
+            onFinish: () => {
+                if (retryingId.value === order.id) {
+                    retryingId.value = null;
+                }
             },
         },
     );
@@ -397,6 +426,28 @@ onUnmounted(() => {
                         >
                             Struk
                         </button>
+                        <template
+                            v-if="isOwner && order.delivery_status === 'failed'"
+                        >
+                            <button
+                                type="button"
+                                class="min-h-12 rounded-xl border border-brand/40 bg-white px-4 text-sm font-semibold text-brand transition hover:bg-brand/5 disabled:cursor-not-allowed disabled:opacity-60"
+                                :disabled="retryingId === order.id"
+                                @click="retryShipment(order)"
+                            >
+                                {{
+                                    retryingId === order.id
+                                        ? 'Mengirim…'
+                                        : 'Kirim ulang kurir'
+                                }}
+                            </button>
+                            <p
+                                v-if="retryFailures[order.id]"
+                                class="w-full text-xs text-danger"
+                            >
+                                {{ retryFailures[order.id] }}
+                            </p>
+                        </template>
                     </div>
                 </article>
             </div>

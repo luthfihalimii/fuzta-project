@@ -22,6 +22,8 @@ export type ReceiptPayload = {
     channel: string;
     table_number: string | null;
     items: ReceiptItem[];
+    subtotal: number;
+    delivery_fee: number;
     total: number;
     payment_status: string;
     payment_method: string | null;
@@ -178,6 +180,11 @@ export function toEscPos(payload: ReceiptPayload, columns = 32): string {
     }
 
     push(separator(columns));
+
+    if (payload.delivery_fee > 0) {
+        push(...pair('Ongkir', formatRupiah(payload.delivery_fee), columns));
+    }
+
     push(`${ESC}E${String.fromCharCode(1)}`);
     push(...pair('TOTAL', formatRupiah(payload.total), columns));
     push(`${ESC}E${String.fromCharCode(0)}`);

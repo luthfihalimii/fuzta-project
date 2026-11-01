@@ -155,6 +155,15 @@ const backUrl = computed(() =>
                 </div>
 
                 <div class="border-t border-dashed border-line py-3">
+                    <div
+                        v-if="receipt.delivery_fee > 0"
+                        class="flex justify-between gap-3"
+                    >
+                        <span class="text-muted">Ongkir</span>
+                        <span class="tabular-nums">
+                            {{ formatRupiah(receipt.delivery_fee) }}
+                        </span>
+                    </div>
                     <div class="flex justify-between gap-3 text-sm font-bold">
                         <span>Total</span>
                         <span class="tabular-nums">

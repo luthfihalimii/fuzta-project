@@ -7,6 +7,7 @@ use App\Modules\Delivery\Jobs\CreateShipmentJob;
 use App\Modules\Identity\Actions\WriteAuditLog;
 use App\Modules\Ordering\Models\Order;
 use Illuminate\Http\JsonResponse;
+use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Illuminate\Validation\ValidationException;
 
@@ -21,7 +22,7 @@ class RetryShipmentController extends Controller
         private readonly WriteAuditLog $audit,
     ) {}
 
-    public function retry(Request $request, Order $order): JsonResponse
+    public function retry(Request $request, Order $order): JsonResponse|RedirectResponse
     {
         if ($order->delivery_status !== 'failed') {
             throw ValidationException::withMessages([
@@ -39,6 +40,11 @@ class RetryShipmentController extends Controller
             ['delivery_status' => $order->delivery_status, 'retry_requested' => true],
         );
 
-        return response()->json(['message' => 'Retry pengiriman dibuat antrekan.']);
+        // Pola OrderController::respond: Inertia dapat back+flash, API/CLI tetap JSON.
+        if ($request->expectsJson() && ! $request->header('X-Inertia')) {
+            return response()->json(['message' => 'Retry pengiriman dibuat antrekan.']);
+        }
+
+        return back()->with('success', 'Kirim ulang kurir dibuat antrekan.');
     }
 }

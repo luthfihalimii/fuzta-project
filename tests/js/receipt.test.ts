@@ -35,11 +35,22 @@ const payload: ReceiptPayload = {
         },
     ],
     total: 170000,
+    subtotal: 170000,
+    delivery_fee: 0,
     payment_status: 'paid',
     payment_method: 'cash',
     cashier: 'Sari',
     cash_received: 200000,
     change: 30000,
+};
+
+const deliveryPayload: ReceiptPayload = {
+    ...payload,
+    channel: 'delivery',
+    table_number: null,
+    subtotal: 170000,
+    delivery_fee: 15000,
+    total: 185000,
 };
 
 describe('toEscPos', () => {
@@ -73,6 +84,29 @@ describe('toEscPos', () => {
         const output = toEscPos(payload, 42);
 
         expect(output).toContain('-'.repeat(42));
+    });
+
+    it('prints an Ongkir line before TOTAL when delivery_fee > 0', () => {
+        const output = toEscPos(deliveryPayload);
+
+        expect(output).toContain('Ongkir');
+        expect(output).toContain('Rp 15.000');
+        expect(output).toContain('TOTAL');
+
+        const lines = output.split('\n');
+        const ongkirIndex = lines.findIndex((line) =>
+            line.trimStart().startsWith('Ongkir'),
+        );
+        const totalIndex = lines.findIndex((line) =>
+            line.trimStart().startsWith('TOTAL'),
+        );
+
+        expect(ongkirIndex).toBeGreaterThan(-1);
+        expect(ongkirIndex).toBeLessThan(totalIndex);
+    });
+
+    it('omits the Ongkir line when delivery_fee is 0', () => {
+        expect(toEscPos(payload)).not.toContain('Ongkir');
     });
 });
 

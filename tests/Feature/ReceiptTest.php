@@ -150,6 +150,48 @@ class ReceiptTest extends TestCase
             ->assertForbidden();
     }
 
+    public function test_delivery_receipt_payload_includes_fee_and_subtotal(): void
+    {
+        $delivery = Order::factory()->paid()->create([
+            'channel' => OrderChannel::Delivery,
+            'customer_name' => 'Budi',
+            'customer_phone' => '081234567890',
+            'delivery_address' => 'Jl. Lama 12',
+            'subtotal' => 170000,
+            'delivery_fee' => 15000,
+            'total' => 185000,
+        ]);
+
+        $payload = ReceiptPayload::fromOrder($delivery->fresh([
+            'branch',
+            'placedBy',
+            'payment',
+            'items.modifiers',
+        ]));
+
+        $this->assertSame(170000, $payload['subtotal']);
+        $this->assertSame(15000, $payload['delivery_fee']);
+        $this->assertSame($payload['subtotal'] + $payload['delivery_fee'], $payload['total']);
+        // Data pelanggan tidak boleh bocor ke struk.
+        $this->assertArrayNotHasKey('customer_phone', $payload);
+        $this->assertArrayNotHasKey('delivery_address', $payload);
+    }
+
+    public function test_zero_delivery_fee_payload_stays_zero(): void
+    {
+        $order = Order::factory()->paid()->create();
+
+        $payload = ReceiptPayload::fromOrder($order->fresh([
+            'branch',
+            'placedBy',
+            'payment',
+            'items.modifiers',
+        ]));
+
+        $this->assertSame(0, $payload['delivery_fee']);
+        $this->assertSame(50000, $payload['subtotal']);
+    }
+
     public function test_unpaid_receipt_has_no_payment_details(): void
     {
         $order = Order::factory()->unpaid()->create(['total' => 170000]);

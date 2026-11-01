@@ -138,6 +138,13 @@ const emit = defineEmits<{
                             <Money :value="order.subtotal" />
                         </div>
                         <div
+                            v-if="order.delivery_fee > 0"
+                            class="flex justify-between gap-3"
+                        >
+                            <span>Ongkir</span>
+                            <Money :value="order.delivery_fee" />
+                        </div>
+                        <div
                             class="flex justify-between gap-3 text-base font-bold"
                         >
                             <span>Total</span>
