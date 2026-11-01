@@ -21,6 +21,7 @@ class StoreProductRequest extends FormRequest
             'name' => ['required', 'string', 'max:255'],
             'description' => ['nullable', 'string', 'max:2000'],
             'base_price' => ['required', 'integer', 'min:0'],
+            'weight_grams' => ['nullable', 'integer', 'between:1,20000'],
             'is_active' => ['sometimes', 'boolean'],
             'image' => ['nullable', 'image', 'mimes:jpg,jpeg,png,webp', 'max:5120'],
             'variants' => ['nullable', 'array'],

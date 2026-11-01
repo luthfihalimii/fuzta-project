@@ -14,6 +14,7 @@ type BranchRow = {
     code: string;
     address: string | null;
     phone: string | null;
+    delivery_area_id: string | null;
     cash_float: number;
     is_active: boolean;
     opens_at: string;
@@ -33,6 +34,7 @@ const form = useForm({
     code: '',
     address: '',
     phone: '',
+    delivery_area_id: '',
     cash_float: '0',
     is_active: true,
     opens_at: '09:00',
@@ -52,6 +54,7 @@ function startEdit(branch: BranchRow): void {
     form.code = branch.code;
     form.address = branch.address ?? '';
     form.phone = branch.phone ?? '';
+    form.delivery_area_id = branch.delivery_area_id ?? '';
     form.cash_float = String(branch.cash_float);
     form.is_active = branch.is_active;
     form.opens_at = branch.opens_at;
@@ -175,6 +178,13 @@ function toggleActive(branch: BranchRow): void {
                         v-model="form.phone"
                         label="Telepon"
                         :error="form.errors.phone"
+                    />
+                    <Input
+                        v-model="form.delivery_area_id"
+                        label="Area Biteship"
+                        placeholder="Contoh: IDJP10"
+                        hint="Area id Biteship untuk pengiriman (opsional)."
+                        :error="form.errors.delivery_area_id"
                     />
                     <Input
                         v-model="form.opens_at"

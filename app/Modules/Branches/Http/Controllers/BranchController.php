@@ -30,6 +30,7 @@ class BranchController extends Controller
                     'code' => $branch->code,
                     'address' => $branch->address,
                     'phone' => $branch->phone,
+                    'delivery_area_id' => $branch->delivery_area_id,
                     'cash_float' => $branch->cash_float,
                     'is_active' => $branch->is_active,
                     'opens_at' => $branch->opens_at,
@@ -48,11 +49,16 @@ class BranchController extends Controller
             'code' => ['required', 'string', 'max:20', 'unique:branches,code'],
             'address' => ['nullable', 'string', 'max:1000'],
             'phone' => ['nullable', 'string', 'max:30'],
+            'delivery_area_id' => ['nullable', 'string', 'max:64'],
             'cash_float' => ['sometimes', 'integer', 'min:0', 'max:1000000000'],
             'is_active' => ['sometimes', 'boolean'],
             'opens_at' => ['sometimes', 'date_format:H:i'],
             'closes_at' => ['sometimes', 'date_format:H:i'],
         ]);
+
+        if (isset($data['delivery_area_id']) && $data['delivery_area_id'] === '') {
+            $data['delivery_area_id'] = null;
+        }
 
         if (($data['closes_at'] ?? '21:00') <= ($data['opens_at'] ?? '09:00')) {
             throw ValidationException::withMessages([
@@ -95,6 +101,7 @@ class BranchController extends Controller
             ],
             'address' => ['sometimes', 'nullable', 'string', 'max:1000'],
             'phone' => ['sometimes', 'nullable', 'string', 'max:30'],
+            'delivery_area_id' => ['sometimes', 'nullable', 'string', 'max:64'],
             'cash_float' => ['sometimes', 'integer', 'min:0', 'max:1000000000'],
             'is_active' => ['sometimes', 'boolean'],
             'opens_at' => ['sometimes', 'date_format:H:i'],
@@ -105,6 +112,10 @@ class BranchController extends Controller
         $reason = $data['reason'] ?? null;
 
         unset($data['reason']);
+
+        if (isset($data['delivery_area_id']) && $data['delivery_area_id'] === '') {
+            $data['delivery_area_id'] = null;
+        }
 
         if (($data['closes_at'] ?? $branch->closes_at) <= ($data['opens_at'] ?? $branch->opens_at)) {
             throw ValidationException::withMessages([
@@ -142,6 +153,7 @@ class BranchController extends Controller
             'code' => $branch->code,
             'address' => $branch->address,
             'phone' => $branch->phone,
+            'delivery_area_id' => $branch->delivery_area_id,
             'cash_float' => $branch->cash_float,
             'is_active' => $branch->is_active,
             'opens_at' => $branch->opens_at,

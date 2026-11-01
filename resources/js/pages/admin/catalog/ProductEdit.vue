@@ -24,6 +24,7 @@ type ProductData = {
     name: string;
     description: string | null;
     base_price: number;
+    weight_grams: number | null;
     is_active: boolean;
     image_url: string | null;
     variants: Array<{
@@ -95,6 +96,7 @@ const form = useForm({
     name: props.product?.name ?? '',
     description: props.product?.description ?? '',
     base_price: props.product?.base_price ?? 0,
+    weight_grams: String(props.product?.weight_grams ?? ''),
     is_active: props.product?.is_active ?? true,
     variants: initialVariants,
     modifier_group_ids: props.product?.modifier_group_ids ?? [],
@@ -358,6 +360,32 @@ function submit(): void {
                             </span>
                             <span class="mt-1.5 block text-sm text-muted">
                                 Dipakai jika produk tidak punya varian.
+                            </span>
+                        </label>
+
+                        <label class="block">
+                            <span
+                                class="mb-1.5 block text-sm font-medium text-ink"
+                            >
+                                Berat (gram)
+                            </span>
+                            <input
+                                v-model="form.weight_grams"
+                                type="number"
+                                min="1"
+                                step="1"
+                                inputmode="numeric"
+                                class="min-h-12 w-full rounded-xl border border-line bg-white px-3.5 text-base text-ink transition outline-none focus:border-brand focus:ring-2 focus:ring-brand/20"
+                            />
+                            <span
+                                v-if="errorFor('weight_grams')"
+                                class="mt-1.5 block text-sm text-danger"
+                            >
+                                {{ errorFor('weight_grams') }}
+                            </span>
+                            <span class="mt-1.5 block text-sm text-muted">
+                                Opsional; dipakai untuk hitung berat paket
+                                pengiriman.
                             </span>
                         </label>
 

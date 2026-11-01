@@ -70,12 +70,17 @@ class ProductController extends Controller
     {
         $data = $request->validated();
 
+        if (isset($data['weight_grams']) && $data['weight_grams'] === '') {
+            $data['weight_grams'] = null;
+        }
+
         DB::transaction(function () use ($data, $request, $audit, $images): void {
             $product = Product::create([
                 'category_id' => $data['category_id'],
                 'name' => $data['name'],
                 'description' => $data['description'] ?? null,
                 'base_price' => $data['base_price'],
+                'weight_grams' => $data['weight_grams'] ?? null,
                 'is_active' => $data['is_active'] ?? true,
             ]);
 
@@ -118,6 +123,10 @@ class ProductController extends Controller
     ): RedirectResponse {
         $data = $request->validated();
 
+        if (isset($data['weight_grams']) && $data['weight_grams'] === '') {
+            $data['weight_grams'] = null;
+        }
+
         $previousImage = $product->image;
         $file = $request->file('image');
         $removingImage = $file === null && $request->boolean('remove_image');
@@ -130,6 +139,7 @@ class ProductController extends Controller
                 'name',
                 'description',
                 'base_price',
+                'weight_grams',
                 'is_active',
             ]));
             $product->save();
@@ -322,6 +332,7 @@ class ProductController extends Controller
             'name' => $product->name,
             'description' => $product->description,
             'base_price' => $product->base_price,
+            'weight_grams' => $product->weight_grams,
             'is_active' => $product->is_active,
             'image_url' => $product->imageUrl(),
             'variants' => $product->variants

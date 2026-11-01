@@ -12,7 +12,7 @@ use Illuminate\Database\Eloquent\Relations\BelongsToMany;
 use Illuminate\Database\Eloquent\Relations\HasMany;
 use Illuminate\Support\Facades\Storage;
 
-#[Fillable(['category_id', 'name', 'description', 'base_price', 'is_active', 'image'])]
+#[Fillable(['category_id', 'name', 'description', 'base_price', 'weight_grams', 'is_active', 'image'])]
 class Product extends Model
 {
     /** @use HasFactory<ProductFactory> */
@@ -25,6 +25,7 @@ class Product extends Model
     {
         return [
             'is_active' => 'boolean',
+            'weight_grams' => 'integer',
         ];
     }
 

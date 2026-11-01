@@ -33,6 +33,16 @@ use Illuminate\Database\Eloquent\Relations\HasOne;
     'total',
     'accepted_at',
     'idempotency_key',
+    'public_token',
+    'customer_phone',
+    'delivery_address',
+    'delivery_area_id',
+    'delivery_fee',
+    'biteship_order_id',
+    'courier_name',
+    'courier_service',
+    'delivery_status',
+    'tracking_url',
 ])]
 class Order extends Model
 {
@@ -50,6 +60,7 @@ class Order extends Model
             'payment_status' => PaymentStatus::class,
             'subtotal' => 'integer',
             'total' => 'integer',
+            'delivery_fee' => 'integer',
             'accepted_at' => 'datetime',
         ];
     }

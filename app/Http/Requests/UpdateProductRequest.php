@@ -26,6 +26,7 @@ class UpdateProductRequest extends FormRequest
             'name' => ['sometimes', 'required', 'string', 'max:255'],
             'description' => ['sometimes', 'nullable', 'string', 'max:2000'],
             'base_price' => ['sometimes', 'required', 'integer', 'min:0'],
+            'weight_grams' => ['sometimes', 'nullable', 'integer', 'between:1,20000'],
             'is_active' => ['sometimes', 'boolean'],
             'image' => ['nullable', 'image', 'mimes:jpg,jpeg,png,webp', 'max:5120'],
             'remove_image' => ['sometimes', 'boolean'],

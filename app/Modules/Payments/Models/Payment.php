@@ -21,6 +21,10 @@ use Illuminate\Database\Eloquent\Relations\HasMany;
     'status',
     'paid_at',
     'voided_at',
+    'provider',
+    'provider_reference',
+    'payment_url',
+    'expires_at',
 ])]
 class Payment extends Model
 {
@@ -37,6 +41,7 @@ class Payment extends Model
             'status' => PaymentStatus::class,
             'paid_at' => 'datetime',
             'voided_at' => 'datetime',
+            'expires_at' => 'datetime',
         ];
     }
 
