@@ -10,13 +10,15 @@ class BiteshipClient
     /**
      * Cari area pengiriman Indonesia (GET /v1/maps/areas).
      *
-     * @return array<int, array{id: string, name: string, city: ?string, province: ?string, postal_code: ?string}>
+     * @return array<int, array{id: ?string, name: ?string, city: ?string, province: ?string, postal_code: ?string}>
      */
     public function areas(string $query): array
     {
         $response = Http::withToken((string) config('services.biteship.api_key'))
             ->baseUrl((string) config('services.biteship.base_url'))
             ->acceptJson()
+            ->timeout(5)
+            ->connectTimeout(3)
             ->get('/v1/maps/areas', ['countries' => 'ID', 'input' => $query]);
 
         if ($response->failed()) {
@@ -29,15 +31,16 @@ class BiteshipClient
             throw new RuntimeException('Biteship area search returned unexpected payload.');
         }
 
-        return array_map(
+        // array_values: respons JSON harus tetap list, bukan object ber-key.
+        return array_values(array_map(
             static fn (array $area): array => [
-                'id' => (string) $area['id'],
-                'name' => (string) ($area['name'] ?? ''),
+                'id' => $area['id'] ?? null,
+                'name' => $area['name'] ?? null,
                 'city' => $area['administrative_division_level_2_name'] ?? null,
                 'province' => $area['administrative_division_level_1_name'] ?? null,
                 'postal_code' => $area['postal_code'] ?? null,
             ],
             array_filter($areas, 'is_array'),
-        );
+        ));
     }
 }

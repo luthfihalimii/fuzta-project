@@ -4,6 +4,7 @@ namespace App\Modules\Delivery\Http\Controllers;
 
 use App\Http\Controllers\Controller;
 use App\Modules\Delivery\Clients\BiteshipClient;
+use Illuminate\Http\Client\ConnectionException;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
 use RuntimeException;
@@ -18,7 +19,7 @@ class DeliveryAreaController extends Controller
 
         try {
             $areas = $biteship->areas((string) $request->query('query'));
-        } catch (RuntimeException) {
+        } catch (ConnectionException|RuntimeException) {
             return response()->json(['message' => 'Layanan pengiriman sedang tidak tersedia.'], 502);
         }
 

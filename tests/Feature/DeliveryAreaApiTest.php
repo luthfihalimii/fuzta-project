@@ -3,6 +3,8 @@
 namespace Tests\Feature;
 
 use Illuminate\Foundation\Testing\RefreshDatabase;
+use Illuminate\Http\Client\ConnectionException;
+use Illuminate\Http\Client\Request;
 use Illuminate\Support\Facades\Http;
 use Tests\TestCase;
 
@@ -40,6 +42,31 @@ class DeliveryAreaApiTest extends TestCase
         Http::fake(['api.biteship.com/*' => Http::response(['error' => 'down'], 500)]);
 
         $this->getJson('/api/v1/delivery/areas?query=kemang')->assertStatus(502);
+    }
+
+    public function test_areas_connection_failure_returns_502(): void
+    {
+        Http::fake(fn () => throw new ConnectionException('timeout'));
+
+        $this->getJson('/api/v1/delivery/areas?query=kemang')
+            ->assertStatus(502)
+            ->assertExactJson(['message' => 'Layanan pengiriman sedang tidak tersedia.']);
+    }
+
+    public function test_areas_request_sends_bearer_key_and_query_params(): void
+    {
+        config(['services.biteship.api_key' => 'test-biteship-key']);
+
+        Http::fake(['api.biteship.com/v1/maps/areas*' => Http::response(['success' => true, 'areas' => []])]);
+
+        $this->getJson('/api/v1/delivery/areas?query=bandung')
+            ->assertOk()
+            ->assertJsonPath('areas', []);
+
+        Http::assertSent(fn (Request $request): bool => $request->header('Authorization')[0] === 'Bearer test-biteship-key'
+            && str_contains($request->url(), 'https://api.biteship.com/v1/maps/areas')
+            && str_contains($request->url(), 'countries=ID')
+            && str_contains($request->url(), 'input=bandung'));
     }
 
     public function test_areas_requires_query_min_2(): void
