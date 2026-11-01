@@ -95,6 +95,85 @@ class CustomerCheckoutTest extends TestCase
             ->assertJsonValidationErrors('delivery_area_id');
     }
 
+    public function test_quote_and_store_return_422_when_biteship_rejects_area(): void
+    {
+        Http::fake(['api.biteship.com/*' => Http::response(['error' => 'area unknown'], 400)]);
+        $branch = $this->deliveryBranch();
+        $product = $this->availableProductAt($branch);
+        $items = [['product_id' => $product->id, 'quantity' => 1]];
+
+        $this->postJson('/api/v1/checkout/quote', [
+            'branch_id' => $branch->id,
+            'fulfillment' => 'delivery',
+            'destination_area_id' => 'BADAREA',
+            'items' => $items,
+        ])->assertStatus(422)
+            ->assertJsonValidationErrors('delivery_area_id')
+            ->assertJsonPath('errors.delivery_area_id.0', 'Alamat pengiriman tidak dikenali.');
+
+        $storePayload = $this->deliveryPayload($branch, $product);
+        $storePayload['delivery_area_id'] = 'BADAREA';
+
+        $this->withHeader('Idempotency-Key', 'bad-area')
+            ->postJson('/api/v1/orders', $storePayload)
+            ->assertStatus(422)
+            ->assertJsonValidationErrors('delivery_area_id');
+
+        $this->assertDatabaseCount('orders', 0);
+    }
+
+    public function test_delivery_quote_rejects_rates_without_valid_price(): void
+    {
+        // price hilang / nol bukan berarti gratis: tidak ada opsi valid.
+        $this->fakeRates([
+            ['courier_name' => 'Gojek', 'courier_service_name' => 'Instant', 'duration' => '1 - 2 hours'],
+            ['courier_name' => 'JNE', 'courier_service_name' => 'Reguler', 'price' => 0, 'duration' => '2 days'],
+            ['courier_name' => 'Grab', 'courier_service_name' => 'Express', 'price' => 'bukan-angka', 'duration' => '1 day'],
+        ]);
+        $branch = $this->deliveryBranch();
+        $product = $this->availableProductAt($branch);
+
+        $this->postJson('/api/v1/checkout/quote', [
+            'branch_id' => $branch->id,
+            'fulfillment' => 'delivery',
+            'destination_area_id' => 'IDNP10',
+            'items' => [['product_id' => $product->id, 'quantity' => 1]],
+        ])->assertStatus(422)
+            ->assertJsonValidationErrors('delivery_area_id');
+    }
+
+    public function test_delivery_quote_rejects_inactive_branch(): void
+    {
+        $branch = $this->deliveryBranch(['is_active' => false]);
+        $product = $this->availableProductAt($branch);
+
+        $this->postJson('/api/v1/checkout/quote', [
+            'branch_id' => $branch->id,
+            'fulfillment' => 'delivery',
+            'destination_area_id' => 'IDNP10',
+            'items' => [['product_id' => $product->id, 'quantity' => 1]],
+        ])->assertStatus(422)
+            ->assertJsonValidationErrors('branch_id');
+    }
+
+    public function test_pickup_quote_ignores_destination_area_and_stays_free(): void
+    {
+        $branch = $this->deliveryBranch();
+        $product = $this->availableProductAt($branch);
+
+        $this->postJson('/api/v1/checkout/quote', [
+            'branch_id' => $branch->id,
+            'fulfillment' => 'pickup',
+            'destination_area_id' => 'IDNP10',
+            'items' => [['product_id' => $product->id, 'quantity' => 1]],
+        ])->assertOk()
+            ->assertJsonCount(1, 'options')
+            ->assertJsonPath('options.0.courier_service', 'pickup')
+            ->assertJsonPath('options.0.fee', 0);
+
+        Http::assertNothingSent();
+    }
+
     public function test_quote_and_store_return_502_when_biteship_down(): void
     {
         Http::fake(['api.biteship.com/*' => Http::response(['error' => 'down'], 500)]);
@@ -191,10 +270,36 @@ class CustomerCheckoutTest extends TestCase
         $first = $this->withHeader('Idempotency-Key', 'same')->postJson('/api/v1/orders', $payload)->assertCreated();
         $second = $this->withHeader('Idempotency-Key', 'same')->postJson('/api/v1/orders', $payload)->assertOk();
 
-        $this->assertSame($first->json('order.id'), $second->json('order.id'));
+        $this->assertSame($first->json('order.order_number'), $second->json('order.order_number'));
         $this->assertSame($first->json('token'), $second->json('token'));
         $this->assertSame(1, Order::count());
         $this->assertSame(1, Order::first()->items()->count());
+    }
+
+    public function test_replay_returns_stored_order_without_calling_biteship(): void
+    {
+        $this->fakeRates([
+            ['courier_name' => 'Gojek', 'courier_service_name' => 'Instant', 'price' => 20000, 'duration' => '1 - 2 hours'],
+        ]);
+        $branch = $this->deliveryBranch();
+        $product = $this->availableProductAt($branch);
+        $payload = $this->deliveryPayload($branch, $product);
+
+        $first = $this->withHeader('Idempotency-Key', 'replay-down')
+            ->postJson('/api/v1/orders', $payload)
+            ->assertCreated();
+
+        // Biteship down saat retry key sama: harus tetap 200 + order yang sama, tanpa order baru.
+        Http::fake(['api.biteship.com/*' => Http::response(['error' => 'down'], 500)]);
+
+        $this->withHeader('Idempotency-Key', 'replay-down')
+            ->postJson('/api/v1/orders', $payload)
+            ->assertOk()
+            ->assertJsonPath('order.order_number', $first->json('order.order_number'))
+            ->assertJsonPath('token', $first->json('token'));
+
+        Http::assertNothingSent();
+        $this->assertSame(1, Order::count());
     }
 
     public function test_same_key_different_branch_creates_separate_orders(): void
@@ -325,6 +430,35 @@ class CustomerCheckoutTest extends TestCase
                 ->postJson('/api/v1/orders', $payload)
                 ->assertStatus(422)
                 ->assertJsonValidationErrors('items.0.quantity');
+        }
+
+        $this->assertDatabaseCount('orders', 0);
+    }
+
+    public function test_store_rejects_invalid_phone_and_missing_delivery_fields(): void
+    {
+        $branch = $this->deliveryBranch();
+        $product = $this->availableProductAt($branch);
+        $payload = $this->deliveryPayload($branch, $product);
+
+        // Format HP salah (harus 08 + 8-13 digit).
+        $badPhone = $payload;
+        $badPhone['customer_phone'] = '021234';
+
+        $this->withHeader('Idempotency-Key', 'phone-1')
+            ->postJson('/api/v1/orders', $badPhone)
+            ->assertStatus(422)
+            ->assertJsonValidationErrors('customer_phone');
+
+        // Field wajib delivery hilang satu per satu.
+        foreach (['delivery_address', 'delivery_area_id', 'courier_name', 'courier_service'] as $missing) {
+            $incomplete = $payload;
+            unset($incomplete[$missing]);
+
+            $this->withHeader('Idempotency-Key', 'missing-'.$missing)
+                ->postJson('/api/v1/orders', $incomplete)
+                ->assertStatus(422)
+                ->assertJsonValidationErrors($missing);
         }
 
         $this->assertDatabaseCount('orders', 0);

@@ -132,17 +132,27 @@ class CreateCustomerOrder
         }
     }
 
-    private function findExisting(CustomerOrderData $data, bool $lock = false): ?Order
+    /**
+     * Cari order berdasarkan kunci idempoten per cabang (dipakai controller
+     * untuk replay cepat sebelum harga/quote; tetap dipanggil ulang di
+     * dalam transaksi sebagai pertahanan kedua).
+     */
+    public function findExistingByKey(int $branchId, string $idempotencyKey, bool $lock = false): ?Order
     {
         $query = Order::query()
-            ->where('branch_id', $data->branchId)
-            ->where('idempotency_key', $data->idempotencyKey);
+            ->where('branch_id', $branchId)
+            ->where('idempotency_key', $idempotencyKey);
 
         if ($lock) {
             $query->lockForUpdate();
         }
 
         return $query->first();
+    }
+
+    private function findExisting(CustomerOrderData $data, bool $lock = false): ?Order
+    {
+        return $this->findExistingByKey($data->branchId, $data->idempotencyKey, $lock);
     }
 
     private function isIdempotencyViolation(QueryException $exception): bool

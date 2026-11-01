@@ -69,10 +69,17 @@ class QuoteDelivery
         $options = [];
 
         foreach ($rates as $rate) {
+            // price hilang/non-numerik/nol berarti opsi tidak valid — bukan gratis.
+            $price = $rate['price'] ?? null;
+
+            if (! is_numeric($price) || (int) round((float) $price) <= 0) {
+                continue;
+            }
+
             $options[] = [
                 'courier_name' => (string) ($rate['courier_name'] ?? 'Tidak diketahui'),
                 'courier_service' => (string) ($rate['courier_service_name'] ?? ''),
-                'fee' => (int) round((float) ($rate['price'] ?? 0)),
+                'fee' => (int) round((float) $price),
                 'etd' => isset($rate['duration']) ? (string) $rate['duration'] : null,
             ];
         }

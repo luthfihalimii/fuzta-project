@@ -20,7 +20,6 @@ class CustomerOrderPayload
         $order->loadMissing(['items.modifiers']);
 
         return [
-            'id' => $order->id,
             'order_number' => $order->order_number,
             'branch_id' => $order->branch_id,
             'token' => $order->public_token,
@@ -41,7 +40,6 @@ class CustomerOrderPayload
             'created_at' => $order->created_at?->toIso8601String(),
             'items' => $order->items
                 ->map(fn (OrderItem $item) => [
-                    'id' => $item->id,
                     'product_name' => $item->product_name,
                     'variant_name' => $item->variant_name,
                     'quantity' => $item->quantity,

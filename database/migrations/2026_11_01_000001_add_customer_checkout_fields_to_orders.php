@@ -2,7 +2,6 @@
 
 use Illuminate\Database\Migrations\Migration;
 use Illuminate\Database\Schema\Blueprint;
-use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Schema;
 
 return new class extends Migration
@@ -26,19 +25,6 @@ return new class extends Migration
 
     public function down(): void
     {
-        // Order customer (placed_by_id NULL) tidak mungkin ada sebelum fitur ini;
-        // hapus agar placed_by_id bisa NOT NULL lagi saat rollback.
-        $customerOrderIds = DB::table('orders')->whereNull('placed_by_id')->pluck('id')->all();
-
-        if ($customerOrderIds !== []) {
-            DB::table('payments')->whereIn('order_id', $customerOrderIds)->delete();
-            DB::table('audit_logs')
-                ->where('target_type', 'App\\Modules\\Ordering\\Models\\Order')
-                ->whereIn('target_id', $customerOrderIds)
-                ->delete();
-            DB::table('orders')->whereIn('id', $customerOrderIds)->delete(); // items & status events cascade
-        }
-
         Schema::table('orders', function (Blueprint $table) {
             $table->dropUnique(['public_token']);
             $table->dropColumn([
@@ -53,7 +39,9 @@ return new class extends Migration
                 'delivery_status',
                 'tracking_url',
             ]);
-            $table->foreignId('placed_by_id')->nullable(false)->change();
+            // shortcut: saat rollback dibiarkan nullable karena order customer (placed_by_id NULL)
+            // adalah data legal; bila perlu schema lama persis, hapus order customer manual dulu.
+            $table->foreignId('placed_by_id')->nullable()->change();
         });
     }
 };

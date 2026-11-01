@@ -28,7 +28,9 @@ return new class extends Migration
         });
 
         Schema::table('audit_logs', function (Blueprint $table) {
-            $table->foreignId('actor_id')->nullable(false)->change();
+            // shortcut: saat rollback dibiarkan nullable karena audit actor NULL (aksi sistem)
+            // adalah data legal; bila perlu schema lama persis, hapus audit sistem manual dulu.
+            $table->foreignId('actor_id')->nullable()->change();
         });
 
         Schema::table('audit_logs', function (Blueprint $table) {

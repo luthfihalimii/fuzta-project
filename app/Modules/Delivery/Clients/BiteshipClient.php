@@ -3,6 +3,7 @@
 namespace App\Modules\Delivery\Clients;
 
 use Illuminate\Support\Facades\Http;
+use InvalidArgumentException;
 use RuntimeException;
 
 class BiteshipClient
@@ -70,6 +71,11 @@ class BiteshipClient
                 'couriers' => $couriers,
                 'items' => $items,
             ]);
+
+        // 4xx = parameter/area tidak valid (salah client) → bukan kegagalan upstream.
+        if ($response->status() >= 400 && $response->status() < 500) {
+            throw new InvalidArgumentException('Biteship menolak request rates (area/parameter tidak valid).');
+        }
 
         if ($response->failed()) {
             throw new RuntimeException('Biteship rates request failed.');
