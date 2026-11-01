@@ -104,7 +104,11 @@ export function deliveryStatusTone(status: string | null): Tone {
         return 'danger';
     }
 
-    if (status === 'requested' || status === 'on_hold' || status === 'return_in_transit') {
+    if (
+        status === 'requested' ||
+        status === 'on_hold' ||
+        status === 'return_in_transit'
+    ) {
         return 'warning';
     }
 
@@ -126,8 +130,8 @@ export function paymentMethodLabel(method: string | null): string {
     }
 
     return (
-        paymentMethods.find((item) => item.value === method)?.label
-            ?? otherMethodLabels[method]
-            ?? method
+        paymentMethods.find((item) => item.value === method)?.label ??
+        otherMethodLabels[method] ??
+        method
     );
 }

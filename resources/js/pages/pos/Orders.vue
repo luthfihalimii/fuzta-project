@@ -340,10 +340,14 @@ onUnmounted(() => {
                             Online · QRIS
                         </Badge>
                         <Badge
-                            v-if="order.channel === 'delivery' && order.delivery_status"
+                            v-if="
+                                order.channel === 'delivery' &&
+                                order.delivery_status
+                            "
                             :tone="deliveryStatusTone(order.delivery_status)"
                         >
-                            Kurir: {{ deliveryStatusLabel(order.delivery_status) }}
+                            Kurir:
+                            {{ deliveryStatusLabel(order.delivery_status) }}
                         </Badge>
                     </div>
 
