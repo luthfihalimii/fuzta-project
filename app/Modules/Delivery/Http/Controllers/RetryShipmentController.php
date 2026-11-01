@@ -35,8 +35,8 @@ class RetryShipmentController extends Controller
             $request->user(),
             'order.delivery_retried',
             $order,
-            ['delivery_status' => $order->delivery_status],
-            ['biteship_order_id' => $order->biteship_order_id],
+            ['delivery_status' => $order->delivery_status, 'retry_requested' => false],
+            ['delivery_status' => $order->delivery_status, 'retry_requested' => true],
         );
 
         return response()->json(['message' => 'Retry pengiriman dibuat antrekan.']);

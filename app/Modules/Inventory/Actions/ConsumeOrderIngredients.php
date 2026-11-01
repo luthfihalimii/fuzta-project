@@ -10,6 +10,7 @@ use App\Modules\Inventory\Models\StockMovement;
 use App\Modules\Ordering\Models\Order;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Validation\ValidationException;
+use LogicException;
 
 class ConsumeOrderIngredients
 {
@@ -17,8 +18,12 @@ class ConsumeOrderIngredients
         private readonly ResolveOrderRequirements $resolveRequirements,
     ) {}
 
-    public function __invoke(Order $order, User $actor): void
+    public function __invoke(Order $order, ?User $actor): void
     {
+        if ($actor === null) {
+            throw new LogicException('Konsumsi bahan (Preparing) mensyaratkan aktor: staff yang mengaprovesi pesanan.');
+        }
+
         $requirements = ($this->resolveRequirements)($order->loadMissing(['items.modifiers']));
 
         if ($requirements->isEmpty()) {

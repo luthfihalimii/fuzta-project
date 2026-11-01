@@ -40,6 +40,19 @@ class CreateBiteshipShipment
 
         $branch = $order->branch;
 
+        // Tanpa area cabang payload pasti ditolak provider — tandai failed
+        // tanpa memanggil API (log hanya order_id + reason, tanpa PII).
+        if ($branch->delivery_area_id === null || $branch->delivery_area_id === '') {
+            Log::warning('Pembuatan shipment Biteship gagal (cabang tanpa delivery_area_id).', [
+                'order_id' => $order->id,
+                'reason' => 'branch_delivery_area_missing',
+            ]);
+
+            $order->forceFill(['delivery_status' => 'failed'])->save();
+
+            return;
+        }
+
         $payload = [
             'reference_id' => $order->order_number,
             'shipper_contact_name' => (string) config('services.biteship.shipper_name', ''),

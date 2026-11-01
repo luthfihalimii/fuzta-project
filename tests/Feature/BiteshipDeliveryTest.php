@@ -3,10 +3,12 @@
 namespace Tests\Feature;
 
 use App\Models\User;
+use App\Modules\Audit\Models\AuditLog;
 use App\Modules\Branches\Models\Branch;
 use App\Modules\Catalog\Models\Product;
 use App\Modules\Delivery\Actions\CreateBiteshipShipment;
 use App\Modules\Delivery\Jobs\CreateShipmentJob;
+use App\Modules\Inventory\Actions\ConsumeOrderIngredients;
 use App\Modules\Kitchen\Actions\TransitionOrderStatus;
 use App\Modules\Ordering\Enums\OrderChannel;
 use App\Modules\Ordering\Enums\OrderStatus;
@@ -18,7 +20,9 @@ use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Event;
 use Illuminate\Support\Facades\Http;
+use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Facades\Queue;
+use LogicException;
 use Tests\TestCase;
 
 class BiteshipDeliveryTest extends TestCase
@@ -188,6 +192,68 @@ class BiteshipDeliveryTest extends TestCase
         Http::assertSentCount(2);
     }
 
+    public function test_duplicate_reference_adopted_on_retry_after_provider_error(): void
+    {
+        // 500 (provider down) → failed; retry dapat 400 duplicate
+        // reference (40002060) → adopsi order kurir yang sudah ada.
+        Http::fake(['api.biteship.com/v1/orders' => Http::sequence()
+            ->push(['error' => 'down'], 500)
+            ->push([
+                'error_code' => 40002060,
+                'details' => ['order_id' => 'BIT-9', 'waybill_id' => 'WB9', 'reference_id' => 'PF-0001'],
+            ], 400)]);
+        $order = $this->deliveryOrder(['status' => OrderStatus::Ready]);
+        $job = new CreateShipmentJob($order->id);
+        $action = app(CreateBiteshipShipment::class);
+
+        $job->handle($action);
+        $this->assertSame('failed', $order->fresh()->delivery_status);
+
+        $job->handle($action);
+
+        $fresh = $order->fresh();
+        $this->assertSame('BIT-9', $fresh->biteship_order_id);
+        $this->assertSame('https://track.biteship.com/WB9', $fresh->tracking_url);
+        $this->assertSame('requested', $fresh->delivery_status);
+        Http::assertSentCount(2);
+    }
+
+    public function test_4xx_other_than_duplicate_reference_stays_failed(): void
+    {
+        // Ada field `code`, tapi bukan 40002060 → tetap gagal.
+        Http::fake(['api.biteship.com/v1/orders' => Http::response([
+            'code' => 40002003,
+            'message' => 'kurir tidak valid',
+        ], 400)]);
+        $order = $this->deliveryOrder(['status' => OrderStatus::Ready]);
+
+        (new CreateShipmentJob($order->id))->handle(app(CreateBiteshipShipment::class));
+
+        $fresh = $order->fresh();
+        $this->assertSame('failed', $fresh->delivery_status);
+        $this->assertNull($fresh->biteship_order_id);
+    }
+
+    public function test_branch_without_delivery_area_fails_without_provider_call(): void
+    {
+        Http::fake();
+        $order = $this->deliveryOrder(['status' => OrderStatus::Ready]);
+        $order->branch->forceFill(['delivery_area_id' => null])->save();
+
+        Log::shouldReceive('warning')
+            ->once()
+            ->withArgs(fn (string $message, array $context): bool => (int) ($context['order_id'] ?? 0) === (int) $order->id
+                && ($context['reason'] ?? null) === 'branch_delivery_area_missing'
+                && array_keys($context) === ['order_id', 'reason']);
+
+        (new CreateShipmentJob($order->id))->handle(app(CreateBiteshipShipment::class));
+
+        Http::assertNothingSent();
+
+        $this->assertSame('failed', $order->fresh()->delivery_status);
+        $this->assertNull($order->fresh()->biteship_order_id);
+    }
+
     // ============ webhook ============
 
     public function test_webhook_rejects_wrong_or_missing_header(): void
@@ -281,6 +347,53 @@ class BiteshipDeliveryTest extends TestCase
         Event::assertNotDispatched(OrderStatusChanged::class);
     }
 
+    public function test_webhook_delivered_unpaid_preparing_keeps_status_without_transition(): void
+    {
+        // Transisi delivered → Completed tak diizinkan dari Preparing →
+        // status kurir tetap harus tersimpan, tanpa exception.
+        Event::fake([OrderStatusChanged::class]);
+        $order = $this->deliveryOrder(['status' => OrderStatus::Preparing, 'biteship_order_id' => 'BIT-1']);
+        $order->forceFill(['payment_status' => PaymentStatus::Unpaid])->save();
+        $order->payment?->forceFill(['status' => PaymentStatus::Pending])->save();
+
+        $this->postJson('/api/v1/webhooks/biteship', [
+            'event' => 'order.status',
+            'order_id' => 'BIT-1',
+            'status' => 'delivered',
+        ], ['X-Biteship-Signature' => self::BITESHIP['webhook_secret']])
+            ->assertOk();
+
+        $fresh = $order->fresh();
+        $this->assertSame('delivered', $fresh->delivery_status);
+        $this->assertSame(OrderStatus::Preparing, $fresh->status);
+        Event::assertNotDispatched(OrderStatusChanged::class);
+    }
+
+    public function test_webhook_delivered_ready_unpaid_logs_rejected_transition(): void
+    {
+        // Graf mengizinkan (Ready → Completed), tapi unpaid →
+        // TransitionOrderStatus abort 422; status kurir tak boleh hilang.
+        $order = $this->deliveryOrder(['status' => OrderStatus::Ready, 'biteship_order_id' => 'BIT-1']);
+        $order->forceFill(['payment_status' => PaymentStatus::Unpaid])->save();
+
+        Log::shouldReceive('warning')
+            ->once()
+            ->withArgs(fn (string $message, array $context): bool => str_contains($message, 'ditolak')
+                && (int) ($context['order_id'] ?? 0) === (int) $order->id
+                && array_keys($context) === ['order_id', 'exception']);
+
+        $this->postJson('/api/v1/webhooks/biteship', [
+            'event' => 'order.status',
+            'order_id' => 'BIT-1',
+            'status' => 'delivered',
+        ], ['X-Biteship-Signature' => self::BITESHIP['webhook_secret']])
+            ->assertOk();
+
+        $fresh = $order->fresh();
+        $this->assertSame('delivered', $fresh->delivery_status);
+        $this->assertSame(OrderStatus::Ready, $fresh->status);
+    }
+
     public function test_webhook_waybill_event_updates_tracking_url(): void
     {
         $order = $this->deliveryOrder(['status' => OrderStatus::Ready, 'biteship_order_id' => 'BIT-1', 'delivery_status' => 'allocated', 'tracking_url' => null]);
@@ -296,6 +409,40 @@ class BiteshipDeliveryTest extends TestCase
         $fresh = $order->fresh();
         $this->assertSame('picked', $fresh->delivery_status);
         $this->assertSame('https://track.biteship.com/WB-NEW', $fresh->tracking_url);
+    }
+
+    public function test_webhook_exotic_status_stored_as_unknown_without_500(): void
+    {
+        // >32 char (kolom string(32)) dan uppercase → `unknown`; log
+        // hanya order_id + panjang mentah, bukan isinya.
+        $order = $this->deliveryOrder(['status' => OrderStatus::Ready, 'biteship_order_id' => 'BIT-1']);
+
+        Log::shouldReceive('warning')
+            ->times(2)
+            ->withArgs(fn (string $message, array $context): bool => (int) ($context['order_id'] ?? 0) === (int) $order->id
+                && array_keys($context) === ['order_id', 'raw_length']);
+
+        foreach ([str_repeat('x', 60), 'DELIVERED'] as $raw) {
+            $this->postJson('/api/v1/webhooks/biteship', [
+                'event' => 'order.status',
+                'order_id' => 'BIT-1',
+                'status' => $raw,
+            ], ['X-Biteship-Signature' => self::BITESHIP['webhook_secret']])
+                ->assertOk();
+
+            $this->assertSame('unknown', $order->fresh()->delivery_status);
+        }
+    }
+
+    // ============ konsumsi bahan ============
+
+    public function test_consume_order_ingredients_requires_actor(): void
+    {
+        $order = $this->deliveryOrder(['status' => OrderStatus::Accepted]);
+
+        $this->expectException(LogicException::class);
+
+        app(ConsumeOrderIngredients::class)($order, null);
     }
 
     // ============ retry ============
@@ -322,6 +469,15 @@ class BiteshipDeliveryTest extends TestCase
             'target_id' => $order->id,
             'actor_id' => $owner->id,
         ]);
+
+        // before/after harus sama kuncinya.
+        $audit = AuditLog::query()
+            ->where('action', 'order.delivery_retried')
+            ->where('target_id', $order->id)
+            ->firstOrFail();
+
+        $this->assertSame(['delivery_status' => 'failed', 'retry_requested' => false], $audit->before);
+        $this->assertSame(['delivery_status' => 'failed', 'retry_requested' => true], $audit->after);
 
         // Bukan failed → 422.
         $done = $this->deliveryOrder(['status' => OrderStatus::Ready, 'biteship_order_id' => 'BIT-2', 'delivery_status' => 'delivered']);

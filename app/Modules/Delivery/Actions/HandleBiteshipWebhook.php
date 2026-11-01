@@ -6,15 +6,20 @@ use App\Modules\Kitchen\Actions\TransitionOrderStatus;
 use App\Modules\Ordering\Enums\OrderStatus;
 use App\Modules\Ordering\Models\Order;
 use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\Log;
+use Throwable;
 
 /**
  * Proses payload webhook Biteship (event order.status / order.waybill_id /
  * order.price; semua membawa `order_id` + opsional `status`/`courier_waybill_id`).
  *
- * Idempotent: update kolom apa adanya; `delivered` hanya transisi sekali
- * (guard status order). Unknown `biteship_order_id` → 404 (Biteship berhenti
- * retry pada 4xx). Order tetap transitioned lewat state machine eksisting
- * (tanpa konsumsi bahan — konsumsi hanya di `Preparing`).
+ * `delivery_status`/`tracking_url` di-commit di transaksi sendiri; baru
+ * setelah commit dicoba transisi `delivered → Completed` (hanya bila graf
+ * status mengizinkan; penolakan dilog, bukan gagal webhook — status kurir
+ * tidak boleh hilang hanya karena transisi ditolak). Idempotent; unknown
+ * `biteship_order_id` → 404 (Biteship berhenti retry pada 4xx). Order tetap
+ * transitioned lewat state machine eksisting (tanpa konsumsi bahan —
+ * konsumsi hanya di `Preparing`).
  */
 class HandleBiteshipWebhook
 {
@@ -33,7 +38,10 @@ class HandleBiteshipWebhook
             abort(422, 'Payload webhook tidak valid.');
         }
 
-        DB::transaction(function () use ($biteshipOrderId, $payload): void {
+        $order = null;
+        $storedStatus = '';
+
+        DB::transaction(function () use ($biteshipOrderId, $payload, &$order, &$storedStatus): void {
             $order = Order::query()
                 ->where('biteship_order_id', $biteshipOrderId)
                 ->lockForUpdate()
@@ -43,10 +51,11 @@ class HandleBiteshipWebhook
                 abort(404, 'Order Biteship tidak ditemukan.');
             }
 
-            $status = (string) ($payload['status'] ?? '');
+            $raw = (string) ($payload['status'] ?? '');
 
-            if ($status !== '') {
-                $order->forceFill(['delivery_status' => $status])->save();
+            if ($raw !== '') {
+                $storedStatus = $this->normalizeStatus($raw, (int) $order->id);
+                $order->forceFill(['delivery_status' => $storedStatus])->save();
             }
 
             // Tracking link dibangun dari waybill id (lihat plan Task 5).
@@ -55,13 +64,44 @@ class HandleBiteshipWebhook
             if (is_string($waybill) && $waybill !== '') {
                 $order->forceFill(['tracking_url' => "https://track.biteship.com/{$waybill}"])->save();
             }
-
-            if ($status === 'delivered'
-                && $order->status !== OrderStatus::Completed
-                && $order->status !== OrderStatus::Cancelled) {
-                // Aktor null = transisi sistem (baris event actor_id null).
-                ($this->transition)($order, null, OrderStatus::Completed);
-            }
         });
+
+        if ($storedStatus !== 'delivered' || $order === null) {
+            return;
+        }
+
+        // Transisi hanya bila graf status mengizinkan; penolakan (mis.
+        // belum paid) dilog tanpa PII — webhook tetap sukses karena status
+        // kurir sudah ter-commit di atas.
+        if (! in_array(OrderStatus::Completed, $order->status->allowedNext(), true)) {
+            return;
+        }
+
+        try {
+            ($this->transition)($order, null, OrderStatus::Completed);
+        } catch (Throwable $e) {
+            Log::warning('Webhook Biteship: transisi delivered → completed ditolak (status kurir tetap tersimpan).', [
+                'order_id' => (int) $order->id,
+                'exception' => $e::class,
+            ]);
+        }
+    }
+
+    /**
+     * Kolom `delivery_status` = string(32): terima `[a-z_]{1,32}`, selain itu
+     * `unknown` (log order_id + panjang mentah saja, tidak log isinya).
+     */
+    private function normalizeStatus(string $status, int $orderId): string
+    {
+        if (preg_match('/^[a-z_]{1,32}$/', $status) !== 1) {
+            Log::warning('Webhook Biteship: status tidak dikenal, disimpan sebagai unknown.', [
+                'order_id' => $orderId,
+                'raw_length' => mb_strlen($status),
+            ]);
+
+            return 'unknown';
+        }
+
+        return $status;
     }
 }

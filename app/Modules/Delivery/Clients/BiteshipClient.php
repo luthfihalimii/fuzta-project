@@ -113,8 +113,30 @@ class BiteshipClient
             throw new RuntimeException('Biteship order connection failed.');
         }
 
-        // 4xx = payload/kurir tidak valid (miskonfigurasi data kita sendiri).
         if ($response->status() >= 400 && $response->status() < 500) {
+            // 40002060 = reference_id sudah dipakai: order kurirnya sudah ada
+            // (biasanya respons sukses terlewat, mis. timeout) → adopsi order
+            // lama, bukan gagal. Bentuk resmi docs memakai `code` +
+            // `details.{order_id,waybill_id}`; `error_code` dikenali agar
+            // varian plan tetap jalan. 4xx lain tetap ditolak.
+            if ((int) $response->json('code') === 40002060
+                || (int) $response->json('error_code') === 40002060) {
+                $id = (string) ($response->json('details.order_id') ?? $response->json('id') ?? '');
+
+                if ($id === '') {
+                    throw new RuntimeException('Biteship duplicate-reference response missing order id.');
+                }
+
+                $waybill = (string) ($response->json('details.waybill_id') ?? $response->json('courier.waybill_id') ?? '');
+
+                return [
+                    'id' => $id,
+                    'courier_name' => '',
+                    'courier_service' => '',
+                    'tracking_url' => $waybill !== '' ? "https://track.biteship.com/{$waybill}" : null,
+                ];
+            }
+
             throw new InvalidArgumentException('Biteship menolak pembuatan order (payload/kurir tidak valid).');
         }
 
