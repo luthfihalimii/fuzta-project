@@ -77,9 +77,15 @@ class CheckoutController extends Controller
 
         $branchId = (int) $request->validated('branch_id');
 
+        // Login opsional: middleware customer.auth:optional hanya mengisi
+        // atribut ini bila bearer valid; guest tetap checksum tanpa akun.
+        // customer_id dari body tidak pernah dipercaya.
+        $customerId = $request->attributes->get('customer')?->id;
+
         // Replay key yang sudah ada: langsung kembalikan order lama — tanpa harga/quote
         // (Biteship down pun tidak boleh menghalangi melihat order yang sudah dibuat).
-        $order = $this->createCustomerOrder->findExistingByKey($branchId, $idempotencyKey);
+        // Key milik customer lain → 409 (guard di dalam findExistingByKey).
+        $order = $this->createCustomerOrder->findExistingByKey($branchId, $idempotencyKey, $customerId);
 
         if ($order === null) {
             $items = $request->validated('items');
@@ -134,6 +140,7 @@ class CheckoutController extends Controller
                 courierService: $courierService,
                 items: $items,
                 idempotencyKey: $idempotencyKey,
+                customerId: $customerId,
             ));
         }
 

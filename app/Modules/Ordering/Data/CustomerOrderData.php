@@ -20,5 +20,6 @@ readonly class CustomerOrderData
         public ?string $courierService,
         public array $items,
         public string $idempotencyKey,
+        public ?int $customerId = null,
     ) {}
 }

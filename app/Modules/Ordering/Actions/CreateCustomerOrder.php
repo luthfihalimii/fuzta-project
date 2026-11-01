@@ -74,6 +74,7 @@ class CreateCustomerOrder
                     'order_number' => ($this->generateOrderNumber)($branch),
                     'branch_id' => $data->branchId,
                     'placed_by_id' => null,
+                    'customer_id' => $data->customerId,
                     'shift_id' => null,
                     'channel' => $data->fulfillment === 'delivery' ? OrderChannel::Delivery : OrderChannel::Takeaway,
                     'customer_name' => $data->customerName,
@@ -135,9 +136,11 @@ class CreateCustomerOrder
     /**
      * Cari order berdasarkan kunci idempoten per cabang (dipakai controller
      * untuk replay cepat sebelum harga/quote; tetap dipanggil ulang di
-     * dalam transaksi sebagai pertahanan kedua).
+     * dalam transaksi sebagai pertahanan kedua). Kunci milik customer
+     * lain (termasuk tamu null vs customer) → 409; order lama tidak
+     * boleh disentuh.
      */
-    public function findExistingByKey(int $branchId, string $idempotencyKey, bool $lock = false): ?Order
+    public function findExistingByKey(int $branchId, string $idempotencyKey, ?int $customerId = null, bool $lock = false): ?Order
     {
         $query = Order::query()
             ->where('branch_id', $branchId)
@@ -147,12 +150,18 @@ class CreateCustomerOrder
             $query->lockForUpdate();
         }
 
-        return $query->first();
+        $order = $query->first();
+
+        if ($order !== null && $order->customer_id !== $customerId) {
+            abort(409, 'Kunci idempotensi sudah dipakai.');
+        }
+
+        return $order;
     }
 
     private function findExisting(CustomerOrderData $data, bool $lock = false): ?Order
     {
-        return $this->findExistingByKey($data->branchId, $data->idempotencyKey, $lock);
+        return $this->findExistingByKey($data->branchId, $data->idempotencyKey, $data->customerId, $lock);
     }
 
     private function isIdempotencyViolation(QueryException $exception): bool

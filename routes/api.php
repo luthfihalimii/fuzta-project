@@ -5,6 +5,7 @@ use App\Modules\Catalog\Http\Controllers\Api\CatalogProductController;
 use App\Modules\Customers\Http\Controllers\Api\AddressController;
 use App\Modules\Customers\Http\Controllers\Api\AuthController;
 use App\Modules\Customers\Http\Controllers\Api\MeController;
+use App\Modules\Customers\Http\Controllers\Api\OrderHistoryController;
 use App\Modules\Delivery\Http\Controllers\BiteshipWebhookController;
 use App\Modules\Delivery\Http\Controllers\DeliveryAreaController;
 use App\Modules\Ordering\Http\Controllers\Api\CheckoutController;
@@ -25,7 +26,9 @@ Route::prefix('v1')->group(function (): void {
     });
 
     // Mutasi lebih ketat: 10/menit per IP (plan Task 3).
-    Route::middleware('throttle:customer-checkout')->group(function (): void {
+    // customer.auth:optional: guest tetap jalan; bearer invalid/expired
+    // tetap 401 (middleware), bearer valid menghubungkan order ke akun.
+    Route::middleware(['customer.auth:optional', 'throttle:customer-checkout'])->group(function (): void {
         Route::post('/checkout/quote', [CheckoutController::class, 'quote']);
         Route::post('/orders', [CheckoutController::class, 'store']);
     });
@@ -49,6 +52,7 @@ Route::prefix('v1')->group(function (): void {
         Route::post('/me/addresses', [AddressController::class, 'store']);
         Route::patch('/me/addresses/{address}', [AddressController::class, 'update'])->whereNumber('address');
         Route::delete('/me/addresses/{address}', [AddressController::class, 'destroy'])->whereNumber('address');
+        Route::get('/me/orders', OrderHistoryController::class);
     });
 
     // Webhook DOKU: tanpa throttle/auth — verifikasi signature HMAC (di

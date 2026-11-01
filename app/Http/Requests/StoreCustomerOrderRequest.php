@@ -2,6 +2,7 @@
 
 namespace App\Http\Requests;
 
+use App\Modules\Customers\Models\Customer;
 use Illuminate\Foundation\Http\FormRequest;
 use Illuminate\Validation\Rule;
 
@@ -10,6 +11,21 @@ class StoreCustomerOrderRequest extends FormRequest
     public function authorize(): bool
     {
         return true;
+    }
+
+    public function prepareForValidation(): void
+    {
+        // Profil otoritatif saat bearer valid (middleware customer.auth
+        // meng-isi atribut ini): kontak body diabaikan agar pesanan
+        // tidak dikirim atas nama orang lain.
+        $customer = $this->attributes->get('customer');
+
+        if ($customer instanceof Customer) {
+            $this->merge([
+                'customer_name' => $customer->name,
+                'customer_phone' => $customer->phone,
+            ]);
+        }
     }
 
     /**
