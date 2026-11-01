@@ -5,6 +5,7 @@ use App\Modules\Catalog\Http\Controllers\Api\CatalogProductController;
 use App\Modules\Delivery\Http\Controllers\BiteshipWebhookController;
 use App\Modules\Delivery\Http\Controllers\DeliveryAreaController;
 use App\Modules\Ordering\Http\Controllers\Api\CheckoutController;
+use App\Modules\Ordering\Http\Controllers\Api\CustomerOrderController;
 use App\Modules\Payments\Http\Controllers\Api\DokuWebhookController;
 use Illuminate\Support\Facades\Route;
 
@@ -17,6 +18,7 @@ Route::prefix('v1')->group(function (): void {
         Route::get('/branches', [BranchApiController::class, 'index']);
         Route::get('/products', [CatalogProductController::class, 'index']);
         Route::get('/delivery/areas', [DeliveryAreaController::class, 'index']);
+        Route::get('/orders/{token}', [CustomerOrderController::class, 'show']);
     });
 
     // Mutasi lebih ketat: 10/menit per IP (plan Task 3).

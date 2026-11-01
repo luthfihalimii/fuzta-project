@@ -2,7 +2,7 @@
 
 Digital ordering and branch operations for two Pizza Fruzta branches: POS with cashier shifts, kitchen display, catalog, inventory ledger, reports, and audit. One Laravel application serves the Inertia/Vue staff UI; the same domain actions are intended to back the future `/api/v1` and mobile clients.
 
-This repository is the first-release MVP. Payment is recorded in the app (cash or static QRIS); there is no payment gateway integration, delivery, loyalty, or customer mobile app yet.
+This repository is the first-release MVP. The staff UI records payments in the app (cash or static QRIS); the public customer API (`/api/v1`) adds online QRIS payment via DOKU and delivery via Biteship. There is no loyalty feature or customer mobile app yet.
 
 ## Requirements
 
@@ -78,6 +78,36 @@ The PHP suite uses the `pizza_fruzta_test` database (create it once). Do not run
 
 Dev membutuhkan dua proses tambahan: `php artisan reverb:start --debug` (WebSocket server di `127.0.0.1:8080`; nilai env `REVERB_*`/`VITE_REVERB_*` sudah dev-stable di `.env.example`) dan `php artisan queue:work` (broadcast dikirim lewat queue karena `QUEUE_CONNECTION=database`; tanpa worker, layar dapur/POS tidak menerima event).
 Deploy produksi mengikuti checklist di [docs/superpowers/specs/2026-10-29-realtime-kitchen-pos-design.md](docs/superpowers/specs/2026-10-29-realtime-kitchen-pos-design.md).
+
+## Customer API (`/api/v1`)
+
+API publik untuk customer: katalog, checkout (pickup/delivery), bayar QRIS via DOKU, pengiriman via Biteship. Kontrak lengkap (request/response, aturan `Idempotency-Key`, status) ada di `docs/api.md`.
+
+Variabel env yang disyaratkan (lihat `.env.example`):
+
+- DOKU: `DOKU_CLIENT_ID`, `DOKU_SECRET_KEY`, `DOKU_BASE_URL`, `DOKU_NOTIFICATION_PATH`, `DOKU_PAYMENT_DUE_MINUTES`.
+- Biteship: `BITESHIP_API_KEY`, `BITESHIP_BASE_URL`, `BITESHIP_COURIERS`, `BITESHIP_SHIPPER_NAME`/`BITESHIP_SHIPPER_PHONE`/`BITESHIP_SHIPPER_EMAIL`, `BITESHIP_WEBHOOK_KEY` (nama custom header), `BITESHIP_WEBHOOK_SECRET` (isi header).
+- `CORS_ALLOWED_ORIGINS`: daftar domain (pisahkan koma) yang boleh memanggil API. **Produksi wajib diisi domain frontend yang asli** (dev default `*`).
+
+URL webhook yang daftarkan (HTTPS publik, bukan untuk frontend):
+
+- DOKU notification URL: `https://<domain>/api/v1/webhooks/doku` — path harus sama dengan `DOKU_NOTIFICATION_PATH`.
+- Biteship webhook (dashboard → Integrations → Webhook): URL `https://<domain>/api/v1/webhooks/biteship`, dengan satu custom header — **nama header sama persis dengan `BITESHIP_WEBHOOK_KEY` (default `X-Biteship-Signature`) dan isi header sama persis dengan `BITESHIP_WEBHOOK_SECRET`**. Verifikasi di server = `hash_equals(secret, isi header)`; salah → 403.
+
+Tiga proses yang harus jalan di produksi (di samping web server):
+
+1. `php artisan queue:work` — job shipment Biteship + broadcast realtime.
+2. `php artisan reverb:start` — WebSocket (lihat Realtime).
+3. Scheduler — cron `* * * * * php artisan schedule:run` (atau `schedule:work`); menjalankan `orders:expire-unpaid` tiap 10 menit yang membatalkan order online unpaid lewat jatuh tempo bayar.
+
+Prasyarat ops sebelum pilot:
+
+- Akun DOKU (mulai dari sandbox) + Client-Id/Secret, notification URL sudah dipasang (lihat di atas).
+- Akun Biteship dengan API key **dan saldo** (Biteship menagih per pengiriman; ongkir sudah dibayar customer ke kita lewat DOKU — kita mengambalikan ke Biteship belakangan).
+- Berat produk: `weight_grams` diisi di admin katalog (fallback 500 g saat quote/shipment — kurangi kejanggalan ongkir).
+- Area Biteship: `delivery_area_id` diisi per cabang yang melayani delivery (admin branches), plus area tujuan customer diambil dari pencarian `/delivery/areas`.
+- Catatan service instan (Gojek/Grab Express): aplikasi ini hanya mengirim area id Biteship (bukan koordinat asal/tujuan). Verifikasi saat pilot apakah kurir instan tetap bisa di-quote untuk wilayah cabang; bila Biteship menolaknya untuk wilayah tertentu, opsi instan tidak muncul di quote/checkout dan delivery tetap bisa pakai kurir standar (JNE/JNT/dsb.).
+- Pembatalan/refund order online manual: kasir/owner batalkan order + refund manual via dashboard DOKU (modul refund otomatis bukan MVP).
 
 ## Project layout
 
