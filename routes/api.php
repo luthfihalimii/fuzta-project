@@ -2,7 +2,9 @@
 
 use App\Modules\Branches\Http\Controllers\Api\BranchApiController;
 use App\Modules\Catalog\Http\Controllers\Api\CatalogProductController;
+use App\Modules\Customers\Http\Controllers\Api\AddressController;
 use App\Modules\Customers\Http\Controllers\Api\AuthController;
+use App\Modules\Customers\Http\Controllers\Api\MeController;
 use App\Modules\Delivery\Http\Controllers\BiteshipWebhookController;
 use App\Modules\Delivery\Http\Controllers\DeliveryAreaController;
 use App\Modules\Ordering\Http\Controllers\Api\CheckoutController;
@@ -37,6 +39,17 @@ Route::prefix('v1')->group(function (): void {
     // customer.auth dulu agar limiter customer-me bisa keyed by customer id.
     Route::post('/auth/logout', [AuthController::class, 'logout'])
         ->middleware(['customer.auth', 'throttle:customer-me']);
+
+    // Profil & alamat tersimpan: urutan middleware sama — atribut
+    // customer harus ada sebelum limiter per customer id dijalankan.
+    Route::middleware(['customer.auth', 'throttle:customer-me'])->group(function (): void {
+        Route::get('/me', [MeController::class, 'show']);
+        Route::patch('/me', [MeController::class, 'update']);
+        Route::get('/me/addresses', [AddressController::class, 'index']);
+        Route::post('/me/addresses', [AddressController::class, 'store']);
+        Route::patch('/me/addresses/{address}', [AddressController::class, 'update'])->whereNumber('address');
+        Route::delete('/me/addresses/{address}', [AddressController::class, 'destroy'])->whereNumber('address');
+    });
 
     // Webhook DOKU: tanpa throttle/auth — verifikasi signature HMAC (di
     // controller) adalah gerbang. Throttle per IP berisiko memblokir retry
