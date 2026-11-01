@@ -47,6 +47,11 @@ Schedule::command('orders:expire-unpaid')
     ->timezone('Asia/Jakarta')
     ->withoutOverlapping();
 
+Schedule::command('customers:prune-tokens')
+    ->dailyAt('03:00')
+    ->timezone('Asia/Jakarta')
+    ->withoutOverlapping();
+
 if (config('backup.enabled')) {
     Schedule::command('backup:database')
         ->dailyAt(config('backup.time'))

@@ -37,6 +37,8 @@ class AuthenticateCustomer
         }
 
         $request->attributes->set('customer', $token->customer);
+        // Token persisnya dipakai — agar logout mencabut baris ini saja.
+        $request->attributes->set('customer_token', $token);
 
         // Maksimal 1x/jam: hindari write amplification di setiap request.
         if ($token->last_used_at === null || $token->last_used_at->lt(now()->subHour())) {

@@ -2,6 +2,7 @@
 
 use App\Modules\Branches\Http\Controllers\Api\BranchApiController;
 use App\Modules\Catalog\Http\Controllers\Api\CatalogProductController;
+use App\Modules\Customers\Http\Controllers\Api\AuthController;
 use App\Modules\Delivery\Http\Controllers\BiteshipWebhookController;
 use App\Modules\Delivery\Http\Controllers\DeliveryAreaController;
 use App\Modules\Ordering\Http\Controllers\Api\CheckoutController;
@@ -26,6 +27,16 @@ Route::prefix('v1')->group(function (): void {
         Route::post('/checkout/quote', [CheckoutController::class, 'quote']);
         Route::post('/orders', [CheckoutController::class, 'store']);
     });
+
+    // Akun customer: daftar & login (5/menit per IP).
+    Route::middleware('throttle:customer-auth')->group(function (): void {
+        Route::post('/auth/register', [AuthController::class, 'register']);
+        Route::post('/auth/login', [AuthController::class, 'login']);
+    });
+
+    // customer.auth dulu agar limiter customer-me bisa keyed by customer id.
+    Route::post('/auth/logout', [AuthController::class, 'logout'])
+        ->middleware(['customer.auth', 'throttle:customer-me']);
 
     // Webhook DOKU: tanpa throttle/auth — verifikasi signature HMAC (di
     // controller) adalah gerbang. Throttle per IP berisiko memblokir retry
