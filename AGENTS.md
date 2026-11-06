@@ -65,6 +65,10 @@ bun run check                # format + lint + types; drift format lolos commit 
 # Gerbang otoritatif — sama persis dengan CI (format, types, vitest, build, pint, phpunit):
 composer ci:check
 
+# Graph knowledge (graphify; artefak di graphify-out/, data inti = graph.json):
+graphify query "<question>"   # tanya struktur sistem dari graph.json
+graphify --update .           # rebuild inkremental setelah mengubah kode/dokumen
+
 # Mobile
 cd mobile && flutter pub get
 flutter analyze && flutter test

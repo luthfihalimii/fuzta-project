@@ -113,13 +113,13 @@ class StockMovementController extends Controller
      */
     private function stockRows(Branch $branch): array
     {
-        return Ingredient::query()
+        return array_values(Ingredient::query()
             ->with(['baseUnit', 'balances' => fn ($query) => $query->where('branch_id', $branch->id)])
             ->orderBy('name')
             ->get()
             ->map(function (Ingredient $ingredient) {
                 $balance = $ingredient->balances->first();
-                $quantity = (int) ($balance?->quantity ?? 0);
+                $quantity = (int) ($balance->quantity ?? 0);
 
                 return [
                     'ingredient_id' => $ingredient->id,
@@ -131,7 +131,7 @@ class StockMovementController extends Controller
                 ];
             })
             ->values()
-            ->all();
+            ->all());
     }
 
     /**
@@ -149,7 +149,7 @@ class StockMovementController extends Controller
             'type_label' => $movement->type->label(),
             'reason' => $movement->reason,
             'actor_name' => $movement->actor?->name,
-            'created_at' => $movement->created_at?->toIso8601String(),
+            'created_at' => $movement->created_at->toIso8601String(),
         ];
     }
 
@@ -158,7 +158,7 @@ class StockMovementController extends Controller
      */
     private function ingredientOptions(): array
     {
-        return Ingredient::query()
+        return array_values(Ingredient::query()
             ->with('baseUnit')
             ->orderBy('name')
             ->get()
@@ -168,7 +168,7 @@ class StockMovementController extends Controller
                 'unit' => $ingredient->baseUnit?->code,
             ])
             ->values()
-            ->all();
+            ->all());
     }
 
     private function targetBranchId(

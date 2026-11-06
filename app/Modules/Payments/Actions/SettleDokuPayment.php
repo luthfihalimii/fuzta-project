@@ -18,8 +18,9 @@ use Illuminate\Validation\ValidationException;
  * Lunasi order dari webhook DOKU SUCCESS. Idempotent + aman terhadap
  * webhook terlambat/kadaluarsa:
  * - nominal webhook !== order.total → 422 (log, tanpa PII), tidak paid;
- * - order dibatalkan / payment voided → tidak menghidupkan order, audit
- *   payment.late_payment SEKALI per payment (DOKU bisa retry notifikasi);
+ * - order dibatalkan / payment voided → tidak menghidupkan order; catat
+ *   payment.late_payment + event late_paid SEKALI per payment (DOKU bisa
+ *   retry notifikasi) sebagai jejak rekonsiliasi refund manual;
  * - payment sudah paid → no-op (replay aman);
  * - sukses → paid + broadcast OrderPaymentChanged SETELAH commit.
  *
@@ -94,6 +95,27 @@ class SettleDokuPayment
                             'invoice_number' => $invoiceNumber,
                         ],
                     );
+                }
+
+                $alreadyRecorded = $payment->events()
+                    ->where('type', PaymentEventType::LatePaid)
+                    ->exists();
+
+                if (! $alreadyRecorded) {
+                    $payment->events()->create([
+                        'type' => PaymentEventType::LatePaid,
+                        'amount' => $amount,
+                        'actor_id' => null,
+                        'reason' => 'Pembayaran diterima setelah order dibatalkan; refund manual via dashboard DOKU.',
+                    ]);
+                }
+
+                if (! $alreadyAudited) {
+                    Log::critical('Pembayaran DOKU masuk setelah pembatalan lokal.', [
+                        'payment_id' => $payment->id,
+                        'invoice_number' => $invoiceNumber,
+                        'amount' => $amount,
+                    ]);
                 }
 
                 return;

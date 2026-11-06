@@ -84,6 +84,9 @@ class RecipeController extends Controller
             'product' => Product::class,
             'product_variant' => ProductVariant::class,
             'modifier' => Modifier::class,
+            default => throw ValidationException::withMessages([
+                'recipeable_type' => 'Tipe resep tidak valid.',
+            ]),
         };
 
         $duplicate = Recipe::query()
@@ -175,12 +178,12 @@ class RecipeController extends Controller
     {
         $recipe->load('items.ingredient');
 
-        return $recipe->items
+        return array_values($recipe->items
             ->map(fn ($item) => [
                 'ingredient' => $item->ingredient?->name,
                 'quantity' => $item->quantity,
             ])
             ->values()
-            ->all();
+            ->all());
     }
 }

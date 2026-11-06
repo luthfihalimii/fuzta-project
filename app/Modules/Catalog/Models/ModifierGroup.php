@@ -25,11 +25,17 @@ class ModifierGroup extends Model
         ];
     }
 
+    /**
+     * @return HasMany<Modifier, $this>
+     */
     public function modifiers(): HasMany
     {
         return $this->hasMany(Modifier::class);
     }
 
+    /**
+     * @return BelongsToMany<Product, $this>
+     */
     public function products(): BelongsToMany
     {
         return $this->belongsToMany(Product::class, 'product_modifier_groups')

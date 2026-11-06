@@ -29,7 +29,7 @@ class MarkOrderPaid
         ?int $cashReceived = null,
     ): Payment {
         return DB::transaction(function () use ($order, $actor, $method, $cashReceived): Payment {
-            $locked = Order::query()->lockForUpdate()->findOrFail($order->getKey());
+            $locked = Order::query()->lockForUpdate()->findOrFail($order->id);
 
             $existing = $locked->payment()->first();
 

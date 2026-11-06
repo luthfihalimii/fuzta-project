@@ -61,6 +61,25 @@ class OrderPayload
     }
 
     /**
+     * Payload dapur: tanpa detail uang tunai (kasir saja yang butuh).
+     *
+     * @return array<string, mixed>
+     */
+    public function forKitchen(Order $order): array
+    {
+        $payload = $this($order);
+
+        if (is_array($payload['payment'] ?? null)) {
+            unset(
+                $payload['payment']['cash_received'],
+                $payload['payment']['change_amount'],
+            );
+        }
+
+        return $payload;
+    }
+
+    /**
      * @return array<string, mixed>|null
      */
     private function payment(?Payment $payment): ?array

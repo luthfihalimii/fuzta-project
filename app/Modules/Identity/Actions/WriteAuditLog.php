@@ -9,6 +9,29 @@ use Illuminate\Database\Eloquent\Model;
 class WriteAuditLog
 {
     /**
+     * Cocokkan substring, bukan exact key: variasi seperti access_token,
+     * customer_phone, atau client_secret tetap teredaksi.
+     */
+    private const SENSITIVE_KEY_PATTERNS = [
+        'password',
+        'token',
+        'secret',
+        'api_key',
+        'apikey',
+        'authorization',
+        'customer_phone',
+        'customer_address',
+        'delivery_address',
+        'recipient_phone',
+        'card_number',
+        'cardholder',
+        'cvv',
+        'cvc',
+        'account_number',
+        'iban',
+    ];
+
+    /**
      * @param  array<string, mixed>  $before
      * @param  array<string, mixed>  $after
      */
@@ -42,20 +65,15 @@ class WriteAuditLog
      */
     private function safe(array $values): array
     {
-        $blocked = [
-            'password',
-            'password_confirmation',
-            'remember_token',
-            'token',
-            'secret',
-            'api_key',
-        ];
-
         $safe = [];
 
         foreach ($values as $key => $value) {
-            if (in_array(strtolower((string) $key), $blocked, true)) {
-                continue;
+            $keyName = strtolower((string) $key);
+
+            foreach (self::SENSITIVE_KEY_PATTERNS as $pattern) {
+                if (str_contains($keyName, $pattern)) {
+                    continue 2;
+                }
             }
 
             $safe[$key] = is_array($value) ? $this->safe($value) : $value;

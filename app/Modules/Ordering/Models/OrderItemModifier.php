@@ -25,11 +25,17 @@ class OrderItemModifier extends Model
         ];
     }
 
+    /**
+     * @return BelongsTo<OrderItem, $this>
+     */
     public function item(): BelongsTo
     {
         return $this->belongsTo(OrderItem::class, 'order_item_id');
     }
 
+    /**
+     * @return BelongsTo<Modifier, $this>
+     */
     public function modifier(): BelongsTo
     {
         return $this->belongsTo(Modifier::class);

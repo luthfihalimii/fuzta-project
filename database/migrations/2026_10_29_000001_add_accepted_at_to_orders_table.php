@@ -8,11 +8,15 @@ return new class extends Migration
 {
     public function up(): void
     {
-        Schema::table('orders', fn (Blueprint $table) => $table->timestamp('accepted_at')->nullable()->after('payment_status'));
+        Schema::table('orders', function (Blueprint $table): void {
+            $table->timestamp('accepted_at')->nullable()->after('payment_status');
+        });
     }
 
     public function down(): void
     {
-        Schema::table('orders', fn (Blueprint $table) => $table->dropColumn('accepted_at'));
+        Schema::table('orders', function (Blueprint $table): void {
+            $table->dropColumn('accepted_at');
+        });
     }
 };

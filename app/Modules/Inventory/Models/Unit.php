@@ -14,6 +14,9 @@ class Unit extends Model
     /** @use HasFactory<UnitFactory> */
     use HasFactory;
 
+    /**
+     * @return HasMany<Ingredient, $this>
+     */
     public function ingredients(): HasMany
     {
         return $this->hasMany(Ingredient::class, 'base_unit_id');

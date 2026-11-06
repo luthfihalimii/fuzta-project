@@ -15,11 +15,17 @@ class Recipe extends Model
     /** @use HasFactory<RecipeFactory> */
     use HasFactory;
 
+    /**
+     * @return MorphTo<Model, $this>
+     */
     public function recipeable(): MorphTo
     {
         return $this->morphTo();
     }
 
+    /**
+     * @return HasMany<RecipeItem, $this>
+     */
     public function items(): HasMany
     {
         return $this->hasMany(RecipeItem::class);

@@ -56,6 +56,29 @@ class AuditLogTest extends TestCase
         $this->assertSame(['name' => 'Baru'], $log->after);
     }
 
+    public function test_audit_entry_redacts_sensitive_key_variants(): void
+    {
+        $owner = User::factory()->owner()->create();
+        $cashier = User::factory()->cashier()->create();
+
+        $log = app(WriteAuditLog::class)(
+            $owner,
+            'staff.updated',
+            $cashier,
+            [],
+            [
+                'name' => 'Budi',
+                'customer_phone' => '081234567890',
+                'delivery_address' => 'Jl. Kemang Raya No. 1',
+                'access_token' => 'tok',
+                'client_secret' => 'sec',
+                'card_number' => '4111111111111111',
+            ],
+        );
+
+        $this->assertSame(['name' => 'Budi'], $log->after);
+    }
+
     public function test_audit_log_target_relationship_returns_the_model(): void
     {
         $owner = User::factory()->owner()->create();

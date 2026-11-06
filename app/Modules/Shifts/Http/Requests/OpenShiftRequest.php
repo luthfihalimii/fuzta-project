@@ -9,7 +9,7 @@ class OpenShiftRequest extends FormRequest
 {
     public function authorize(): bool
     {
-        return $this->user()?->is_active ?? false;
+        return $this->user()->is_active ?? false;
     }
 
     /**

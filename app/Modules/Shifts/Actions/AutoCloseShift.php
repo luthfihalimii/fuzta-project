@@ -19,16 +19,18 @@ class AutoCloseShift
         $grace = (int) config('shifts.auto_close_grace_minutes', 15);
         $cutoff = now()->subMinutes($grace);
 
-        $ids = CashierShift::query()
+        $shifts = CashierShift::query()
             ->whereNull('closed_at')
             ->where('scheduled_end_at', '<=', $cutoff)
-            ->pluck('id');
+            ->get();
 
         $closed = 0;
 
-        foreach ($ids as $id) {
+        foreach ($shifts as $candidate) {
+            $id = $candidate->id;
+
             $didClose = DB::transaction(function () use ($id): bool {
-                $shift = CashierShift::query()->lockForUpdate()->find($id);
+                $shift = CashierShift::query()->lockForUpdate()->whereKey($id)->first();
 
                 if ($shift === null || ! $shift->isOpen()) {
                     return false;

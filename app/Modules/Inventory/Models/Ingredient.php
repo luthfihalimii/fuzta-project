@@ -25,16 +25,25 @@ class Ingredient extends Model
         ];
     }
 
+    /**
+     * @return BelongsTo<Unit, $this>
+     */
     public function baseUnit(): BelongsTo
     {
         return $this->belongsTo(Unit::class, 'base_unit_id');
     }
 
+    /**
+     * @return HasMany<StockBalance, $this>
+     */
     public function balances(): HasMany
     {
         return $this->hasMany(StockBalance::class);
     }
 
+    /**
+     * @return HasMany<StockMovement, $this>
+     */
     public function movements(): HasMany
     {
         return $this->hasMany(StockMovement::class);

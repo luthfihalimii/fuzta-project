@@ -60,7 +60,7 @@ class OrderController extends Controller
                 ->with(['branch', 'items.modifiers', 'payment'])
                 ->where('branch_id', $branch->id);
 
-            if ($requestedShiftId > 0 && $shift !== null) {
+            if ($requestedShiftId > 0) {
                 $query->where('shift_id', $shift->id);
             } else {
                 $timezone = (string) config('shifts.timezone', 'Asia/Jakarta');

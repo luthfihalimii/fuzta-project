@@ -20,7 +20,7 @@ class CancelOrder
     public function __invoke(Order $order, User $actor, string $reason): void
     {
         DB::transaction(function () use ($order, $actor, $reason): void {
-            $locked = Order::query()->lockForUpdate()->findOrFail($order->getKey());
+            $locked = Order::query()->lockForUpdate()->findOrFail($order->id);
 
             if (! $locked->canBeCancelled()) {
                 throw ValidationException::withMessages([

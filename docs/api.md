@@ -8,7 +8,7 @@ Dokumen ini adalah kontrak REST untuk developer frontend (website/aplikasi custo
 - **Format:** JSON (`Content-Type: application/json`).
 - **Uang:** integer IDR (satuan rupiah). `15000` = Rp 15.000. Tarif Biteship yang desimal dibulatkan ke integer saat di-quote.
 - **Server otoritatif:** harga, ongkir, dan total selalu dihitung ulang di server. Nilai harga/ongkir/total yang dikirim client diabaikan; yang diproses hanyalah pilihan produk/varian/opsi + kurir.
-- **CORS:** origin yang diizinkan diatur oleh env `CORS_ALLOWED_ORIGINS` (dev default `*`).
+- **CORS:** origin yang diizinkan diatur oleh env `CORS_ALLOWED_ORIGINS`; default dev hanya `localhost`, produksi wajib diisi domain frontend (jangan `*`).
 
 ### Autentikasi customer
 

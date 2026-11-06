@@ -34,6 +34,19 @@ class KitchenTest extends TestCase
         $this->assertSame([$paidA->id], $ids);
     }
 
+    public function test_kitchen_payload_omits_cash_details(): void
+    {
+        $order = Order::factory()->paid()->create(['total' => 50000]);
+        $kitchen = User::factory()->kitchen()->for($order->branch)->create();
+
+        $this->actingAs($kitchen)
+            ->getJson('/kitchen/orders')
+            ->assertOk()
+            ->assertJsonMissingPath('orders.0.payment.cash_received')
+            ->assertJsonMissingPath('orders.0.payment.change_amount')
+            ->assertJsonPath('orders.0.payment.status', 'paid');
+    }
+
     public function test_kitchen_list_excludes_unpaid_and_voided_orders_without_status_filter(): void
     {
         $branch = Branch::factory()->create();
@@ -74,7 +87,9 @@ class KitchenTest extends TestCase
         $this->actingAs($kitchen)
             ->patch("/kitchen/orders/{$order->id}/status", ['status' => 'accepted'])
             ->assertOk()
-            ->assertJsonPath('order.status', 'accepted');
+            ->assertJsonPath('order.status', 'accepted')
+            ->assertJsonMissingPath('order.payment.cash_received')
+            ->assertJsonMissingPath('order.payment.change_amount');
 
         $this->assertSame(OrderStatus::Accepted, $order->fresh()->status);
 

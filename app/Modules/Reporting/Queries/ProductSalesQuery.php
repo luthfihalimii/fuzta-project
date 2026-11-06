@@ -62,8 +62,8 @@ class ProductSalesQuery
             ->all();
 
         return [
-            'products' => $products,
-            'modifiers' => $modifiers,
+            'products' => array_values($products),
+            'modifiers' => array_values($modifiers),
         ];
     }
 }

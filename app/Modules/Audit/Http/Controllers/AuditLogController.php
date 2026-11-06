@@ -26,7 +26,7 @@ class AuditLogController extends Controller
                 'reason' => $log->reason,
                 'before' => $log->before ?? [],
                 'after' => $log->after ?? [],
-                'created_at' => $log->created_at?->toIso8601String(),
+                'created_at' => $log->created_at->toIso8601String(),
             ]);
 
         return Inertia::render('admin/audit/Index', [

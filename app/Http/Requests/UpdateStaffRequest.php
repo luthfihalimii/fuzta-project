@@ -2,6 +2,7 @@
 
 namespace App\Http\Requests;
 
+use App\Models\User;
 use App\Modules\Identity\Enums\Role;
 use Illuminate\Foundation\Http\FormRequest;
 use Illuminate\Validation\Rule;
@@ -19,7 +20,8 @@ class UpdateStaffRequest extends FormRequest
      */
     public function rules(): array
     {
-        $staffId = $this->route('staff')?->id;
+        $staff = $this->route('staff');
+        $staffId = $staff instanceof User ? $staff->id : null;
 
         return [
             'name' => ['sometimes', 'required', 'string', 'max:255'],
@@ -31,7 +33,7 @@ class UpdateStaffRequest extends FormRequest
                 'max:255',
                 Rule::unique('users', 'email')->ignore($staffId),
             ],
-            'password' => ['sometimes', 'nullable', 'string', Password::default() ?? Password::min(8)],
+            'password' => ['sometimes', 'nullable', 'string', Password::default()],
             'role' => ['sometimes', Rule::enum(Role::class)],
             'branch_id' => [
                 'nullable',

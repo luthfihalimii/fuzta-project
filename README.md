@@ -89,7 +89,7 @@ Variabel env yang disyaratkan (lihat `.env.example`):
 
 - DOKU: `DOKU_CLIENT_ID`, `DOKU_SECRET_KEY`, `DOKU_BASE_URL`, `DOKU_NOTIFICATION_PATH`, `DOKU_PAYMENT_DUE_MINUTES`.
 - Biteship: `BITESHIP_API_KEY`, `BITESHIP_BASE_URL`, `BITESHIP_COURIERS`, `BITESHIP_SHIPPER_NAME`/`BITESHIP_SHIPPER_PHONE`/`BITESHIP_SHIPPER_EMAIL`, `BITESHIP_WEBHOOK_KEY` (nama custom header), `BITESHIP_WEBHOOK_SECRET` (isi header).
-- `CORS_ALLOWED_ORIGINS`: daftar domain (pisahkan koma) yang boleh memanggil API. **Produksi wajib diisi domain frontend yang asli** (dev default `*`).
+- `CORS_ALLOWED_ORIGINS`: daftar domain (pisahkan koma) yang boleh memanggil API. **Produksi wajib diisi domain frontend yang asli**; default dev hanya `localhost` (bukan `*`).
 
 URL webhook yang daftarkan (HTTPS publik, bukan untuk frontend):
 
@@ -109,7 +109,7 @@ Prasyarat ops sebelum pilot:
 - Berat produk: `weight_grams` diisi di admin katalog (fallback 500 g saat quote/shipment — kurangi kejanggalan ongkir).
 - Area Biteship: `delivery_area_id` diisi per cabang yang melayani delivery (admin branches), plus area tujuan customer diambil dari pencarian `/delivery/areas`.
 - Catatan service instan (Gojek/Grab Express): aplikasi ini hanya mengirim area id Biteship (bukan koordinat asal/tujuan). Verifikasi saat pilot apakah kurir instan tetap bisa di-quote untuk wilayah cabang; bila Biteship menolaknya untuk wilayah tertentu, opsi instan tidak muncul di quote/checkout dan delivery tetap bisa pakai kurir standar (JNE/JNT/dsb.).
-- Pembatalan/refund order online manual: kasir/owner batalkan order + refund manual via dashboard DOKU (modul refund otomatis bukan MVP).
+- Pembatalan/refund order online manual: kasir/owner batalkan order + refund manual via dashboard DOKU (modul refund otomatis bukan MVP). Bila notifikasi `SUCCESS` datang setelah pembatalan lokal, sistem mencatat event `late_paid`, audit `payment.late_payment`, dan log critical tanpa menghidupkan order — gunakan catatan itu untuk refund manual.
 
 ## Project layout
 

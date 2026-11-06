@@ -53,7 +53,7 @@ class PurchaseController extends Controller
                     ->get()
                     ->map(fn (Purchase $purchase) => [
                         'id' => $purchase->id,
-                        'received_at' => $purchase->received_at?->format('Y-m-d'),
+                        'received_at' => $purchase->received_at->format('Y-m-d'),
                         'reference' => $purchase->reference,
                         'supplier_name' => $purchase->supplier?->name,
                         'branch_name' => $purchase->branch?->name,
@@ -73,7 +73,7 @@ class PurchaseController extends Controller
         return Inertia::render('admin/purchases/Show', [
             'purchase' => [
                 'id' => $purchase->id,
-                'received_at' => $purchase->received_at?->format('Y-m-d'),
+                'received_at' => $purchase->received_at->format('Y-m-d'),
                 'reference' => $purchase->reference,
                 'total' => $purchase->total,
                 'supplier_name' => $purchase->supplier?->name,
@@ -105,12 +105,12 @@ class PurchaseController extends Controller
             receivedAt: $data['received_at'],
             reference: $data['reference'] ?? null,
             idempotencyKey: $data['idempotency_key'],
-            items: array_map(fn (array $item) => [
+            items: array_values(array_map(fn (array $item) => [
                 'ingredient_id' => (int) $item['ingredient_id'],
                 'unit_id' => (int) $item['unit_id'],
                 'quantity' => (int) $item['quantity'],
                 'unit_price' => (int) $item['unit_price'],
-            ], $data['items']),
+            ], $data['items'])),
         ));
 
         return back()->with('success', "Penerimaan #{$purchase->id} tercatat.");

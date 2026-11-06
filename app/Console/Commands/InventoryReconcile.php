@@ -85,7 +85,7 @@ class InventoryReconcile extends Command
                         'ingredient_id' => $row->ingredient_id,
                         'quantity' => 0,
                     ])
-                    : StockBalance::query()->lockForUpdate()->findOrFail($row->id);
+                    : StockBalance::query()->lockForUpdate()->whereKey($row->id)->firstOrFail();
 
                 $before = (int) $balance->quantity;
 

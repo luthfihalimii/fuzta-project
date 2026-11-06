@@ -25,11 +25,17 @@ class UnitConversion extends Model
         ];
     }
 
+    /**
+     * @return BelongsTo<Unit, $this>
+     */
     public function fromUnit(): BelongsTo
     {
         return $this->belongsTo(Unit::class, 'from_unit_id');
     }
 
+    /**
+     * @return BelongsTo<Unit, $this>
+     */
     public function toUnit(): BelongsTo
     {
         return $this->belongsTo(Unit::class, 'to_unit_id');

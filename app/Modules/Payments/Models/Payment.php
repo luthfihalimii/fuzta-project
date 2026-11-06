@@ -45,16 +45,25 @@ class Payment extends Model
         ];
     }
 
+    /**
+     * @return BelongsTo<Order, $this>
+     */
     public function order(): BelongsTo
     {
         return $this->belongsTo(Order::class);
     }
 
+    /**
+     * @return BelongsTo<CashierShift, $this>
+     */
     public function shift(): BelongsTo
     {
         return $this->belongsTo(CashierShift::class, 'shift_id');
     }
 
+    /**
+     * @return HasMany<PaymentEvent, $this>
+     */
     public function events(): HasMany
     {
         return $this->hasMany(PaymentEvent::class);

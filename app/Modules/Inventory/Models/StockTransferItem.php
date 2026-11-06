@@ -31,11 +31,17 @@ class StockTransferItem extends Model
         ];
     }
 
+    /**
+     * @return BelongsTo<StockTransfer, $this>
+     */
     public function transfer(): BelongsTo
     {
         return $this->belongsTo(StockTransfer::class, 'transfer_id');
     }
 
+    /**
+     * @return BelongsTo<Ingredient, $this>
+     */
     public function ingredient(): BelongsTo
     {
         return $this->belongsTo(Ingredient::class);

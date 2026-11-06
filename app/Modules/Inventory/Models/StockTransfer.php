@@ -38,21 +38,33 @@ class StockTransfer extends Model
         ];
     }
 
+    /**
+     * @return HasMany<StockTransferItem, $this>
+     */
     public function items(): HasMany
     {
         return $this->hasMany(StockTransferItem::class, 'transfer_id');
     }
 
+    /**
+     * @return BelongsTo<Branch, $this>
+     */
     public function originBranch(): BelongsTo
     {
         return $this->belongsTo(Branch::class, 'origin_branch_id');
     }
 
+    /**
+     * @return BelongsTo<Branch, $this>
+     */
     public function destinationBranch(): BelongsTo
     {
         return $this->belongsTo(Branch::class, 'destination_branch_id');
     }
 
+    /**
+     * @return BelongsTo<User, $this>
+     */
     public function createdBy(): BelongsTo
     {
         return $this->belongsTo(User::class, 'created_by');

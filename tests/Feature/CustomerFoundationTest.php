@@ -172,13 +172,15 @@ class CustomerFoundationTest extends TestCase
 
     public function test_cors_preflight_allows_patch_and_delete(): void
     {
+        config(['cors.allowed_origins' => ['https://www.pizzafruzta.com']]);
+
         $response = $this->call('OPTIONS', '/api/v1/me', [], [], [], [
             'HTTP_ORIGIN' => 'https://www.pizzafruzta.com',
             'HTTP_ACCESS_CONTROL_REQUEST_METHOD' => 'PATCH',
         ]);
 
         $response->assertStatus(204)
-            ->assertHeader('Access-Control-Allow-Origin', '*')
+            ->assertHeader('Access-Control-Allow-Origin', 'https://www.pizzafruzta.com')
             ->assertHeader('Access-Control-Allow-Methods', 'GET, POST, PATCH, DELETE, OPTIONS');
     }
 

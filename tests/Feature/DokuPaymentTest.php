@@ -372,6 +372,28 @@ class DokuPaymentTest extends TestCase
         $this->assertSame(PaymentStatus::Voided, $payment->fresh()->status);
     }
 
+    public function test_late_payment_records_reconciliation_event_once(): void
+    {
+        $order = Order::factory()->unpaid()->create(['placed_by_id' => null, 'total' => 50000]);
+        $payment = $this->dokuPendingPayment($order);
+
+        $payment->forceFill(['status' => PaymentStatus::Voided, 'voided_at' => now()])->save();
+        $order->forceFill(['status' => OrderStatus::Cancelled])->save();
+
+        $body = $this->dokuWebhookBody($order, 'SUCCESS');
+        $this->postSignedWebhook($body)->assertOk();
+        $this->postSignedWebhook($body)->assertOk();
+
+        $this->assertSame(1, $payment->events()->where('type', 'late_paid')->count());
+        $this->assertDatabaseHas('payment_events', [
+            'payment_id' => $payment->id,
+            'type' => 'late_paid',
+            'amount' => 50000,
+        ]);
+        $this->assertSame(PaymentStatus::Voided, $payment->fresh()->status);
+        $this->assertSame(OrderStatus::Cancelled, $order->fresh()->status);
+    }
+
     public function test_webhook_rejects_malformed_invoice_number_or_amount(): void
     {
         $order = Order::factory()->unpaid()->create(['placed_by_id' => null, 'total' => 50000]);

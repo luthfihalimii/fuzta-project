@@ -10,7 +10,7 @@ use Illuminate\Validation\ValidationException;
 class PriceOrderItems
 {
     /**
-     * @param  list<array{product_id: int, variant_id: ?int, modifier_ids: list<int>, quantity: int, note: ?string}>  $items
+     * @param  list<array{product_id: int, variant_id?: ?int, modifier_ids?: list<int>, quantity: int, note?: ?string}>  $items
      * @return list<array{
      *     product_id: int,
      *     product_name: string,
@@ -27,8 +27,8 @@ class PriceOrderItems
     {
         $priced = [];
 
-        foreach (array_values($items) as $index => $item) {
-            $quantity = (int) ($item['quantity'] ?? 0);
+        foreach ($items as $index => $item) {
+            $quantity = $item['quantity'];
 
             if ($quantity < 1 || $quantity > 99) {
                 $this->fail($index, 'quantity', 'Jumlah harus antara 1 dan 99.');
@@ -36,7 +36,7 @@ class PriceOrderItems
 
             $product = Product::query()
                 ->with(['category', 'variants', 'modifierGroups'])
-                ->find($item['product_id'] ?? null);
+                ->find($item['product_id']);
 
             if (
                 $product === null

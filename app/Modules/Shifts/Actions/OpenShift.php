@@ -94,8 +94,8 @@ class OpenShift
                     [],
                     [
                         'window_key' => $shift->window_key,
-                        'scheduled_start_at' => $shift->scheduled_start_at?->toIso8601String(),
-                        'scheduled_end_at' => $shift->scheduled_end_at?->toIso8601String(),
+                        'scheduled_start_at' => $shift->scheduled_start_at->toIso8601String(),
+                        'scheduled_end_at' => $shift->scheduled_end_at->toIso8601String(),
                         'opening_cash' => $shift->opening_cash,
                     ],
                 );

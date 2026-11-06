@@ -10,7 +10,8 @@ return new class extends Migration
     {
         Schema::create('customer_tokens', function (Blueprint $table) {
             $table->id();
-            $table->foreignId('customer_id')->constrained()->cascadeOnDelete()->index();
+            $table->foreignId('customer_id')->constrained()->cascadeOnDelete();
+            $table->index('customer_id');
             $table->char('token_hash', 64)->unique();
             $table->timestamp('expires_at')->index();
             $table->timestamp('last_used_at')->nullable();

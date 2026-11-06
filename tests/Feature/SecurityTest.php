@@ -57,7 +57,24 @@ class SecurityTest extends TestCase
             ->assertOk()
             ->assertHeader('X-Frame-Options', 'DENY')
             ->assertHeader('X-Content-Type-Options', 'nosniff')
-            ->assertHeader('Referrer-Policy', 'same-origin');
+            ->assertHeader('Referrer-Policy', 'same-origin')
+            ->assertHeader('Permissions-Policy', 'camera=(), microphone=(), geolocation=(), payment=()')
+            ->assertHeader('Content-Security-Policy');
+    }
+
+    public function test_hsts_header_is_sent_on_secure_requests(): void
+    {
+        $this->get('https://localhost/login')
+            ->assertOk()
+            ->assertHeader('Strict-Transport-Security', 'max-age=31536000');
+    }
+
+    public function test_cors_rejects_unknown_origins_by_default(): void
+    {
+        $this->call('OPTIONS', '/api/v1/orders', [], [], [], [
+            'HTTP_ORIGIN' => 'https://evil.example',
+            'HTTP_ACCESS_CONTROL_REQUEST_METHOD' => 'POST',
+        ])->assertHeaderMissing('Access-Control-Allow-Origin');
     }
 
     public function test_order_creation_is_rate_limited_per_user(): void

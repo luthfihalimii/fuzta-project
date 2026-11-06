@@ -9,7 +9,7 @@ class ShiftDailySummaryQuery
 {
     /**
      * @param  array{from?: string, to?: string, branch?: int|null, user?: int|null}  $filters
-     * @return list<array<string, mixed>>
+     * @return array<int, array<string, mixed>>
      */
     public function __invoke(array $filters): array
     {
@@ -21,11 +21,14 @@ class ShiftDailySummaryQuery
             ? CarbonImmutable::parse($filters['to'], $timezone)->endOfDay()
             : ($from->setTimezone($timezone)->endOfDay());
 
+        $branch = $filters['branch'] ?? null;
+        $user = $filters['user'] ?? null;
+
         $shifts = CashierShift::query()
             ->with(['branch', 'user'])
             ->whereBetween('opened_at', [$from->utc(), $to->utc()])
-            ->when(($filters['branch'] ?? null) !== null, fn ($query) => $query->where('branch_id', $filters['branch']))
-            ->when(($filters['user'] ?? null) !== null, fn ($query) => $query->where('user_id', $filters['user']))
+            ->when($branch !== null, fn ($query) => $query->where('branch_id', $branch))
+            ->when($user !== null, fn ($query) => $query->where('user_id', $user))
             ->orderBy('opened_at')
             ->get();
 

@@ -5,7 +5,7 @@ namespace App\Modules\Ordering\Data;
 readonly class CustomerOrderData
 {
     /**
-     * @param  list<array{product_id: int, variant_id: ?int, modifier_ids: list<int>, quantity: int, note: ?string}>  $items
+     * @param  list<array{product_id: int, variant_id?: ?int, modifier_ids?: list<int>, quantity: int, note?: ?string}>  $items
      */
     public function __construct(
         public int $branchId,

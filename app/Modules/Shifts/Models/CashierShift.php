@@ -67,36 +67,57 @@ class CashierShift extends Model
         ];
     }
 
+    /**
+     * @return BelongsTo<Branch, $this>
+     */
     public function branch(): BelongsTo
     {
         return $this->belongsTo(Branch::class);
     }
 
+    /**
+     * @return BelongsTo<User, $this>
+     */
     public function user(): BelongsTo
     {
         return $this->belongsTo(User::class);
     }
 
+    /**
+     * @return BelongsTo<User, $this>
+     */
     public function closedBy(): BelongsTo
     {
         return $this->belongsTo(User::class, 'closed_by_id');
     }
 
+    /**
+     * @return BelongsTo<User, $this>
+     */
     public function reconciledBy(): BelongsTo
     {
         return $this->belongsTo(User::class, 'reconciled_by_id');
     }
 
+    /**
+     * @return HasMany<CashMovement, $this>
+     */
     public function cashMovements(): HasMany
     {
         return $this->hasMany(CashMovement::class, 'cashier_shift_id')->orderBy('id');
     }
 
+    /**
+     * @return HasMany<Order, $this>
+     */
     public function orders(): HasMany
     {
         return $this->hasMany(Order::class, 'shift_id')->orderByDesc('id');
     }
 
+    /**
+     * @return HasMany<Payment, $this>
+     */
     public function payments(): HasMany
     {
         return $this->hasMany(Payment::class, 'shift_id');

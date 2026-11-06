@@ -14,7 +14,7 @@ class ResolveOrderRequirements
     /**
      * Required base-unit quantity per ingredient for every line of the order.
      *
-     * @return Collection<int, int> ingredient_id => quantity
+     * @return Collection<int, int<min, -1>|int<1, max>> ingredient_id => quantity
      */
     public function __invoke(Order $order): Collection
     {

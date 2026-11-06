@@ -61,6 +61,7 @@ APP_KEY=                      # php artisan key:generate --show
 APP_DEBUG=false
 APP_URL=https://pizza.example.com
 APP_TIMEZONE=UTC
+CORS_ALLOWED_ORIGINS=https://pizza.example.com
 
 DB_CONNECTION=pgsql
 DB_HOST=127.0.0.1
@@ -136,7 +137,7 @@ sudo apt install -y certbot python3-certbot-nginx
 sudo certbot --nginx -d pizza.example.com
 ```
 
-Certbot redirects HTTP to HTTPS and installs a renewal timer. Confirm with `sudo certbot renew --dry-run`. The app sends `X-Frame-Options: DENY`, `X-Content-Type-Options: nosniff`, and `Referrer-Policy: same-origin`; keep TLS termination and certificate renewal outside the app.
+Certbot redirects HTTP to HTTPS and installs a renewal timer. Confirm with `sudo certbot renew --dry-run`. The app sends `X-Frame-Options: DENY`, `X-Content-Type-Options: nosniff`, `Referrer-Policy: same-origin`, `Permissions-Policy`, CSP, and HSTS on HTTPS/production; keep TLS termination and certificate renewal outside the app.
 
 ## 5. Build and migrate
 

@@ -11,6 +11,9 @@ class CreateCustomerAddress
 {
     public const MAX_ADDRESSES = 10;
 
+    /**
+     * @param  array<string, mixed>  $data
+     */
     public function __invoke(Customer $customer, array $data): CustomerAddress
     {
         return DB::transaction(function () use ($customer, $data): CustomerAddress {

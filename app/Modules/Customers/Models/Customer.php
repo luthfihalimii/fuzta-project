@@ -29,16 +29,25 @@ class Customer extends Model
         ];
     }
 
+    /**
+     * @return HasMany<CustomerAddress, $this>
+     */
     public function addresses(): HasMany
     {
         return $this->hasMany(CustomerAddress::class);
     }
 
+    /**
+     * @return HasMany<Order, $this>
+     */
     public function orders(): HasMany
     {
         return $this->hasMany(Order::class);
     }
 
+    /**
+     * @return HasMany<CustomerToken, $this>
+     */
     public function tokens(): HasMany
     {
         return $this->hasMany(CustomerToken::class);

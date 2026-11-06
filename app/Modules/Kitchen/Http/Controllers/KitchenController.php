@@ -77,7 +77,7 @@ class KitchenController extends Controller
                 fn ($query) => $query->orderBy('created_at')->orderBy('id'),
             )
             ->get()
-            ->map(fn (Order $order) => ($this->payload)($order))
+            ->map(fn (Order $order) => $this->payload->forKitchen($order))
             ->values()
             ->all();
 
@@ -98,7 +98,7 @@ class KitchenController extends Controller
         );
 
         return response()->json([
-            'order' => ($this->payload)($order),
+            'order' => $this->payload->forKitchen($order),
         ]);
     }
 }

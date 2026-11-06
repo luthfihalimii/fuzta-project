@@ -90,15 +90,15 @@ class StockReportQuery
                 'type_label' => $movement->type->label(),
                 'reason' => $movement->reason,
                 'actor_name' => $movement->actor?->name,
-                'created_at' => $movement->created_at?->toIso8601String(),
+                'created_at' => $movement->created_at->toIso8601String(),
             ])
             ->values()
             ->all();
 
         return [
-            'balances' => $balances,
+            'balances' => array_values($balances),
             'low_stock' => $lowStock,
-            'movements' => $movements,
+            'movements' => array_values($movements),
         ];
     }
 }

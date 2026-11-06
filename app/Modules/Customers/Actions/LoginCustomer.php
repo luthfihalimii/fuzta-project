@@ -21,7 +21,7 @@ class LoginCustomer
     public function __invoke(string $phone, string $password): array
     {
         $customer = Customer::query()->where('phone', $phone)->first();
-        $hash = $customer?->password ?? self::DUMMY_PASSWORD_HASH;
+        $hash = $customer->password ?? self::DUMMY_PASSWORD_HASH;
 
         // Hash::check selalu dijalankan duluan (nomor tak ditemukan → dummy
         // hash): waktu respons tak boleh membocorkan keberadaan akun.

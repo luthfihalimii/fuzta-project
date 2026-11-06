@@ -34,11 +34,17 @@ class CashMovement extends Model
         ];
     }
 
+    /**
+     * @return BelongsTo<CashierShift, $this>
+     */
     public function shift(): BelongsTo
     {
         return $this->belongsTo(CashierShift::class, 'cashier_shift_id');
     }
 
+    /**
+     * @return BelongsTo<User, $this>
+     */
     public function actor(): BelongsTo
     {
         return $this->belongsTo(User::class, 'actor_id');

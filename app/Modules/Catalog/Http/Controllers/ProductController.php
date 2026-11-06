@@ -41,7 +41,7 @@ class ProductController extends Controller
                     'branch_availability' => $product->branches
                         ->map(fn (Branch $branch) => [
                             'branch_id' => $branch->id,
-                            'is_available' => (bool) $branch->pivot->is_available,
+                            'is_available' => (bool) $branch->getAttribute('pivot')->is_available,
                         ])
                         ->values()
                         ->all(),
@@ -305,7 +305,7 @@ class ProductController extends Controller
     }
 
     /**
-     * @return Collection<int, array<string, mixed>>
+     * @return Collection<int, array{id: int, code: string, name: string}>
      */
     private function branchOptions(): Collection
     {
@@ -350,7 +350,7 @@ class ProductController extends Controller
             'branch_availability' => $product->branches
                 ->map(fn (Branch $branch) => [
                     'branch_id' => $branch->id,
-                    'is_available' => (bool) $branch->pivot->is_available,
+                    'is_available' => (bool) $branch->getAttribute('pivot')->is_available,
                 ])
                 ->values()
                 ->all(),

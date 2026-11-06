@@ -68,36 +68,57 @@ class Order extends Model
         ];
     }
 
+    /**
+     * @return BelongsTo<Branch, $this>
+     */
     public function branch(): BelongsTo
     {
         return $this->belongsTo(Branch::class);
     }
 
+    /**
+     * @return BelongsTo<User, $this>
+     */
     public function placedBy(): BelongsTo
     {
         return $this->belongsTo(User::class, 'placed_by_id');
     }
 
+    /**
+     * @return BelongsTo<Customer, $this>
+     */
     public function customer(): BelongsTo
     {
         return $this->belongsTo(Customer::class);
     }
 
+    /**
+     * @return BelongsTo<CashierShift, $this>
+     */
     public function shift(): BelongsTo
     {
         return $this->belongsTo(CashierShift::class, 'shift_id');
     }
 
+    /**
+     * @return HasMany<OrderItem, $this>
+     */
     public function items(): HasMany
     {
         return $this->hasMany(OrderItem::class)->orderBy('id');
     }
 
+    /**
+     * @return HasMany<OrderStatusEvent, $this>
+     */
     public function statusEvents(): HasMany
     {
         return $this->hasMany(OrderStatusEvent::class);
     }
 
+    /**
+     * @return HasOne<Payment, $this>
+     */
     public function payment(): HasOne
     {
         return $this->hasOne(Payment::class);
@@ -109,6 +130,10 @@ class Order extends Model
             && $this->payment_status === PaymentStatus::Unpaid;
     }
 
+    /**
+     * @param  Builder<Order>  $query
+     * @return Builder<Order>
+     */
     public function scopeVisibleToKitchen(Builder $query, ?int $branchId = null): Builder
     {
         return $query

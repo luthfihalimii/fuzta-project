@@ -9,6 +9,7 @@ use App\Modules\Shifts\Policies\CashierShiftPolicy;
 use Carbon\CarbonImmutable;
 use Illuminate\Cache\RateLimiting\Limit;
 use Illuminate\Database\Eloquent\Factories\Factory;
+use Illuminate\Database\Eloquent\Model;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Date;
 use Illuminate\Support\Facades\DB;
@@ -18,6 +19,7 @@ use Illuminate\Support\Facades\RateLimiter;
 use Illuminate\Support\ServiceProvider;
 use Illuminate\Support\Str;
 use Illuminate\Validation\Rules\Password;
+use RuntimeException;
 
 class AppServiceProvider extends ServiceProvider
 {
@@ -67,7 +69,7 @@ class AppServiceProvider extends ServiceProvider
             ->by($request->ip()));
 
         RateLimiter::for('customer-me', fn (Request $request): Limit => Limit::perMinute(60)
-            ->by($request->attributes->get('customer')?->id ?? $request->ip()));
+            ->by($request->attributes->get('customer')->id ?? $request->ip()));
 
         RateLimiter::for('customer-checkout', fn (Request $request): Limit => Limit::perMinute(10)
             ->by($request->ip()));
@@ -80,9 +82,7 @@ class AppServiceProvider extends ServiceProvider
     {
         Date::use(CarbonImmutable::class);
 
-        Factory::guessFactoryNamesUsing(
-            fn (string $modelName): string => 'Database\\Factories\\'.class_basename($modelName).'Factory',
-        );
+        Factory::guessFactoryNamesUsing(self::guessFactoryName(...));
 
         DB::prohibitDestructiveCommands(
             app()->isProduction(),
@@ -97,5 +97,20 @@ class AppServiceProvider extends ServiceProvider
                 ->uncompromised()
             : null,
         );
+    }
+
+    /**
+     * @param  class-string<Model>  $modelName
+     * @return class-string<Factory<Model>>
+     */
+    private static function guessFactoryName(string $modelName): string
+    {
+        $factory = 'Database\\Factories\\'.class_basename($modelName).'Factory';
+
+        if (! is_subclass_of($factory, Factory::class)) {
+            throw new RuntimeException("Factory [{$factory}] tidak ditemukan.");
+        }
+
+        return $factory;
     }
 }

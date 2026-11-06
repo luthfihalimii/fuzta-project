@@ -62,7 +62,7 @@ class QuoteDelivery
                 'length' => 10,
                 'width' => 10,
             ];
-        }, array_values($items));
+        }, $items);
 
         $rates = $this->biteship->rates($branch->delivery_area_id, $destinationAreaId, $payload);
 

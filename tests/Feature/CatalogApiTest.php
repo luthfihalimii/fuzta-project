@@ -136,6 +136,7 @@ class CatalogApiTest extends TestCase
 
     public function test_catalog_is_public_without_auth_and_allows_cors_origin(): void
     {
+        config(['cors.allowed_origins' => ['https://www.pizzafruzta.com']]);
         Branch::factory()->create();
 
         // Tidak ada actingAs: middleware auth/CSRF tidak boleh menolak.
@@ -143,7 +144,7 @@ class CatalogApiTest extends TestCase
             ->getJson('/api/v1/branches')
             ->assertOk()
             ->assertJsonCount(1, 'branches')
-            ->assertHeader('Access-Control-Allow-Origin', '*');
+            ->assertHeader('Access-Control-Allow-Origin', 'https://www.pizzafruzta.com');
 
         // Preflight (OPTIONS) harus dijawab HandleCors sebelum routing.
         $this->call('OPTIONS', '/api/v1/branches', [], [], [], [
@@ -151,7 +152,7 @@ class CatalogApiTest extends TestCase
             'HTTP_ACCESS_CONTROL_REQUEST_METHOD' => 'GET',
         ])
             ->assertStatus(204)
-            ->assertHeader('Access-Control-Allow-Origin', '*')
+            ->assertHeader('Access-Control-Allow-Origin', 'https://www.pizzafruzta.com')
             ->assertHeader('Access-Control-Allow-Methods', 'GET, POST, PATCH, DELETE, OPTIONS');
     }
 

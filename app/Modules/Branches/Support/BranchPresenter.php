@@ -29,7 +29,7 @@ class BranchPresenter
      */
     public static function options(): array
     {
-        return Branch::query()
+        return array_values(Branch::query()
             ->where('is_active', true)
             ->orderBy('code')
             ->get(['id', 'code', 'name'])
@@ -39,6 +39,6 @@ class BranchPresenter
                 'name' => $branch->name,
             ])
             ->values()
-            ->all();
+            ->all());
     }
 }

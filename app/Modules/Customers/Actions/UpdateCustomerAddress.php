@@ -9,6 +9,9 @@ use Illuminate\Validation\ValidationException;
 
 class UpdateCustomerAddress
 {
+    /**
+     * @param  array{label?: string, recipient_name?: string, phone?: string, address?: string, area_id?: string, notes?: string|null, is_default?: bool}  $data
+     */
     public function __invoke(Customer $customer, CustomerAddress $address, array $data): CustomerAddress
     {
         return DB::transaction(function () use ($customer, $address, $data): CustomerAddress {

@@ -71,7 +71,7 @@ class CreateBiteshipShipment
             'delivery_type' => 'now',
             'order_note' => $order->note,
             'items' => $order->items->map(static function (array|object $item): array {
-                $weight = (int) ($item->product?->weight_grams ?? 0) ?: self::FALLBACK_WEIGHT_GRAMS;
+                $weight = (int) ($item->product->weight_grams ?? 0) ?: self::FALLBACK_WEIGHT_GRAMS;
 
                 return [
                     'name' => (string) $item->product_name,

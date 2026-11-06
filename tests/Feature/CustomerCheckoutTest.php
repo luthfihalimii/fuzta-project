@@ -310,6 +310,26 @@ class CustomerCheckoutTest extends TestCase
         $this->assertSame(1, Order::first()->items()->count());
     }
 
+    public function test_guest_replay_with_different_phone_is_conflict(): void
+    {
+        $branch = Branch::factory()->create();
+        $product = $this->availableProductAt($branch);
+        $payload = $this->pickupPayload($branch, $product);
+
+        $first = $this->withHeader('Idempotency-Key', 'guest-phone-mismatch')
+            ->postJson('/api/v1/orders', $payload)
+            ->assertCreated();
+
+        $this->withHeader('Idempotency-Key', 'guest-phone-mismatch')
+            ->postJson('/api/v1/orders', ['customer_phone' => '081234567891'] + $payload)
+            ->assertStatus(409)
+            ->assertJsonPath('message', 'Kunci idempotensi sudah dipakai.');
+
+        $this->assertSame(1, Order::count());
+        $this->assertSame('081234567890', Order::first()->customer_phone);
+        $this->assertSame($first->json('token'), Order::first()->public_token);
+    }
+
     public function test_replay_returns_stored_order_without_calling_biteship(): void
     {
         $this->fakeRates([

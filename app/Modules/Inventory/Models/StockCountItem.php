@@ -27,11 +27,17 @@ class StockCountItem extends Model
         ];
     }
 
+    /**
+     * @return BelongsTo<StockCount, $this>
+     */
     public function stockCount(): BelongsTo
     {
         return $this->belongsTo(StockCount::class);
     }
 
+    /**
+     * @return BelongsTo<Ingredient, $this>
+     */
     public function ingredient(): BelongsTo
     {
         return $this->belongsTo(Ingredient::class);

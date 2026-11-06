@@ -24,6 +24,9 @@ class Modifier extends Model
         ];
     }
 
+    /**
+     * @return BelongsTo<ModifierGroup, $this>
+     */
     public function modifierGroup(): BelongsTo
     {
         return $this->belongsTo(ModifierGroup::class);

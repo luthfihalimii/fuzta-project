@@ -39,6 +39,9 @@ yarn-error.log
 /.mcp.json
 /AGENTS.md
 /CLAUDE.md
+/PRD.md
+/DESIGN.md
+/docs/
 /boost.json
 /opencode.json
 /opencode.jsonc
@@ -48,3 +51,16 @@ yarn-error.log
 # Agent scratch (never commit)
 .superpowers/
 .commandcode/
+
+# Graphify: data graph di-commit (wajib untuk `graphify --update`); artefak regeneratif di-ignore
+/graphify-out/graph.html
+/graphify-out/cache/
+/graphify-out/.graphify_python
+/graphify-out/.graphify_root
+/graphify-out/.graphify_*.json
+!/graphify-out/.graphify_labels.json
+
+# Playwright
+/e2e/.auth
+/playwright-report
+/test-results

@@ -20,7 +20,7 @@ class IngredientFactory extends Factory
     {
         return [
             'base_unit_id' => Unit::factory(),
-            'name' => 'Bahan '.fake()->unique()->words(2, true),
+            'name' => 'Bahan '.fake()->unique()->word().' '.fake()->unique()->word(),
             'low_stock_threshold' => 100,
         ];
     }

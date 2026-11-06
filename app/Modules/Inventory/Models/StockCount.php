@@ -12,16 +12,25 @@ use Illuminate\Database\Eloquent\Relations\HasMany;
 #[Fillable(['branch_id', 'submitted_by_id', 'note'])]
 class StockCount extends Model
 {
+    /**
+     * @return BelongsTo<Branch, $this>
+     */
     public function branch(): BelongsTo
     {
         return $this->belongsTo(Branch::class);
     }
 
+    /**
+     * @return BelongsTo<User, $this>
+     */
     public function submittedBy(): BelongsTo
     {
         return $this->belongsTo(User::class, 'submitted_by_id');
     }
 
+    /**
+     * @return HasMany<StockCountItem, $this>
+     */
     public function items(): HasMany
     {
         return $this->hasMany(StockCountItem::class);

@@ -5,6 +5,7 @@ namespace App\Modules\Ordering\Actions;
 use App\Modules\Branches\Models\Branch;
 use App\Modules\Branches\Support\OpeningHours;
 use App\Modules\Catalog\Actions\PriceOrderItems;
+use App\Modules\Customers\Support\PhoneNumber;
 use App\Modules\Identity\Actions\WriteAuditLog;
 use App\Modules\Ordering\Data\CustomerOrderData;
 use App\Modules\Ordering\Enums\OrderChannel;
@@ -140,8 +141,13 @@ class CreateCustomerOrder
      * lain (termasuk tamu null vs customer) → 409; order lama tidak
      * boleh disentuh.
      */
-    public function findExistingByKey(int $branchId, string $idempotencyKey, bool $lock = false, ?int $customerId = null): ?Order
-    {
+    public function findExistingByKey(
+        int $branchId,
+        string $idempotencyKey,
+        bool $lock = false,
+        ?int $customerId = null,
+        ?string $customerPhone = null,
+    ): ?Order {
         $query = Order::query()
             ->where('branch_id', $branchId)
             ->where('idempotency_key', $idempotencyKey);
@@ -156,12 +162,25 @@ class CreateCustomerOrder
             abort(409, 'Kunci idempotensi sudah dipakai.');
         }
 
+        // Tamu tidak punya customer_id: HP adalah identitas yang tersedia.
+        // Key yang sama dengan HP berbeda = permintaan lain, bukan retry.
+        if ($order !== null && $customerId === null && $customerPhone !== null
+            && PhoneNumber::normalize((string) $order->customer_phone) !== PhoneNumber::normalize($customerPhone)) {
+            abort(409, 'Kunci idempotensi sudah dipakai.');
+        }
+
         return $order;
     }
 
     private function findExisting(CustomerOrderData $data, bool $lock = false): ?Order
     {
-        return $this->findExistingByKey($data->branchId, $data->idempotencyKey, lock: $lock, customerId: $data->customerId);
+        return $this->findExistingByKey(
+            $data->branchId,
+            $data->idempotencyKey,
+            lock: $lock,
+            customerId: $data->customerId,
+            customerPhone: $data->customerPhone,
+        );
     }
 
     private function isIdempotencyViolation(QueryException $exception): bool

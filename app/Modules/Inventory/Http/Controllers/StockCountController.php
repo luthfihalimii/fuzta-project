@@ -81,10 +81,10 @@ class StockCountController extends Controller
         return ($submitStockCount)(
             $request->user(),
             $branchId,
-            array_map(fn (array $item) => [
+            array_values(array_map(fn (array $item) => [
                 'ingredient_id' => (int) $item['ingredient_id'],
                 'counted_quantity' => (int) $item['counted_quantity'],
-            ], $data['counted_items']),
+            ], $data['counted_items'])),
             $data['note'] ?? null,
         );
     }
@@ -94,12 +94,12 @@ class StockCountController extends Controller
      */
     private function stockRows(Branch $branch): array
     {
-        return Ingredient::query()
+        return array_values(Ingredient::query()
             ->with(['baseUnit', 'balances' => fn ($query) => $query->where('branch_id', $branch->id)])
             ->orderBy('name')
             ->get()
             ->map(function (Ingredient $ingredient) {
-                $quantity = (int) ($ingredient->balances->first()?->quantity ?? 0);
+                $quantity = (int) ($ingredient->balances->first()->quantity ?? 0);
 
                 return [
                     'ingredient_id' => $ingredient->id,
@@ -111,7 +111,7 @@ class StockCountController extends Controller
                 ];
             })
             ->values()
-            ->all();
+            ->all());
     }
 
     private function targetBranchId(

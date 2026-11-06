@@ -22,7 +22,13 @@ final class ProcessProductImage
      */
     public function __invoke(UploadedFile $file): string
     {
-        $image = @imagecreatefromstring($file->get());
+        $contents = $file->get();
+
+        if (! is_string($contents)) {
+            throw $this->invalidImage();
+        }
+
+        $image = @imagecreatefromstring($contents);
 
         if ($image === false) {
             throw $this->invalidImage();
@@ -98,31 +104,25 @@ final class ProcessProductImage
     }
 
     /**
-     * `imageflip` (PHP >= 8.0) memodifikasi gambar in-place: true saat sukses,
-     * false saat gagal. Branch GdImage dipertahankan agar tetap benar bila ada
-     * build yang mengembalikan salinan baru.
-     *
-     * @throws ValidationException 422 bila flip gagal (orientation 2/4/5/7 tak boleh senyap tanpa error)
+     * `imageflip` memodifikasi gambar in-place dan selalu berhasil; PHP 8.5
+     * mengetik return-nya `true` sesuai perilaku itu.
      */
     private function flip(GdImage $image, int $mode): GdImage
     {
-        $flipped = imageflip($image, $mode);
+        imageflip($image, $mode);
 
-        if ($flipped instanceof GdImage) {
-            return $flipped;
-        }
-
-        if ($flipped === true) {
-            return $image;
-        }
-
-        throw $this->invalidImage();
+        return $image;
     }
 
     private function flattenOnWhite(GdImage $image): GdImage
     {
         $dst = imagecreatetruecolor(imagesx($image), imagesy($image));
         $white = imagecolorallocate($dst, 255, 255, 255);
+
+        if ($white === false) {
+            throw $this->invalidImage();
+        }
+
         imagefilledrectangle($dst, 0, 0, imagesx($image) - 1, imagesy($image) - 1, $white);
         imagecopy($dst, $image, 0, 0, 0, 0, imagesx($image), imagesy($image));
         imagedestroy($image);

@@ -19,6 +19,9 @@ class ReceiveStockTransfer
         private readonly WriteAuditLog $writeAuditLog,
     ) {}
 
+    /**
+     * @param  list<array{item_id: int, received_quantity: int, discrepancy_reason?: string|null}>  $receivedItems
+     */
     public function __invoke(User $actor, int $transferId, array $receivedItems): StockTransfer
     {
         return DB::transaction(function () use ($actor, $transferId, $receivedItems): StockTransfer {
@@ -36,7 +39,7 @@ class ReceiveStockTransfer
             $items = $transfer->items()->orderBy('id')->get();
 
             $rowsByItemId = [];
-            foreach (array_values($receivedItems) as $pos => $row) {
+            foreach ($receivedItems as $pos => $row) {
                 $rowsByItemId[(int) $row['item_id']] = [$pos, $row];
             }
 

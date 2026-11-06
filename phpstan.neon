@@ -11,3 +11,7 @@ parameters:
         - routes/
 
     level: 7
+
+    # casts() diberi docblock @return array<string, string>, jadi Larastan
+    # membaca PHPDoc itu dan mengabaikan isi casts(). Parse body-nya langsung.
+    parseModelCastsMethod: true

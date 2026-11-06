@@ -41,6 +41,9 @@ class UpdateModifierGroupRequest extends FormRequest
         ];
     }
 
+    /**
+     * @return array<int, \Closure(Validator): void>
+     */
     public function after(): array
     {
         return [
@@ -48,8 +51,8 @@ class UpdateModifierGroupRequest extends FormRequest
                 /** @var ModifierGroup|null $group */
                 $group = $this->route('modifierGroup');
 
-                $min = (int) $this->input('min_select', $group?->min_select ?? 0);
-                $max = (int) $this->input('max_select', $group?->max_select ?? 0);
+                $min = (int) $this->input('min_select', $group->min_select ?? 0);
+                $max = (int) $this->input('max_select', $group->max_select ?? 0);
 
                 if ($max < $min) {
                     $validator->errors()->add('max_select', 'Pilihan maksimum harus lebih besar atau sama dengan minimum.');

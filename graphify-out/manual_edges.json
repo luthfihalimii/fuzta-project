@@ -1,0 +1,1778 @@
+{
+    "kind": "manual-enrichment",
+    "generated": "2026-10-31",
+    "why": "AST tidak menangkap referensi case enum (PhpEnum::Case) ke penggunaannya. Edge ini ditambah manual dari grep referensi literal Enum::Case di kode PHP (app/, routes/, database/, tests/). Hubungan persis dengan grep saat digenerate.",
+    "how_to_reapply": "Full rebuild: append edges[] ini ke .graphify_extract.json (validasi id endpoint tetap ada) sebelum Step 4. Incremental --update: tidak perlu, build_merge mempertahankan edge dari graph.json.",
+    "edges": [
+        {
+            "source": "app_console_commands_createowner",
+            "target": "app_modules_identity_enums_role_role_owner",
+            "relation": "references",
+            "confidence": "EXTRACTED",
+            "confidence_score": 1.0,
+            "source_file": "app/Console/Commands/CreateOwner.php",
+            "source_location": "L24",
+            "weight": 1.0
+        },
+        {
+            "source": "app_http_controllers_admin_staffcontroller",
+            "target": "app_modules_identity_enums_role_role_owner",
+            "relation": "references",
+            "confidence": "EXTRACTED",
+            "confidence_score": 1.0,
+            "source_file": "app/Http/Controllers/Admin/StaffController.php",
+            "source_location": "L90",
+            "weight": 1.0
+        },
+        {
+            "source": "app_http_controllers_auth_logincontroller",
+            "target": "app_modules_identity_enums_role_role_owner",
+            "relation": "references",
+            "confidence": "EXTRACTED",
+            "confidence_score": 1.0,
+            "source_file": "app/Http/Controllers/Auth/LoginController.php",
+            "source_location": "L47",
+            "weight": 1.0
+        },
+        {
+            "source": "app_http_requests_recordstockwasterequest",
+            "target": "app_modules_identity_enums_role_role_owner",
+            "relation": "references",
+            "confidence": "EXTRACTED",
+            "confidence_score": 1.0,
+            "source_file": "app/Http/Requests/RecordStockWasteRequest.php",
+            "source_location": "L14",
+            "weight": 1.0
+        },
+        {
+            "source": "app_http_requests_storeorderrequest",
+            "target": "app_modules_identity_enums_role_role_owner",
+            "relation": "references",
+            "confidence": "EXTRACTED",
+            "confidence_score": 1.0,
+            "source_file": "app/Http/Requests/StoreOrderRequest.php",
+            "source_location": "L20",
+            "weight": 1.0
+        },
+        {
+            "source": "app_http_requests_storestaffrequest",
+            "target": "app_modules_identity_enums_role_role_owner",
+            "relation": "references",
+            "confidence": "EXTRACTED",
+            "confidence_score": 1.0,
+            "source_file": "app/Http/Requests/StoreStaffRequest.php",
+            "source_location": "L32",
+            "weight": 1.0
+        },
+        {
+            "source": "app_http_requests_submitstockcountrequest",
+            "target": "app_modules_identity_enums_role_role_owner",
+            "relation": "references",
+            "confidence": "EXTRACTED",
+            "confidence_score": 1.0,
+            "source_file": "app/Http/Requests/SubmitStockCountRequest.php",
+            "source_location": "L14",
+            "weight": 1.0
+        },
+        {
+            "source": "app_http_requests_updatestaffrequest",
+            "target": "app_modules_identity_enums_role_role_owner",
+            "relation": "references",
+            "confidence": "EXTRACTED",
+            "confidence_score": 1.0,
+            "source_file": "app/Http/Requests/UpdateStaffRequest.php",
+            "source_location": "L40",
+            "weight": 1.0
+        },
+        {
+            "source": "app_http_requests_storepurchaserequest",
+            "target": "app_modules_identity_enums_role_role_owner",
+            "relation": "references",
+            "confidence": "EXTRACTED",
+            "confidence_score": 1.0,
+            "source_file": "app/Http/Requests/StorePurchaseRequest.php",
+            "source_location": "L12",
+            "weight": 1.0
+        },
+        {
+            "source": "app_models_user",
+            "target": "app_modules_identity_enums_role_role_owner",
+            "relation": "references",
+            "confidence": "EXTRACTED",
+            "confidence_score": 1.0,
+            "source_file": "app/Models/User.php",
+            "source_location": "L61",
+            "weight": 1.0
+        },
+        {
+            "source": "app_modules_inventory_actions_recordstockmovement",
+            "target": "app_modules_identity_enums_role_role_owner",
+            "relation": "references",
+            "confidence": "EXTRACTED",
+            "confidence_score": 1.0,
+            "source_file": "app/Modules/Inventory/Actions/RecordStockMovement.php",
+            "source_location": "L37",
+            "weight": 1.0
+        },
+        {
+            "source": "app_modules_inventory_actions_submitstockcount",
+            "target": "app_modules_identity_enums_role_role_owner",
+            "relation": "references",
+            "confidence": "EXTRACTED",
+            "confidence_score": 1.0,
+            "source_file": "app/Modules/Inventory/Actions/SubmitStockCount.php",
+            "source_location": "L37",
+            "weight": 1.0
+        },
+        {
+            "source": "app_modules_shifts_http_controllers_adminshiftcontroller",
+            "target": "app_modules_identity_enums_role_role_owner",
+            "relation": "references",
+            "confidence": "EXTRACTED",
+            "confidence_score": 1.0,
+            "source_file": "app/Modules/Shifts/Http/Controllers/AdminShiftController.php",
+            "source_location": "L43",
+            "weight": 1.0
+        },
+        {
+            "source": "app_modules_shifts_policies_cashiershiftpolicy",
+            "target": "app_modules_identity_enums_role_role_owner",
+            "relation": "references",
+            "confidence": "EXTRACTED",
+            "confidence_score": 1.0,
+            "source_file": "app/Modules/Shifts/Policies/CashierShiftPolicy.php",
+            "source_location": "L14",
+            "weight": 1.0
+        },
+        {
+            "source": "app_modules_purchasing_actions_recordpurchase",
+            "target": "app_modules_identity_enums_role_role_owner",
+            "relation": "references",
+            "confidence": "EXTRACTED",
+            "confidence_score": 1.0,
+            "source_file": "app/Modules/Purchasing/Actions/RecordPurchase.php",
+            "source_location": "L32",
+            "weight": 1.0
+        },
+        {
+            "source": "app_policies_orderpolicy",
+            "target": "app_modules_identity_enums_role_role_owner",
+            "relation": "references",
+            "confidence": "EXTRACTED",
+            "confidence_score": 1.0,
+            "source_file": "app/Policies/OrderPolicy.php",
+            "source_location": "L21",
+            "weight": 1.0
+        },
+        {
+            "source": "routes_web",
+            "target": "app_modules_identity_enums_role_role_owner",
+            "relation": "references",
+            "confidence": "EXTRACTED",
+            "confidence_score": 1.0,
+            "source_file": "routes/web.php",
+            "source_location": "L39",
+            "weight": 1.0
+        },
+        {
+            "source": "routes_channels",
+            "target": "app_modules_identity_enums_role_role_owner",
+            "relation": "references",
+            "confidence": "EXTRACTED",
+            "confidence_score": 1.0,
+            "source_file": "routes/channels.php",
+            "source_location": "L8",
+            "weight": 1.0
+        },
+        {
+            "source": "database_factories_userfactory",
+            "target": "app_modules_identity_enums_role_role_owner",
+            "relation": "references",
+            "confidence": "EXTRACTED",
+            "confidence_score": 1.0,
+            "source_file": "database/factories/UserFactory.php",
+            "source_location": "L43",
+            "weight": 1.0
+        },
+        {
+            "source": "database_seeders_databaseseeder",
+            "target": "app_modules_identity_enums_role_role_owner",
+            "relation": "references",
+            "confidence": "EXTRACTED",
+            "confidence_score": 1.0,
+            "source_file": "database/seeders/DatabaseSeeder.php",
+            "source_location": "L48",
+            "weight": 1.0
+        },
+        {
+            "source": "app_http_controllers_auth_logincontroller",
+            "target": "app_modules_identity_enums_role_role_cashier",
+            "relation": "references",
+            "confidence": "EXTRACTED",
+            "confidence_score": 1.0,
+            "source_file": "app/Http/Controllers/Auth/LoginController.php",
+            "source_location": "L48",
+            "weight": 1.0
+        },
+        {
+            "source": "app_http_requests_storeorderrequest",
+            "target": "app_modules_identity_enums_role_role_cashier",
+            "relation": "references",
+            "confidence": "EXTRACTED",
+            "confidence_score": 1.0,
+            "source_file": "app/Http/Requests/StoreOrderRequest.php",
+            "source_location": "L20",
+            "weight": 1.0
+        },
+        {
+            "source": "app_http_requests_storepurchaserequest",
+            "target": "app_modules_identity_enums_role_role_cashier",
+            "relation": "references",
+            "confidence": "EXTRACTED",
+            "confidence_score": 1.0,
+            "source_file": "app/Http/Requests/StorePurchaseRequest.php",
+            "source_location": "L12",
+            "weight": 1.0
+        },
+        {
+            "source": "app_modules_shifts_http_controllers_adminshiftcontroller",
+            "target": "app_modules_identity_enums_role_role_cashier",
+            "relation": "references",
+            "confidence": "EXTRACTED",
+            "confidence_score": 1.0,
+            "source_file": "app/Modules/Shifts/Http/Controllers/AdminShiftController.php",
+            "source_location": "L43",
+            "weight": 1.0
+        },
+        {
+            "source": "app_modules_shifts_policies_cashiershiftpolicy",
+            "target": "app_modules_identity_enums_role_role_cashier",
+            "relation": "references",
+            "confidence": "EXTRACTED",
+            "confidence_score": 1.0,
+            "source_file": "app/Modules/Shifts/Policies/CashierShiftPolicy.php",
+            "source_location": "L14",
+            "weight": 1.0
+        },
+        {
+            "source": "app_modules_purchasing_actions_recordpurchase",
+            "target": "app_modules_identity_enums_role_role_cashier",
+            "relation": "references",
+            "confidence": "EXTRACTED",
+            "confidence_score": 1.0,
+            "source_file": "app/Modules/Purchasing/Actions/RecordPurchase.php",
+            "source_location": "L32",
+            "weight": 1.0
+        },
+        {
+            "source": "app_policies_orderpolicy",
+            "target": "app_modules_identity_enums_role_role_cashier",
+            "relation": "references",
+            "confidence": "EXTRACTED",
+            "confidence_score": 1.0,
+            "source_file": "app/Policies/OrderPolicy.php",
+            "source_location": "L21",
+            "weight": 1.0
+        },
+        {
+            "source": "routes_web",
+            "target": "app_modules_identity_enums_role_role_cashier",
+            "relation": "references",
+            "confidence": "EXTRACTED",
+            "confidence_score": 1.0,
+            "source_file": "routes/web.php",
+            "source_location": "L40",
+            "weight": 1.0
+        },
+        {
+            "source": "routes_channels",
+            "target": "app_modules_identity_enums_role_role_cashier",
+            "relation": "references",
+            "confidence": "EXTRACTED",
+            "confidence_score": 1.0,
+            "source_file": "routes/channels.php",
+            "source_location": "L13",
+            "weight": 1.0
+        },
+        {
+            "source": "database_factories_userfactory",
+            "target": "app_modules_identity_enums_role_role_cashier",
+            "relation": "references",
+            "confidence": "EXTRACTED",
+            "confidence_score": 1.0,
+            "source_file": "database/factories/UserFactory.php",
+            "source_location": "L34",
+            "weight": 1.0
+        },
+        {
+            "source": "database_seeders_databaseseeder",
+            "target": "app_modules_identity_enums_role_role_cashier",
+            "relation": "references",
+            "confidence": "EXTRACTED",
+            "confidence_score": 1.0,
+            "source_file": "database/seeders/DatabaseSeeder.php",
+            "source_location": "L62",
+            "weight": 1.0
+        },
+        {
+            "source": "app_http_controllers_auth_logincontroller",
+            "target": "app_modules_identity_enums_role_role_kitchen",
+            "relation": "references",
+            "confidence": "EXTRACTED",
+            "confidence_score": 1.0,
+            "source_file": "app/Http/Controllers/Auth/LoginController.php",
+            "source_location": "L49",
+            "weight": 1.0
+        },
+        {
+            "source": "app_http_requests_recordstockwasterequest",
+            "target": "app_modules_identity_enums_role_role_kitchen",
+            "relation": "references",
+            "confidence": "EXTRACTED",
+            "confidence_score": 1.0,
+            "source_file": "app/Http/Requests/RecordStockWasteRequest.php",
+            "source_location": "L14",
+            "weight": 1.0
+        },
+        {
+            "source": "app_http_requests_submitstockcountrequest",
+            "target": "app_modules_identity_enums_role_role_kitchen",
+            "relation": "references",
+            "confidence": "EXTRACTED",
+            "confidence_score": 1.0,
+            "source_file": "app/Http/Requests/SubmitStockCountRequest.php",
+            "source_location": "L14",
+            "weight": 1.0
+        },
+        {
+            "source": "app_http_requests_storepurchaserequest",
+            "target": "app_modules_identity_enums_role_role_kitchen",
+            "relation": "references",
+            "confidence": "EXTRACTED",
+            "confidence_score": 1.0,
+            "source_file": "app/Http/Requests/StorePurchaseRequest.php",
+            "source_location": "L12",
+            "weight": 1.0
+        },
+        {
+            "source": "app_modules_inventory_actions_recordstockmovement",
+            "target": "app_modules_identity_enums_role_role_kitchen",
+            "relation": "references",
+            "confidence": "EXTRACTED",
+            "confidence_score": 1.0,
+            "source_file": "app/Modules/Inventory/Actions/RecordStockMovement.php",
+            "source_location": "L37",
+            "weight": 1.0
+        },
+        {
+            "source": "app_modules_inventory_actions_submitstockcount",
+            "target": "app_modules_identity_enums_role_role_kitchen",
+            "relation": "references",
+            "confidence": "EXTRACTED",
+            "confidence_score": 1.0,
+            "source_file": "app/Modules/Inventory/Actions/SubmitStockCount.php",
+            "source_location": "L37",
+            "weight": 1.0
+        },
+        {
+            "source": "app_modules_purchasing_actions_recordpurchase",
+            "target": "app_modules_identity_enums_role_role_kitchen",
+            "relation": "references",
+            "confidence": "EXTRACTED",
+            "confidence_score": 1.0,
+            "source_file": "app/Modules/Purchasing/Actions/RecordPurchase.php",
+            "source_location": "L32",
+            "weight": 1.0
+        },
+        {
+            "source": "app_policies_orderpolicy",
+            "target": "app_modules_identity_enums_role_role_kitchen",
+            "relation": "references",
+            "confidence": "EXTRACTED",
+            "confidence_score": 1.0,
+            "source_file": "app/Policies/OrderPolicy.php",
+            "source_location": "L41",
+            "weight": 1.0
+        },
+        {
+            "source": "routes_web",
+            "target": "app_modules_identity_enums_role_role_kitchen",
+            "relation": "references",
+            "confidence": "EXTRACTED",
+            "confidence_score": 1.0,
+            "source_file": "routes/web.php",
+            "source_location": "L41",
+            "weight": 1.0
+        },
+        {
+            "source": "routes_channels",
+            "target": "app_modules_identity_enums_role_role_kitchen",
+            "relation": "references",
+            "confidence": "EXTRACTED",
+            "confidence_score": 1.0,
+            "source_file": "routes/channels.php",
+            "source_location": "L8",
+            "weight": 1.0
+        },
+        {
+            "source": "database_factories_userfactory",
+            "target": "app_modules_identity_enums_role_role_kitchen",
+            "relation": "references",
+            "confidence": "EXTRACTED",
+            "confidence_score": 1.0,
+            "source_file": "database/factories/UserFactory.php",
+            "source_location": "L58",
+            "weight": 1.0
+        },
+        {
+            "source": "database_seeders_databaseseeder",
+            "target": "app_modules_identity_enums_role_role_kitchen",
+            "relation": "references",
+            "confidence": "EXTRACTED",
+            "confidence_score": 1.0,
+            "source_file": "database/seeders/DatabaseSeeder.php",
+            "source_location": "L73",
+            "weight": 1.0
+        },
+        {
+            "source": "app_http_requests_storestockmovementrequest",
+            "target": "app_modules_inventory_enums_stockmovementtype_stockmovementtype_opening",
+            "relation": "references",
+            "confidence": "EXTRACTED",
+            "confidence_score": 1.0,
+            "source_file": "app/Http/Requests/StoreStockMovementRequest.php",
+            "source_location": "L26",
+            "weight": 1.0
+        },
+        {
+            "source": "app_modules_inventory_actions_recordstockmovement",
+            "target": "app_modules_inventory_enums_stockmovementtype_stockmovementtype_opening",
+            "relation": "references",
+            "confidence": "EXTRACTED",
+            "confidence_score": 1.0,
+            "source_file": "app/Modules/Inventory/Actions/RecordStockMovement.php",
+            "source_location": "L140",
+            "weight": 1.0
+        },
+        {
+            "source": "tests_feature_inventoryreconciletest",
+            "target": "app_modules_inventory_enums_stockmovementtype_stockmovementtype_opening",
+            "relation": "references",
+            "confidence": "EXTRACTED",
+            "confidence_score": 1.0,
+            "source_file": "tests/Feature/InventoryReconcileTest.php",
+            "source_location": "L103",
+            "weight": 1.0
+        },
+        {
+            "source": "tests_feature_reporttest",
+            "target": "app_modules_inventory_enums_stockmovementtype_stockmovementtype_opening",
+            "relation": "references",
+            "confidence": "EXTRACTED",
+            "confidence_score": 1.0,
+            "source_file": "tests/Feature/ReportTest.php",
+            "source_location": "L166",
+            "weight": 1.0
+        },
+        {
+            "source": "tests_feature_stockledgertest",
+            "target": "app_modules_inventory_enums_stockmovementtype_stockmovementtype_opening",
+            "relation": "references",
+            "confidence": "EXTRACTED",
+            "confidence_score": 1.0,
+            "source_file": "tests/Feature/StockLedgerTest.php",
+            "source_location": "L30",
+            "weight": 1.0
+        },
+        {
+            "source": "tests_feature_stocktransfertest",
+            "target": "app_modules_inventory_enums_stockmovementtype_stockmovementtype_opening",
+            "relation": "references",
+            "confidence": "EXTRACTED",
+            "confidence_score": 1.0,
+            "source_file": "tests/Feature/StockTransferTest.php",
+            "source_location": "L723",
+            "weight": 1.0
+        },
+        {
+            "source": "app_http_requests_storestockmovementrequest",
+            "target": "app_modules_inventory_enums_stockmovementtype_stockmovementtype_receipt",
+            "relation": "references",
+            "confidence": "EXTRACTED",
+            "confidence_score": 1.0,
+            "source_file": "app/Http/Requests/StoreStockMovementRequest.php",
+            "source_location": "L27",
+            "weight": 1.0
+        },
+        {
+            "source": "app_modules_inventory_actions_recordstockmovement",
+            "target": "app_modules_inventory_enums_stockmovementtype_stockmovementtype_receipt",
+            "relation": "references",
+            "confidence": "EXTRACTED",
+            "confidence_score": 1.0,
+            "source_file": "app/Modules/Inventory/Actions/RecordStockMovement.php",
+            "source_location": "L140",
+            "weight": 1.0
+        },
+        {
+            "source": "app_modules_purchasing_actions_recordpurchase",
+            "target": "app_modules_inventory_enums_stockmovementtype_stockmovementtype_receipt",
+            "relation": "references",
+            "confidence": "EXTRACTED",
+            "confidence_score": 1.0,
+            "source_file": "app/Modules/Purchasing/Actions/RecordPurchase.php",
+            "source_location": "L181",
+            "weight": 1.0
+        },
+        {
+            "source": "tests_feature_inventoryreconciletest",
+            "target": "app_modules_inventory_enums_stockmovementtype_stockmovementtype_receipt",
+            "relation": "references",
+            "confidence": "EXTRACTED",
+            "confidence_score": 1.0,
+            "source_file": "tests/Feature/InventoryReconcileTest.php",
+            "source_location": "L132",
+            "weight": 1.0
+        },
+        {
+            "source": "tests_feature_stockledgertest",
+            "target": "app_modules_inventory_enums_stockmovementtype_stockmovementtype_receipt",
+            "relation": "references",
+            "confidence": "EXTRACTED",
+            "confidence_score": 1.0,
+            "source_file": "tests/Feature/StockLedgerTest.php",
+            "source_location": "L31",
+            "weight": 1.0
+        },
+        {
+            "source": "tests_feature_purchaseactiontest",
+            "target": "app_modules_inventory_enums_stockmovementtype_stockmovementtype_receipt",
+            "relation": "references",
+            "confidence": "EXTRACTED",
+            "confidence_score": 1.0,
+            "source_file": "tests/Feature/PurchaseActionTest.php",
+            "source_location": "L88",
+            "weight": 1.0
+        },
+        {
+            "source": "tests_feature_purchasehttptest",
+            "target": "app_modules_inventory_enums_stockmovementtype_stockmovementtype_receipt",
+            "relation": "references",
+            "confidence": "EXTRACTED",
+            "confidence_score": 1.0,
+            "source_file": "tests/Feature/PurchaseHttpTest.php",
+            "source_location": "L131",
+            "weight": 1.0
+        },
+        {
+            "source": "tests_feature_purchaseconcurrencytest",
+            "target": "app_modules_inventory_enums_stockmovementtype_stockmovementtype_receipt",
+            "relation": "references",
+            "confidence": "EXTRACTED",
+            "confidence_score": 1.0,
+            "source_file": "tests/Feature/PurchaseConcurrencyTest.php",
+            "source_location": "L78",
+            "weight": 1.0
+        },
+        {
+            "source": "app_modules_inventory_actions_recordstockmovement",
+            "target": "app_modules_inventory_enums_stockmovementtype_stockmovementtype_waste",
+            "relation": "references",
+            "confidence": "EXTRACTED",
+            "confidence_score": 1.0,
+            "source_file": "app/Modules/Inventory/Actions/RecordStockMovement.php",
+            "source_location": "L146",
+            "weight": 1.0
+        },
+        {
+            "source": "app_modules_inventory_http_controllers_stockmovementcontroller",
+            "target": "app_modules_inventory_enums_stockmovementtype_stockmovementtype_waste",
+            "relation": "references",
+            "confidence": "EXTRACTED",
+            "confidence_score": 1.0,
+            "source_file": "app/Modules/Inventory/Http/Controllers/StockMovementController.php",
+            "source_location": "L104",
+            "weight": 1.0
+        },
+        {
+            "source": "tests_feature_inventoryreconciletest",
+            "target": "app_modules_inventory_enums_stockmovementtype_stockmovementtype_waste",
+            "relation": "references",
+            "confidence": "EXTRACTED",
+            "confidence_score": 1.0,
+            "source_file": "tests/Feature/InventoryReconcileTest.php",
+            "source_location": "L133",
+            "weight": 1.0
+        },
+        {
+            "source": "tests_feature_stockconcurrencytest",
+            "target": "app_modules_inventory_enums_stockmovementtype_stockmovementtype_waste",
+            "relation": "references",
+            "confidence": "EXTRACTED",
+            "confidence_score": 1.0,
+            "source_file": "tests/Feature/StockConcurrencyTest.php",
+            "source_location": "L41",
+            "weight": 1.0
+        },
+        {
+            "source": "tests_feature_stockledgertest",
+            "target": "app_modules_inventory_enums_stockmovementtype_stockmovementtype_waste",
+            "relation": "references",
+            "confidence": "EXTRACTED",
+            "confidence_score": 1.0,
+            "source_file": "tests/Feature/StockLedgerTest.php",
+            "source_location": "L32",
+            "weight": 1.0
+        },
+        {
+            "source": "app_http_requests_storestockmovementrequest",
+            "target": "app_modules_inventory_enums_stockmovementtype_stockmovementtype_adjustment",
+            "relation": "references",
+            "confidence": "EXTRACTED",
+            "confidence_score": 1.0,
+            "source_file": "app/Http/Requests/StoreStockMovementRequest.php",
+            "source_location": "L28",
+            "weight": 1.0
+        },
+        {
+            "source": "app_modules_inventory_actions_recordstockmovement",
+            "target": "app_modules_inventory_enums_stockmovementtype_stockmovementtype_adjustment",
+            "relation": "references",
+            "confidence": "EXTRACTED",
+            "confidence_score": 1.0,
+            "source_file": "app/Modules/Inventory/Actions/RecordStockMovement.php",
+            "source_location": "L110",
+            "weight": 1.0
+        },
+        {
+            "source": "tests_feature_stockledgertest",
+            "target": "app_modules_inventory_enums_stockmovementtype_stockmovementtype_adjustment",
+            "relation": "references",
+            "confidence": "EXTRACTED",
+            "confidence_score": 1.0,
+            "source_file": "tests/Feature/StockLedgerTest.php",
+            "source_location": "L104",
+            "weight": 1.0
+        },
+        {
+            "source": "tests_feature_unitadmintest",
+            "target": "app_modules_inventory_enums_stockmovementtype_stockmovementtype_adjustment",
+            "relation": "references",
+            "confidence": "EXTRACTED",
+            "confidence_score": 1.0,
+            "source_file": "tests/Feature/UnitAdminTest.php",
+            "source_location": "L251",
+            "weight": 1.0
+        },
+        {
+            "source": "app_modules_inventory_actions_submitstockcount",
+            "target": "app_modules_inventory_enums_stockmovementtype_stockmovementtype_countcorrection",
+            "relation": "references",
+            "confidence": "EXTRACTED",
+            "confidence_score": 1.0,
+            "source_file": "app/Modules/Inventory/Actions/SubmitStockCount.php",
+            "source_location": "L99",
+            "weight": 1.0
+        },
+        {
+            "source": "app_modules_inventory_actions_consumeorderingredients",
+            "target": "app_modules_inventory_enums_stockmovementtype_stockmovementtype_consumption",
+            "relation": "references",
+            "confidence": "EXTRACTED",
+            "confidence_score": 1.0,
+            "source_file": "app/Modules/Inventory/Actions/ConsumeOrderIngredients.php",
+            "source_location": "L67",
+            "weight": 1.0
+        },
+        {
+            "source": "app_modules_inventory_actions_recordstockmovement",
+            "target": "app_modules_inventory_enums_stockmovementtype_stockmovementtype_consumption",
+            "relation": "references",
+            "confidence": "EXTRACTED",
+            "confidence_score": 1.0,
+            "source_file": "app/Modules/Inventory/Actions/RecordStockMovement.php",
+            "source_location": "L152",
+            "weight": 1.0
+        },
+        {
+            "source": "app_modules_inventory_actions_reverseorderconsumption",
+            "target": "app_modules_inventory_enums_stockmovementtype_stockmovementtype_consumption",
+            "relation": "references",
+            "confidence": "EXTRACTED",
+            "confidence_score": 1.0,
+            "source_file": "app/Modules/Inventory/Actions/ReverseOrderConsumption.php",
+            "source_location": "L20",
+            "weight": 1.0
+        },
+        {
+            "source": "tests_feature_orderconsumptiontest",
+            "target": "app_modules_inventory_enums_stockmovementtype_stockmovementtype_consumption",
+            "relation": "references",
+            "confidence": "EXTRACTED",
+            "confidence_score": 1.0,
+            "source_file": "tests/Feature/OrderConsumptionTest.php",
+            "source_location": "L49",
+            "weight": 1.0
+        },
+        {
+            "source": "tests_feature_recipeschematest",
+            "target": "app_modules_inventory_enums_stockmovementtype_stockmovementtype_consumption",
+            "relation": "references",
+            "confidence": "EXTRACTED",
+            "confidence_score": 1.0,
+            "source_file": "tests/Feature/RecipeSchemaTest.php",
+            "source_location": "L85",
+            "weight": 1.0
+        },
+        {
+            "source": "tests_feature_stockledgertest",
+            "target": "app_modules_inventory_enums_stockmovementtype_stockmovementtype_consumption",
+            "relation": "references",
+            "confidence": "EXTRACTED",
+            "confidence_score": 1.0,
+            "source_file": "tests/Feature/StockLedgerTest.php",
+            "source_location": "L62",
+            "weight": 1.0
+        },
+        {
+            "source": "tests_feature_transferconcurrencytest",
+            "target": "app_modules_inventory_enums_stockmovementtype_stockmovementtype_consumption",
+            "relation": "references",
+            "confidence": "EXTRACTED",
+            "confidence_score": 1.0,
+            "source_file": "tests/Feature/TransferConcurrencyTest.php",
+            "source_location": "L67",
+            "weight": 1.0
+        },
+        {
+            "source": "app_modules_inventory_actions_recordstockmovement",
+            "target": "app_modules_inventory_enums_stockmovementtype_stockmovementtype_consumptionreversal",
+            "relation": "references",
+            "confidence": "EXTRACTED",
+            "confidence_score": 1.0,
+            "source_file": "app/Modules/Inventory/Actions/RecordStockMovement.php",
+            "source_location": "L158",
+            "weight": 1.0
+        },
+        {
+            "source": "app_modules_inventory_actions_reverseorderconsumption",
+            "target": "app_modules_inventory_enums_stockmovementtype_stockmovementtype_consumptionreversal",
+            "relation": "references",
+            "confidence": "EXTRACTED",
+            "confidence_score": 1.0,
+            "source_file": "app/Modules/Inventory/Actions/ReverseOrderConsumption.php",
+            "source_location": "L50",
+            "weight": 1.0
+        },
+        {
+            "source": "tests_feature_orderconsumptiontest",
+            "target": "app_modules_inventory_enums_stockmovementtype_stockmovementtype_consumptionreversal",
+            "relation": "references",
+            "confidence": "EXTRACTED",
+            "confidence_score": 1.0,
+            "source_file": "tests/Feature/OrderConsumptionTest.php",
+            "source_location": "L142",
+            "weight": 1.0
+        },
+        {
+            "source": "tests_feature_recipeschematest",
+            "target": "app_modules_inventory_enums_stockmovementtype_stockmovementtype_consumptionreversal",
+            "relation": "references",
+            "confidence": "EXTRACTED",
+            "confidence_score": 1.0,
+            "source_file": "tests/Feature/RecipeSchemaTest.php",
+            "source_location": "L86",
+            "weight": 1.0
+        },
+        {
+            "source": "tests_feature_stockledgertest",
+            "target": "app_modules_inventory_enums_stockmovementtype_stockmovementtype_consumptionreversal",
+            "relation": "references",
+            "confidence": "EXTRACTED",
+            "confidence_score": 1.0,
+            "source_file": "tests/Feature/StockLedgerTest.php",
+            "source_location": "L74",
+            "weight": 1.0
+        },
+        {
+            "source": "app_modules_inventory_actions_dispatchstocktransfer",
+            "target": "app_modules_inventory_enums_stockmovementtype_stockmovementtype_transferout",
+            "relation": "references",
+            "confidence": "EXTRACTED",
+            "confidence_score": 1.0,
+            "source_file": "app/Modules/Inventory/Actions/DispatchStockTransfer.php",
+            "source_location": "L77",
+            "weight": 1.0
+        },
+        {
+            "source": "app_modules_inventory_actions_recordstockmovement",
+            "target": "app_modules_inventory_enums_stockmovementtype_stockmovementtype_transferout",
+            "relation": "references",
+            "confidence": "EXTRACTED",
+            "confidence_score": 1.0,
+            "source_file": "app/Modules/Inventory/Actions/RecordStockMovement.php",
+            "source_location": "L164",
+            "weight": 1.0
+        },
+        {
+            "source": "tests_feature_stocktransfertest",
+            "target": "app_modules_inventory_enums_stockmovementtype_stockmovementtype_transferout",
+            "relation": "references",
+            "confidence": "EXTRACTED",
+            "confidence_score": 1.0,
+            "source_file": "tests/Feature/StockTransferTest.php",
+            "source_location": "L39",
+            "weight": 1.0
+        },
+        {
+            "source": "tests_feature_transferconcurrencytest",
+            "target": "app_modules_inventory_enums_stockmovementtype_stockmovementtype_transferout",
+            "relation": "references",
+            "confidence": "EXTRACTED",
+            "confidence_score": 1.0,
+            "source_file": "tests/Feature/TransferConcurrencyTest.php",
+            "source_location": "L92",
+            "weight": 1.0
+        },
+        {
+            "source": "app_modules_inventory_actions_receivestocktransfer",
+            "target": "app_modules_inventory_enums_stockmovementtype_stockmovementtype_transferin",
+            "relation": "references",
+            "confidence": "EXTRACTED",
+            "confidence_score": 1.0,
+            "source_file": "app/Modules/Inventory/Actions/ReceiveStockTransfer.php",
+            "source_location": "L100",
+            "weight": 1.0
+        },
+        {
+            "source": "app_modules_inventory_actions_recordstockmovement",
+            "target": "app_modules_inventory_enums_stockmovementtype_stockmovementtype_transferin",
+            "relation": "references",
+            "confidence": "EXTRACTED",
+            "confidence_score": 1.0,
+            "source_file": "app/Modules/Inventory/Actions/RecordStockMovement.php",
+            "source_location": "L170",
+            "weight": 1.0
+        },
+        {
+            "source": "tests_feature_stocktransfertest",
+            "target": "app_modules_inventory_enums_stockmovementtype_stockmovementtype_transferin",
+            "relation": "references",
+            "confidence": "EXTRACTED",
+            "confidence_score": 1.0,
+            "source_file": "tests/Feature/StockTransferTest.php",
+            "source_location": "L57",
+            "weight": 1.0
+        },
+        {
+            "source": "app_modules_inventory_actions_cancelstocktransfer",
+            "target": "app_modules_inventory_enums_transferstatus_transferstatus_draft",
+            "relation": "references",
+            "confidence": "EXTRACTED",
+            "confidence_score": 1.0,
+            "source_file": "app/Modules/Inventory/Actions/CancelStockTransfer.php",
+            "source_location": "L34",
+            "weight": 1.0
+        },
+        {
+            "source": "app_modules_inventory_actions_createstocktransfer",
+            "target": "app_modules_inventory_enums_transferstatus_transferstatus_draft",
+            "relation": "references",
+            "confidence": "EXTRACTED",
+            "confidence_score": 1.0,
+            "source_file": "app/Modules/Inventory/Actions/CreateStockTransfer.php",
+            "source_location": "L26",
+            "weight": 1.0
+        },
+        {
+            "source": "app_modules_inventory_actions_dispatchstocktransfer",
+            "target": "app_modules_inventory_enums_transferstatus_transferstatus_draft",
+            "relation": "references",
+            "confidence": "EXTRACTED",
+            "confidence_score": 1.0,
+            "source_file": "app/Modules/Inventory/Actions/DispatchStockTransfer.php",
+            "source_location": "L30",
+            "weight": 1.0
+        },
+        {
+            "source": "database_factories_stocktransferfactory",
+            "target": "app_modules_inventory_enums_transferstatus_transferstatus_draft",
+            "relation": "references",
+            "confidence": "EXTRACTED",
+            "confidence_score": 1.0,
+            "source_file": "database/factories/StockTransferFactory.php",
+            "source_location": "L26",
+            "weight": 1.0
+        },
+        {
+            "source": "tests_feature_stocktransfertest",
+            "target": "app_modules_inventory_enums_transferstatus_transferstatus_draft",
+            "relation": "references",
+            "confidence": "EXTRACTED",
+            "confidence_score": 1.0,
+            "source_file": "tests/Feature/StockTransferTest.php",
+            "source_location": "L83",
+            "weight": 1.0
+        },
+        {
+            "source": "app_modules_inventory_actions_dispatchstocktransfer",
+            "target": "app_modules_inventory_enums_transferstatus_transferstatus_dispatched",
+            "relation": "references",
+            "confidence": "EXTRACTED",
+            "confidence_score": 1.0,
+            "source_file": "app/Modules/Inventory/Actions/DispatchStockTransfer.php",
+            "source_location": "L86",
+            "weight": 1.0
+        },
+        {
+            "source": "app_modules_inventory_actions_receivestocktransfer",
+            "target": "app_modules_inventory_enums_transferstatus_transferstatus_dispatched",
+            "relation": "references",
+            "confidence": "EXTRACTED",
+            "confidence_score": 1.0,
+            "source_file": "app/Modules/Inventory/Actions/ReceiveStockTransfer.php",
+            "source_location": "L30",
+            "weight": 1.0
+        },
+        {
+            "source": "database_factories_stocktransferfactory",
+            "target": "app_modules_inventory_enums_transferstatus_transferstatus_dispatched",
+            "relation": "references",
+            "confidence": "EXTRACTED",
+            "confidence_score": 1.0,
+            "source_file": "database/factories/StockTransferFactory.php",
+            "source_location": "L34",
+            "weight": 1.0
+        },
+        {
+            "source": "tests_feature_stocktransfertest",
+            "target": "app_modules_inventory_enums_transferstatus_transferstatus_dispatched",
+            "relation": "references",
+            "confidence": "EXTRACTED",
+            "confidence_score": 1.0,
+            "source_file": "tests/Feature/StockTransferTest.php",
+            "source_location": "L65",
+            "weight": 1.0
+        },
+        {
+            "source": "app_modules_inventory_actions_receivestocktransfer",
+            "target": "app_modules_inventory_enums_transferstatus_transferstatus_received",
+            "relation": "references",
+            "confidence": "EXTRACTED",
+            "confidence_score": 1.0,
+            "source_file": "app/Modules/Inventory/Actions/ReceiveStockTransfer.php",
+            "source_location": "L118",
+            "weight": 1.0
+        },
+        {
+            "source": "database_factories_stocktransferfactory",
+            "target": "app_modules_inventory_enums_transferstatus_transferstatus_received",
+            "relation": "references",
+            "confidence": "EXTRACTED",
+            "confidence_score": 1.0,
+            "source_file": "database/factories/StockTransferFactory.php",
+            "source_location": "L42",
+            "weight": 1.0
+        },
+        {
+            "source": "tests_feature_stocktransfertest",
+            "target": "app_modules_inventory_enums_transferstatus_transferstatus_received",
+            "relation": "references",
+            "confidence": "EXTRACTED",
+            "confidence_score": 1.0,
+            "source_file": "tests/Feature/StockTransferTest.php",
+            "source_location": "L71",
+            "weight": 1.0
+        },
+        {
+            "source": "app_modules_inventory_actions_cancelstocktransfer",
+            "target": "app_modules_inventory_enums_transferstatus_transferstatus_cancelled",
+            "relation": "references",
+            "confidence": "EXTRACTED",
+            "confidence_score": 1.0,
+            "source_file": "app/Modules/Inventory/Actions/CancelStockTransfer.php",
+            "source_location": "L41",
+            "weight": 1.0
+        },
+        {
+            "source": "database_factories_stocktransferfactory",
+            "target": "app_modules_inventory_enums_transferstatus_transferstatus_cancelled",
+            "relation": "references",
+            "confidence": "EXTRACTED",
+            "confidence_score": 1.0,
+            "source_file": "database/factories/StockTransferFactory.php",
+            "source_location": "L51",
+            "weight": 1.0
+        },
+        {
+            "source": "tests_feature_stocktransfertest",
+            "target": "app_modules_inventory_enums_transferstatus_transferstatus_cancelled",
+            "relation": "references",
+            "confidence": "EXTRACTED",
+            "confidence_score": 1.0,
+            "source_file": "tests/Feature/StockTransferTest.php",
+            "source_location": "L77",
+            "weight": 1.0
+        },
+        {
+            "source": "tests_feature_receipttest",
+            "target": "app_modules_ordering_enums_orderchannel_orderchannel_dinein",
+            "relation": "references",
+            "confidence": "EXTRACTED",
+            "confidence_score": 1.0,
+            "source_file": "tests/Feature/ReceiptTest.php",
+            "source_location": "L61",
+            "weight": 1.0
+        },
+        {
+            "source": "database_factories_orderfactory",
+            "target": "app_modules_ordering_enums_orderchannel_orderchannel_takeaway",
+            "relation": "references",
+            "confidence": "EXTRACTED",
+            "confidence_score": 1.0,
+            "source_file": "database/factories/OrderFactory.php",
+            "source_location": "L32",
+            "weight": 1.0
+        },
+        {
+            "source": "tests_feature_broadcastordereventstest",
+            "target": "app_modules_ordering_enums_orderchannel_orderchannel_takeaway",
+            "relation": "references",
+            "confidence": "EXTRACTED",
+            "confidence_score": 1.0,
+            "source_file": "tests/Feature/BroadcastOrderEventsTest.php",
+            "source_location": "L270",
+            "weight": 1.0
+        },
+        {
+            "source": "app_modules_ordering_actions_createorder",
+            "target": "app_modules_ordering_enums_orderstatus_orderstatus_queued",
+            "relation": "references",
+            "confidence": "EXTRACTED",
+            "confidence_score": 1.0,
+            "source_file": "app/Modules/Ordering/Actions/CreateOrder.php",
+            "source_location": "L87",
+            "weight": 1.0
+        },
+        {
+            "source": "app_modules_ordering_models_order",
+            "target": "app_modules_ordering_enums_orderstatus_orderstatus_queued",
+            "relation": "references",
+            "confidence": "EXTRACTED",
+            "confidence_score": 1.0,
+            "source_file": "app/Modules/Ordering/Models/Order.php",
+            "source_location": "L89",
+            "weight": 1.0
+        },
+        {
+            "source": "database_factories_orderfactory",
+            "target": "app_modules_ordering_enums_orderstatus_orderstatus_queued",
+            "relation": "references",
+            "confidence": "EXTRACTED",
+            "confidence_score": 1.0,
+            "source_file": "database/factories/OrderFactory.php",
+            "source_location": "L36",
+            "weight": 1.0
+        },
+        {
+            "source": "tests_feature_kitchentest",
+            "target": "app_modules_ordering_enums_orderstatus_orderstatus_queued",
+            "relation": "references",
+            "confidence": "EXTRACTED",
+            "confidence_score": 1.0,
+            "source_file": "tests/Feature/KitchenTest.php",
+            "source_location": "L83",
+            "weight": 1.0
+        },
+        {
+            "source": "tests_feature_orderconsumptiontest",
+            "target": "app_modules_ordering_enums_orderstatus_orderstatus_queued",
+            "relation": "references",
+            "confidence": "EXTRACTED",
+            "confidence_score": 1.0,
+            "source_file": "tests/Feature/OrderConsumptionTest.php",
+            "source_location": "L290",
+            "weight": 1.0
+        },
+        {
+            "source": "tests_feature_voidordertest",
+            "target": "app_modules_ordering_enums_orderstatus_orderstatus_queued",
+            "relation": "references",
+            "confidence": "EXTRACTED",
+            "confidence_score": 1.0,
+            "source_file": "tests/Feature/VoidOrderTest.php",
+            "source_location": "L118",
+            "weight": 1.0
+        },
+        {
+            "source": "app_modules_kitchen_actions_transitionorderstatus",
+            "target": "app_modules_ordering_enums_orderstatus_orderstatus_accepted",
+            "relation": "references",
+            "confidence": "EXTRACTED",
+            "confidence_score": 1.0,
+            "source_file": "app/Modules/Kitchen/Actions/TransitionOrderStatus.php",
+            "source_location": "L41",
+            "weight": 1.0
+        },
+        {
+            "source": "tests_feature_kitchentest",
+            "target": "app_modules_ordering_enums_orderstatus_orderstatus_accepted",
+            "relation": "references",
+            "confidence": "EXTRACTED",
+            "confidence_score": 1.0,
+            "source_file": "tests/Feature/KitchenTest.php",
+            "source_location": "L26",
+            "weight": 1.0
+        },
+        {
+            "source": "tests_feature_orderconsumptiontest",
+            "target": "app_modules_ordering_enums_orderstatus_orderstatus_accepted",
+            "relation": "references",
+            "confidence": "EXTRACTED",
+            "confidence_score": 1.0,
+            "source_file": "tests/Feature/OrderConsumptionTest.php",
+            "source_location": "L195",
+            "weight": 1.0
+        },
+        {
+            "source": "tests_feature_voidordertest",
+            "target": "app_modules_ordering_enums_orderstatus_orderstatus_accepted",
+            "relation": "references",
+            "confidence": "EXTRACTED",
+            "confidence_score": 1.0,
+            "source_file": "tests/Feature/VoidOrderTest.php",
+            "source_location": "L99",
+            "weight": 1.0
+        },
+        {
+            "source": "tests_feature_broadcastordereventstest",
+            "target": "app_modules_ordering_enums_orderstatus_orderstatus_accepted",
+            "relation": "references",
+            "confidence": "EXTRACTED",
+            "confidence_score": 1.0,
+            "source_file": "tests/Feature/BroadcastOrderEventsTest.php",
+            "source_location": "L159",
+            "weight": 1.0
+        },
+        {
+            "source": "app_modules_kitchen_actions_transitionorderstatus",
+            "target": "app_modules_ordering_enums_orderstatus_orderstatus_preparing",
+            "relation": "references",
+            "confidence": "EXTRACTED",
+            "confidence_score": 1.0,
+            "source_file": "app/Modules/Kitchen/Actions/TransitionOrderStatus.php",
+            "source_location": "L47",
+            "weight": 1.0
+        },
+        {
+            "source": "app_modules_ordering_actions_voidorder",
+            "target": "app_modules_ordering_enums_orderstatus_orderstatus_preparing",
+            "relation": "references",
+            "confidence": "EXTRACTED",
+            "confidence_score": 1.0,
+            "source_file": "app/Modules/Ordering/Actions/VoidOrder.php",
+            "source_location": "L74",
+            "weight": 1.0
+        },
+        {
+            "source": "tests_feature_orderconsumptiontest",
+            "target": "app_modules_ordering_enums_orderstatus_orderstatus_preparing",
+            "relation": "references",
+            "confidence": "EXTRACTED",
+            "confidence_score": 1.0,
+            "source_file": "tests/Feature/OrderConsumptionTest.php",
+            "source_location": "L45",
+            "weight": 1.0
+        },
+        {
+            "source": "tests_feature_broadcastordereventstest",
+            "target": "app_modules_ordering_enums_orderstatus_orderstatus_preparing",
+            "relation": "references",
+            "confidence": "EXTRACTED",
+            "confidence_score": 1.0,
+            "source_file": "tests/Feature/BroadcastOrderEventsTest.php",
+            "source_location": "L181",
+            "weight": 1.0
+        },
+        {
+            "source": "app_modules_ordering_actions_voidorder",
+            "target": "app_modules_ordering_enums_orderstatus_orderstatus_ready",
+            "relation": "references",
+            "confidence": "EXTRACTED",
+            "confidence_score": 1.0,
+            "source_file": "app/Modules/Ordering/Actions/VoidOrder.php",
+            "source_location": "L74",
+            "weight": 1.0
+        },
+        {
+            "source": "app_modules_kitchen_http_controllers_kitchencontroller",
+            "target": "app_modules_ordering_enums_orderstatus_orderstatus_completed",
+            "relation": "references",
+            "confidence": "EXTRACTED",
+            "confidence_score": 1.0,
+            "source_file": "app/Modules/Kitchen/Http/Controllers/KitchenController.php",
+            "source_location": "L72",
+            "weight": 1.0
+        },
+        {
+            "source": "app_modules_ordering_actions_voidorder",
+            "target": "app_modules_ordering_enums_orderstatus_orderstatus_completed",
+            "relation": "references",
+            "confidence": "EXTRACTED",
+            "confidence_score": 1.0,
+            "source_file": "app/Modules/Ordering/Actions/VoidOrder.php",
+            "source_location": "L74",
+            "weight": 1.0
+        },
+        {
+            "source": "app_modules_kitchen_actions_transitionorderstatus",
+            "target": "app_modules_ordering_enums_orderstatus_orderstatus_cancelled",
+            "relation": "references",
+            "confidence": "EXTRACTED",
+            "confidence_score": 1.0,
+            "source_file": "app/Modules/Kitchen/Actions/TransitionOrderStatus.php",
+            "source_location": "L31",
+            "weight": 1.0
+        },
+        {
+            "source": "app_modules_kitchen_http_controllers_kitchencontroller",
+            "target": "app_modules_ordering_enums_orderstatus_orderstatus_cancelled",
+            "relation": "references",
+            "confidence": "EXTRACTED",
+            "confidence_score": 1.0,
+            "source_file": "app/Modules/Kitchen/Http/Controllers/KitchenController.php",
+            "source_location": "L61",
+            "weight": 1.0
+        },
+        {
+            "source": "app_modules_ordering_actions_cancelorder",
+            "target": "app_modules_ordering_enums_orderstatus_orderstatus_cancelled",
+            "relation": "references",
+            "confidence": "EXTRACTED",
+            "confidence_score": 1.0,
+            "source_file": "app/Modules/Ordering/Actions/CancelOrder.php",
+            "source_location": "L33",
+            "weight": 1.0
+        },
+        {
+            "source": "app_modules_ordering_actions_voidorder",
+            "target": "app_modules_ordering_enums_orderstatus_orderstatus_cancelled",
+            "relation": "references",
+            "confidence": "EXTRACTED",
+            "confidence_score": 1.0,
+            "source_file": "app/Modules/Ordering/Actions/VoidOrder.php",
+            "source_location": "L46",
+            "weight": 1.0
+        },
+        {
+            "source": "app_modules_ordering_models_order",
+            "target": "app_modules_ordering_enums_orderstatus_orderstatus_cancelled",
+            "relation": "references",
+            "confidence": "EXTRACTED",
+            "confidence_score": 1.0,
+            "source_file": "app/Modules/Ordering/Models/Order.php",
+            "source_location": "L98",
+            "weight": 1.0
+        },
+        {
+            "source": "app_modules_payments_actions_markorderpaid",
+            "target": "app_modules_ordering_enums_orderstatus_orderstatus_cancelled",
+            "relation": "references",
+            "confidence": "EXTRACTED",
+            "confidence_score": 1.0,
+            "source_file": "app/Modules/Payments/Actions/MarkOrderPaid.php",
+            "source_location": "L40",
+            "weight": 1.0
+        },
+        {
+            "source": "app_modules_reporting_queries_dailysalesquery",
+            "target": "app_modules_ordering_enums_orderstatus_orderstatus_cancelled",
+            "relation": "references",
+            "confidence": "EXTRACTED",
+            "confidence_score": 1.0,
+            "source_file": "app/Modules/Reporting/Queries/DailySalesQuery.php",
+            "source_location": "L31",
+            "weight": 1.0
+        },
+        {
+            "source": "app_modules_reporting_queries_productsalesquery",
+            "target": "app_modules_ordering_enums_orderstatus_orderstatus_cancelled",
+            "relation": "references",
+            "confidence": "EXTRACTED",
+            "confidence_score": 1.0,
+            "source_file": "app/Modules/Reporting/Queries/ProductSalesQuery.php",
+            "source_location": "L29",
+            "weight": 1.0
+        },
+        {
+            "source": "app_policies_orderpolicy",
+            "target": "app_modules_ordering_enums_orderstatus_orderstatus_cancelled",
+            "relation": "references",
+            "confidence": "EXTRACTED",
+            "confidence_score": 1.0,
+            "source_file": "app/Policies/OrderPolicy.php",
+            "source_location": "L23",
+            "weight": 1.0
+        },
+        {
+            "source": "database_factories_orderfactory",
+            "target": "app_modules_ordering_enums_orderstatus_orderstatus_cancelled",
+            "relation": "references",
+            "confidence": "EXTRACTED",
+            "confidence_score": 1.0,
+            "source_file": "database/factories/OrderFactory.php",
+            "source_location": "L62",
+            "weight": 1.0
+        },
+        {
+            "source": "tests_feature_orderconsumptiontest",
+            "target": "app_modules_ordering_enums_orderstatus_orderstatus_cancelled",
+            "relation": "references",
+            "confidence": "EXTRACTED",
+            "confidence_score": 1.0,
+            "source_file": "tests/Feature/OrderConsumptionTest.php",
+            "source_location": "L103",
+            "weight": 1.0
+        },
+        {
+            "source": "tests_feature_paymenttest",
+            "target": "app_modules_ordering_enums_orderstatus_orderstatus_cancelled",
+            "relation": "references",
+            "confidence": "EXTRACTED",
+            "confidence_score": 1.0,
+            "source_file": "tests/Feature/PaymentTest.php",
+            "source_location": "L118",
+            "weight": 1.0
+        },
+        {
+            "source": "tests_feature_voidordertest",
+            "target": "app_modules_ordering_enums_orderstatus_orderstatus_cancelled",
+            "relation": "references",
+            "confidence": "EXTRACTED",
+            "confidence_score": 1.0,
+            "source_file": "tests/Feature/VoidOrderTest.php",
+            "source_location": "L31",
+            "weight": 1.0
+        },
+        {
+            "source": "tests_feature_broadcastordereventstest",
+            "target": "app_modules_ordering_enums_orderstatus_orderstatus_cancelled",
+            "relation": "references",
+            "confidence": "EXTRACTED",
+            "confidence_score": 1.0,
+            "source_file": "tests/Feature/BroadcastOrderEventsTest.php",
+            "source_location": "L202",
+            "weight": 1.0
+        },
+        {
+            "source": "app_modules_payments_actions_markorderpaid",
+            "target": "app_modules_payments_enums_paymenteventtype_paymenteventtype_paid",
+            "relation": "references",
+            "confidence": "EXTRACTED",
+            "confidence_score": 1.0,
+            "source_file": "app/Modules/Payments/Actions/MarkOrderPaid.php",
+            "source_location": "L86",
+            "weight": 1.0
+        },
+        {
+            "source": "app_modules_ordering_actions_voidorder",
+            "target": "app_modules_payments_enums_paymenteventtype_paymenteventtype_voided",
+            "relation": "references",
+            "confidence": "EXTRACTED",
+            "confidence_score": 1.0,
+            "source_file": "app/Modules/Ordering/Actions/VoidOrder.php",
+            "source_location": "L57",
+            "weight": 1.0
+        },
+        {
+            "source": "app_modules_payments_actions_markorderpaid",
+            "target": "app_modules_payments_enums_paymentmethod_paymentmethod_cash",
+            "relation": "references",
+            "confidence": "EXTRACTED",
+            "confidence_score": 1.0,
+            "source_file": "app/Modules/Payments/Actions/MarkOrderPaid.php",
+            "source_location": "L54",
+            "weight": 1.0
+        },
+        {
+            "source": "database_factories_orderfactory",
+            "target": "app_modules_payments_enums_paymentmethod_paymentmethod_cash",
+            "relation": "references",
+            "confidence": "EXTRACTED",
+            "confidence_score": 1.0,
+            "source_file": "database/factories/OrderFactory.php",
+            "source_location": "L71",
+            "weight": 1.0
+        },
+        {
+            "source": "tests_feature_broadcastordereventstest",
+            "target": "app_modules_payments_enums_paymentmethod_paymentmethod_cash",
+            "relation": "references",
+            "confidence": "EXTRACTED",
+            "confidence_score": 1.0,
+            "source_file": "tests/Feature/BroadcastOrderEventsTest.php",
+            "source_location": "L114",
+            "weight": 1.0
+        },
+        {
+            "source": "app_http_requests_storepaymentrequest",
+            "target": "app_modules_payments_enums_paymentmethod_paymentmethod_qrisstatic",
+            "relation": "references",
+            "confidence": "EXTRACTED",
+            "confidence_score": 1.0,
+            "source_file": "app/Http/Requests/StorePaymentRequest.php",
+            "source_location": "L29",
+            "weight": 1.0
+        },
+        {
+            "source": "tests_feature_reporttest",
+            "target": "app_modules_payments_enums_paymentmethod_paymentmethod_qrisstatic",
+            "relation": "references",
+            "confidence": "EXTRACTED",
+            "confidence_score": 1.0,
+            "source_file": "tests/Feature/ReportTest.php",
+            "source_location": "L80",
+            "weight": 1.0
+        },
+        {
+            "source": "app_modules_ordering_actions_createorder",
+            "target": "app_modules_payments_enums_paymentstatus_paymentstatus_unpaid",
+            "relation": "references",
+            "confidence": "EXTRACTED",
+            "confidence_score": 1.0,
+            "source_file": "app/Modules/Ordering/Actions/CreateOrder.php",
+            "source_location": "L88",
+            "weight": 1.0
+        },
+        {
+            "source": "app_modules_ordering_models_order",
+            "target": "app_modules_payments_enums_paymentstatus_paymentstatus_unpaid",
+            "relation": "references",
+            "confidence": "EXTRACTED",
+            "confidence_score": 1.0,
+            "source_file": "app/Modules/Ordering/Models/Order.php",
+            "source_location": "L90",
+            "weight": 1.0
+        },
+        {
+            "source": "app_modules_payments_actions_markorderpaid",
+            "target": "app_modules_payments_enums_paymentstatus_paymentstatus_unpaid",
+            "relation": "references",
+            "confidence": "EXTRACTED",
+            "confidence_score": 1.0,
+            "source_file": "app/Modules/Payments/Actions/MarkOrderPaid.php",
+            "source_location": "L46",
+            "weight": 1.0
+        },
+        {
+            "source": "app_policies_orderpolicy",
+            "target": "app_modules_payments_enums_paymentstatus_paymentstatus_unpaid",
+            "relation": "references",
+            "confidence": "EXTRACTED",
+            "confidence_score": 1.0,
+            "source_file": "app/Policies/OrderPolicy.php",
+            "source_location": "L22",
+            "weight": 1.0
+        },
+        {
+            "source": "database_factories_orderfactory",
+            "target": "app_modules_payments_enums_paymentstatus_paymentstatus_unpaid",
+            "relation": "references",
+            "confidence": "EXTRACTED",
+            "confidence_score": 1.0,
+            "source_file": "database/factories/OrderFactory.php",
+            "source_location": "L37",
+            "weight": 1.0
+        },
+        {
+            "source": "tests_feature_kitchentest",
+            "target": "app_modules_payments_enums_paymentstatus_paymentstatus_unpaid",
+            "relation": "references",
+            "confidence": "EXTRACTED",
+            "confidence_score": 1.0,
+            "source_file": "tests/Feature/KitchenTest.php",
+            "source_location": "L112",
+            "weight": 1.0
+        },
+        {
+            "source": "tests_feature_paymenttest",
+            "target": "app_modules_payments_enums_paymentstatus_paymentstatus_unpaid",
+            "relation": "references",
+            "confidence": "EXTRACTED",
+            "confidence_score": 1.0,
+            "source_file": "tests/Feature/PaymentTest.php",
+            "source_location": "L95",
+            "weight": 1.0
+        },
+        {
+            "source": "tests_feature_voidordertest",
+            "target": "app_modules_payments_enums_paymentstatus_paymentstatus_unpaid",
+            "relation": "references",
+            "confidence": "EXTRACTED",
+            "confidence_score": 1.0,
+            "source_file": "tests/Feature/VoidOrderTest.php",
+            "source_location": "L82",
+            "weight": 1.0
+        },
+        {
+            "source": "app_modules_kitchen_actions_transitionorderstatus",
+            "target": "app_modules_payments_enums_paymentstatus_paymentstatus_paid",
+            "relation": "references",
+            "confidence": "EXTRACTED",
+            "confidence_score": 1.0,
+            "source_file": "app/Modules/Kitchen/Actions/TransitionOrderStatus.php",
+            "source_location": "L25",
+            "weight": 1.0
+        },
+        {
+            "source": "app_modules_ordering_actions_voidorder",
+            "target": "app_modules_payments_enums_paymentstatus_paymentstatus_paid",
+            "relation": "references",
+            "confidence": "EXTRACTED",
+            "confidence_score": 1.0,
+            "source_file": "app/Modules/Ordering/Actions/VoidOrder.php",
+            "source_location": "L29",
+            "weight": 1.0
+        },
+        {
+            "source": "app_modules_ordering_models_order",
+            "target": "app_modules_payments_enums_paymentstatus_paymentstatus_paid",
+            "relation": "references",
+            "confidence": "EXTRACTED",
+            "confidence_score": 1.0,
+            "source_file": "app/Modules/Ordering/Models/Order.php",
+            "source_location": "L97",
+            "weight": 1.0
+        },
+        {
+            "source": "app_modules_payments_actions_markorderpaid",
+            "target": "app_modules_payments_enums_paymentstatus_paymentstatus_paid",
+            "relation": "references",
+            "confidence": "EXTRACTED",
+            "confidence_score": 1.0,
+            "source_file": "app/Modules/Payments/Actions/MarkOrderPaid.php",
+            "source_location": "L77",
+            "weight": 1.0
+        },
+        {
+            "source": "app_modules_payments_http_controllers_paymentcontroller",
+            "target": "app_modules_payments_enums_paymentstatus_paymentstatus_paid",
+            "relation": "references",
+            "confidence": "EXTRACTED",
+            "confidence_score": 1.0,
+            "source_file": "app/Modules/Payments/Http/Controllers/PaymentController.php",
+            "source_location": "L39",
+            "weight": 1.0
+        },
+        {
+            "source": "app_modules_reporting_queries_dailysalesquery",
+            "target": "app_modules_payments_enums_paymentstatus_paymentstatus_paid",
+            "relation": "references",
+            "confidence": "EXTRACTED",
+            "confidence_score": 1.0,
+            "source_file": "app/Modules/Reporting/Queries/DailySalesQuery.php",
+            "source_location": "L30",
+            "weight": 1.0
+        },
+        {
+            "source": "app_modules_reporting_queries_productsalesquery",
+            "target": "app_modules_payments_enums_paymentstatus_paymentstatus_paid",
+            "relation": "references",
+            "confidence": "EXTRACTED",
+            "confidence_score": 1.0,
+            "source_file": "app/Modules/Reporting/Queries/ProductSalesQuery.php",
+            "source_location": "L28",
+            "weight": 1.0
+        },
+        {
+            "source": "app_policies_orderpolicy",
+            "target": "app_modules_payments_enums_paymentstatus_paymentstatus_paid",
+            "relation": "references",
+            "confidence": "EXTRACTED",
+            "confidence_score": 1.0,
+            "source_file": "app/Policies/OrderPolicy.php",
+            "source_location": "L35",
+            "weight": 1.0
+        },
+        {
+            "source": "database_factories_orderfactory",
+            "target": "app_modules_payments_enums_paymentstatus_paymentstatus_paid",
+            "relation": "references",
+            "confidence": "EXTRACTED",
+            "confidence_score": 1.0,
+            "source_file": "database/factories/OrderFactory.php",
+            "source_location": "L55",
+            "weight": 1.0
+        },
+        {
+            "source": "tests_feature_paymenttest",
+            "target": "app_modules_payments_enums_paymentstatus_paymentstatus_paid",
+            "relation": "references",
+            "confidence": "EXTRACTED",
+            "confidence_score": 1.0,
+            "source_file": "tests/Feature/PaymentTest.php",
+            "source_location": "L43",
+            "weight": 1.0
+        },
+        {
+            "source": "tests_feature_voidordertest",
+            "target": "app_modules_payments_enums_paymentstatus_paymentstatus_paid",
+            "relation": "references",
+            "confidence": "EXTRACTED",
+            "confidence_score": 1.0,
+            "source_file": "tests/Feature/VoidOrderTest.php",
+            "source_location": "L69",
+            "weight": 1.0
+        },
+        {
+            "source": "app_modules_ordering_actions_voidorder",
+            "target": "app_modules_payments_enums_paymentstatus_paymentstatus_voided",
+            "relation": "references",
+            "confidence": "EXTRACTED",
+            "confidence_score": 1.0,
+            "source_file": "app/Modules/Ordering/Actions/VoidOrder.php",
+            "source_location": "L47",
+            "weight": 1.0
+        },
+        {
+            "source": "app_modules_payments_actions_markorderpaid",
+            "target": "app_modules_payments_enums_paymentstatus_paymentstatus_voided",
+            "relation": "references",
+            "confidence": "EXTRACTED",
+            "confidence_score": 1.0,
+            "source_file": "app/Modules/Payments/Actions/MarkOrderPaid.php",
+            "source_location": "L40",
+            "weight": 1.0
+        },
+        {
+            "source": "database_factories_orderfactory",
+            "target": "app_modules_payments_enums_paymentstatus_paymentstatus_voided",
+            "relation": "references",
+            "confidence": "EXTRACTED",
+            "confidence_score": 1.0,
+            "source_file": "database/factories/OrderFactory.php",
+            "source_location": "L63",
+            "weight": 1.0
+        },
+        {
+            "source": "tests_feature_orderconsumptiontest",
+            "target": "app_modules_payments_enums_paymentstatus_paymentstatus_voided",
+            "relation": "references",
+            "confidence": "EXTRACTED",
+            "confidence_score": 1.0,
+            "source_file": "tests/Feature/OrderConsumptionTest.php",
+            "source_location": "L131",
+            "weight": 1.0
+        },
+        {
+            "source": "tests_feature_voidordertest",
+            "target": "app_modules_payments_enums_paymentstatus_paymentstatus_voided",
+            "relation": "references",
+            "confidence": "EXTRACTED",
+            "confidence_score": 1.0,
+            "source_file": "tests/Feature/VoidOrderTest.php",
+            "source_location": "L32",
+            "weight": 1.0
+        },
+        {
+            "source": "app_modules_shifts_actions_calculateshifttotals",
+            "target": "app_modules_shifts_enums_cashmovementdirection_cashmovementdirection_in",
+            "relation": "references",
+            "confidence": "EXTRACTED",
+            "confidence_score": 1.0,
+            "source_file": "app/Modules/Shifts/Actions/CalculateShiftTotals.php",
+            "source_location": "L32",
+            "weight": 1.0
+        },
+        {
+            "source": "database_factories_cashmovementfactory",
+            "target": "app_modules_shifts_enums_cashmovementdirection_cashmovementdirection_in",
+            "relation": "references",
+            "confidence": "EXTRACTED",
+            "confidence_score": 1.0,
+            "source_file": "database/factories/CashMovementFactory.php",
+            "source_location": "L26",
+            "weight": 1.0
+        },
+        {
+            "source": "app_modules_shifts_actions_calculateshifttotals",
+            "target": "app_modules_shifts_enums_cashmovementdirection_cashmovementdirection_out",
+            "relation": "references",
+            "confidence": "EXTRACTED",
+            "confidence_score": 1.0,
+            "source_file": "app/Modules/Shifts/Actions/CalculateShiftTotals.php",
+            "source_location": "L36",
+            "weight": 1.0
+        },
+        {
+            "source": "app_modules_shifts_actions_recordcashmovement",
+            "target": "app_modules_shifts_enums_cashmovementdirection_cashmovementdirection_out",
+            "relation": "references",
+            "confidence": "EXTRACTED",
+            "confidence_score": 1.0,
+            "source_file": "app/Modules/Shifts/Actions/RecordCashMovement.php",
+            "source_location": "L45",
+            "weight": 1.0
+        },
+        {
+            "source": "app_modules_shifts_actions_closeshift",
+            "target": "app_modules_shifts_enums_shiftclosetype_shiftclosetype_manual",
+            "relation": "references",
+            "confidence": "EXTRACTED",
+            "confidence_score": 1.0,
+            "source_file": "app/Modules/Shifts/Actions/CloseShift.php",
+            "source_location": "L93",
+            "weight": 1.0
+        },
+        {
+            "source": "database_factories_cashiershiftfactory",
+            "target": "app_modules_shifts_enums_shiftclosetype_shiftclosetype_manual",
+            "relation": "references",
+            "confidence": "EXTRACTED",
+            "confidence_score": 1.0,
+            "source_file": "database/factories/CashierShiftFactory.php",
+            "source_location": "L73",
+            "weight": 1.0
+        },
+        {
+            "source": "app_modules_shifts_actions_autocloseshift",
+            "target": "app_modules_shifts_enums_shiftclosetype_shiftclosetype_auto",
+            "relation": "references",
+            "confidence": "EXTRACTED",
+            "confidence_score": 1.0,
+            "source_file": "app/Modules/Shifts/Actions/AutoCloseShift.php",
+            "source_location": "L52",
+            "weight": 1.0
+        },
+        {
+            "source": "app_modules_shifts_actions_reconcileshift",
+            "target": "app_modules_shifts_enums_shiftclosetype_shiftclosetype_auto",
+            "relation": "references",
+            "confidence": "EXTRACTED",
+            "confidence_score": 1.0,
+            "source_file": "app/Modules/Shifts/Actions/ReconcileShift.php",
+            "source_location": "L28",
+            "weight": 1.0
+        },
+        {
+            "source": "app_modules_shifts_models_cashiershift",
+            "target": "app_modules_shifts_enums_shiftclosetype_shiftclosetype_auto",
+            "relation": "references",
+            "confidence": "EXTRACTED",
+            "confidence_score": 1.0,
+            "source_file": "app/Modules/Shifts/Models/CashierShift.php",
+            "source_location": "L112",
+            "weight": 1.0
+        },
+        {
+            "source": "database_factories_cashiershiftfactory",
+            "target": "app_modules_shifts_enums_shiftclosetype_shiftclosetype_auto",
+            "relation": "references",
+            "confidence": "EXTRACTED",
+            "confidence_score": 1.0,
+            "source_file": "database/factories/CashierShiftFactory.php",
+            "source_location": "L95",
+            "weight": 1.0
+        }
+    ]
+}

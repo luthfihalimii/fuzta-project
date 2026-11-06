@@ -8,6 +8,7 @@ use App\Modules\Shifts\Models\CashierShift;
 class ShiftPresenter
 {
     /**
+     * @param  array{cash_sales_total: int, qris_sales_total: int, cash_in_total: int, cash_out_total: int, expected_cash: int}|null  $liveTotals
      * @return array<string, mixed>
      */
     public static function summary(CashierShift $shift, ?array $liveTotals = null): array
@@ -43,9 +44,9 @@ class ShiftPresenter
             'user_id' => $shift->user_id,
             'user_name' => $shift->relationLoaded('user') ? $shift->user?->name : null,
             'window_key' => $shift->window_key,
-            'scheduled_start_at' => $shift->scheduled_start_at?->toIso8601String(),
-            'scheduled_end_at' => $shift->scheduled_end_at?->toIso8601String(),
-            'opened_at' => $shift->opened_at?->toIso8601String(),
+            'scheduled_start_at' => $shift->scheduled_start_at->toIso8601String(),
+            'scheduled_end_at' => $shift->scheduled_end_at->toIso8601String(),
+            'opened_at' => $shift->opened_at->toIso8601String(),
             'closed_at' => $shift->closed_at?->toIso8601String(),
             'opening_cash' => $shift->opening_cash,
             'cash_sales_total' => $liveTotals['cash_sales_total'],

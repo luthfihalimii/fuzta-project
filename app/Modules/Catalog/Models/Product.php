@@ -29,22 +29,34 @@ class Product extends Model
         ];
     }
 
+    /**
+     * @return BelongsTo<Category, $this>
+     */
     public function category(): BelongsTo
     {
         return $this->belongsTo(Category::class);
     }
 
+    /**
+     * @return HasMany<ProductVariant, $this>
+     */
     public function variants(): HasMany
     {
         return $this->hasMany(ProductVariant::class);
     }
 
+    /**
+     * @return BelongsToMany<ModifierGroup, $this>
+     */
     public function modifierGroups(): BelongsToMany
     {
         return $this->belongsToMany(ModifierGroup::class, 'product_modifier_groups')
             ->withPivot('sort_order');
     }
 
+    /**
+     * @return BelongsToMany<Branch, $this>
+     */
     public function branches(): BelongsToMany
     {
         return $this->belongsToMany(Branch::class, 'product_branch_availability')

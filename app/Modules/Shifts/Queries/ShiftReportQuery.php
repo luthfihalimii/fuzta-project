@@ -17,6 +17,7 @@ class ShiftReportQuery
 
     /**
      * @param  array{from?: string, to?: string, branch?: int|null, user?: int|null, status?: string|null}  $filters
+     * @return LengthAwarePaginator<int, array<string, mixed>>
      */
     public function list(array $filters): LengthAwarePaginator
     {
@@ -80,6 +81,7 @@ class ShiftReportQuery
 
     /**
      * @param  array{from?: string, to?: string, branch?: int|null, user?: int|null, status?: string|null}  $filters
+     * @return Builder<CashierShift>
      */
     private function query(array $filters): Builder
     {
@@ -90,11 +92,14 @@ class ShiftReportQuery
             ? CarbonImmutable::parse($filters['to'], (string) config('shifts.timezone', 'Asia/Jakarta'))->endOfDay()
             : null;
 
+        $branch = $filters['branch'] ?? null;
+        $user = $filters['user'] ?? null;
+
         return CashierShift::query()
             ->when($from !== null, fn (Builder $query) => $query->where('opened_at', '>=', $from->utc()))
             ->when($to !== null, fn (Builder $query) => $query->where('opened_at', '<=', $to->utc()))
-            ->when(($filters['branch'] ?? null) !== null, fn (Builder $query) => $query->where('branch_id', $filters['branch']))
-            ->when(($filters['user'] ?? null) !== null, fn (Builder $query) => $query->where('user_id', $filters['user']))
+            ->when($branch !== null, fn (Builder $query) => $query->where('branch_id', $branch))
+            ->when($user !== null, fn (Builder $query) => $query->where('user_id', $user))
             ->when(($filters['status'] ?? null) === 'open', fn (Builder $query) => $query->whereNull('closed_at'))
             ->when(($filters['status'] ?? null) === 'unreconciled', fn (Builder $query) => $query
                 ->where('close_type', 'auto')

@@ -52,7 +52,7 @@ class DailySalesQuery
             ->get()
             ->map(fn (object $row) => [
                 'method' => (string) $row->method,
-                'label' => PaymentMethod::tryFrom($row->method)?->label() ?? $row->method,
+                'label' => PaymentMethod::tryFrom($row->method)?->label() ?? (string) $row->method,
                 'order_count' => (int) $row->order_count,
                 'amount' => (int) $row->amount,
             ])
@@ -70,7 +70,7 @@ class DailySalesQuery
             ->get()
             ->map(fn (object $row) => [
                 'channel' => (string) $row->channel,
-                'label' => OrderChannel::tryFrom($row->channel)?->label() ?? $row->channel,
+                'label' => OrderChannel::tryFrom($row->channel)?->label() ?? (string) $row->channel,
                 'order_count' => (int) $row->order_count,
                 'amount' => (int) $row->amount,
             ])
@@ -81,8 +81,8 @@ class DailySalesQuery
             'order_count' => $orderCount,
             'gross_sales' => $grossSales,
             'average_order_value' => $orderCount > 0 ? intdiv($grossSales, $orderCount) : 0,
-            'by_payment_method' => $byPaymentMethod,
-            'by_channel' => $byChannel,
+            'by_payment_method' => array_values($byPaymentMethod),
+            'by_channel' => array_values($byChannel),
         ];
     }
 }
