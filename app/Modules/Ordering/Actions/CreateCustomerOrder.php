@@ -10,6 +10,7 @@ use App\Modules\Identity\Actions\WriteAuditLog;
 use App\Modules\Ordering\Data\CustomerOrderData;
 use App\Modules\Ordering\Enums\OrderChannel;
 use App\Modules\Ordering\Enums\OrderStatus;
+use App\Modules\Ordering\Events\OrderCreated;
 use App\Modules\Ordering\Models\Order;
 use App\Modules\Ordering\Models\OrderItem;
 use App\Modules\Ordering\Models\OrderItemModifier;
@@ -118,6 +119,10 @@ class CreateCustomerOrder
                 ]);
 
                 ($this->writeAuditLog)(null, 'order.created', $order, [], $this->snapshot($order));
+
+                // Sama seperti jalur POS (CreateOrder): order customer juga harus
+                // di-broadcast agar layar dapur/pos tahu ada pesanan masuk.
+                event(new OrderCreated($order));
 
                 return $order->load(['items.modifiers', 'statusEvents']);
             });

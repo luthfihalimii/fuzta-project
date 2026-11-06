@@ -124,11 +124,40 @@ async function loadOrders(initial = false): Promise<void> {
 
         if (!initial) {
             const previousIds = new Set(orders.value.map((order) => order.id));
+            let discovered = false;
 
             for (const order of data.orders) {
                 if (order.status === 'queued' && !previousIds.has(order.id)) {
                     newOrderIds.value.add(order.id);
+
+                    // Polling juga harus berbunyi: WebSocket bisa putus (mis. wifi dapur).
+                    // `seen` mencegah bunyi ganda saat realtime dan polling sama-sama aktif.
+                    if (
+                        soundOn.value &&
+                        document.visibilityState === 'visible' &&
+                        shouldRing(
+                            {
+                                kind: 'payment',
+                                order_number: order.order_number,
+                                branch_id: branch.id,
+                                created_at: null,
+                                accepted_at: null,
+                            },
+                            seen,
+                        )
+                    ) {
+                        seen.add(order.order_number);
+                        sessionStorage.setItem(
+                            'pf_kitchen_seen',
+                            [...seen].join(','),
+                        );
+                        discovered = true;
+                    }
                 }
+            }
+
+            if (discovered) {
+                playBeep();
             }
 
             if (newOrderIds.value.size > 0) {
