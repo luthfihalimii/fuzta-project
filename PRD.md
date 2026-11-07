@@ -383,7 +383,7 @@ Reports must clearly distinguish sales, discounts, refunds, tax/fees, payment re
 - **P1** Operational alerts for low stock or failed integrations.
 - Notifications must not be the only source of truth; the user can refresh and retrieve current status from the backend.
 
-Implemented in the current release: customers can register and remove FCM device tokens over `/api/v1/me/devices` while signed in, and the server sends push notifications for `accepted`, `ready`, and `cancelled` order statuses when `FCM_PROJECT_ID` + `FCM_CREDENTIALS_PATH` are configured. Password reset is self-service via a 6-digit OTP sent to the customer's email through Mailketing; a successful reset revokes all bearer tokens. Notifications remain supplementary — the app can always fetch current status from the API.
+Implemented in the current release: customers can register and remove FCM device tokens over `/api/v1/me/devices` while signed in, and the server sends push notifications for `accepted`, `ready`, and `cancelled` order statuses when `FCM_PROJECT_ID` + `FCM_CREDENTIALS_PATH` are configured. Password reset is self-service via a 6-digit OTP sent to the customer's email through Mailketing; a successful reset revokes all bearer tokens. Operational alerts are emailed to active owners through Mailketing: a daily 07:00 low-stock digest (ingredients with a threshold above 0) and a 15-minute digest of new failed Biteship shipments and failed queue jobs, deduplicated so each failure is alerted once. Notifications remain supplementary — the app can always fetch current status from the API.
 
 ### 7.12 Audit and Administration
 

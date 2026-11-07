@@ -102,7 +102,7 @@ Tiga proses yang harus jalan di produksi (di samping web server):
 
 1. `php artisan queue:work` — job shipment Biteship, push FCM, dan broadcast realtime.
 2. `php artisan reverb:start` — WebSocket (lihat Realtime).
-3. Scheduler — cron `* * * * * php artisan schedule:run` (atau `schedule:work`); menjalankan `orders:expire-unpaid` tiap 10 menit yang membatalkan order online unpaid lewat jatuh tempo bayar, dan `customers:prune-tokens` harian 03:00 Asia/Jakarta yang menghapus token customer kedaluwarsa.
+3. Scheduler — cron `* * * * * php artisan schedule:run` (atau `schedule:work`); menjalankan `orders:expire-unpaid` tiap 10 menit yang membatalkan order online unpaid lewat jatuh tempo bayar, `customers:prune-tokens` harian 03:00 Asia/Jakarta yang menghapus token customer kedaluwarsa, `operations:alert-low-stock` harian 07:00 (email stok bahan di bawah ambang ke owner aktif), dan `operations:alert-failures` tiap 15 menit (email pengiriman Biteship gagal + job antrean gagal yang baru; tiap kegagalan hanya diberitakan sekali). Alert memakai Mailketing; tanpa `MAILKETING_TOKEN` email tidak terkirim dan hanya dicatat di log.
 
 Prasyarat ops sebelum pilot:
 

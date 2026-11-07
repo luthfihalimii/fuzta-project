@@ -52,6 +52,16 @@ Schedule::command('customers:prune-tokens')
     ->timezone('Asia/Jakarta')
     ->withoutOverlapping();
 
+Schedule::command('operations:alert-low-stock')
+    ->dailyAt('07:00')
+    ->timezone('Asia/Jakarta')
+    ->withoutOverlapping();
+
+Schedule::command('operations:alert-failures')
+    ->everyFifteenMinutes()
+    ->timezone('Asia/Jakarta')
+    ->withoutOverlapping();
+
 if (config('backup.enabled')) {
     Schedule::command('backup:database')
         ->dailyAt(config('backup.time'))
