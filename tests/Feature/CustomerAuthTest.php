@@ -19,10 +19,12 @@ class CustomerAuthTest extends TestCase
     {
         $response = $this->postJson('/api/v1/auth/register', [
             'name' => 'Budi Santoso',
+            'email' => 'Budi@Example.com',
             'phone' => '+62 812-3456-7890',
             'password' => 'rahasia123',
         ])->assertCreated()
             ->assertJsonPath('customer.name', 'Budi Santoso')
+            ->assertJsonPath('customer.email', 'budi@example.com')
             ->assertJsonPath('customer.phone', '081234567890')
             ->assertJsonMissingPath('customer.password')
             ->assertJsonMissingPath('customer.is_active')
@@ -37,9 +39,38 @@ class CustomerAuthTest extends TestCase
         $this->assertTrue(CustomerToken::query()->where('token_hash', hash('sha256', $token))->exists());
 
         $customer = Customer::query()->sole();
+        $this->assertSame('budi@example.com', $customer->email);
         $this->assertSame('081234567890', $customer->phone);
         $this->assertTrue(Hash::check('rahasia123', $customer->password));
         $this->assertNotNull($customer->last_login_at);
+    }
+
+    public function test_register_requires_unique_valid_email(): void
+    {
+        Customer::factory()->create(['email' => 'budi@example.com']);
+
+        $this->postJson('/api/v1/auth/register', [
+            'name' => 'Budi Santoso',
+            'phone' => '081234567890',
+            'password' => 'rahasia123',
+        ])->assertUnprocessable()
+            ->assertJsonValidationErrors('email');
+
+        $this->postJson('/api/v1/auth/register', [
+            'name' => 'Budi Santoso',
+            'email' => 'BUDI@example.com',
+            'phone' => '081234567891',
+            'password' => 'rahasia123',
+        ])->assertUnprocessable()
+            ->assertJsonValidationErrors('email');
+
+        $this->postJson('/api/v1/auth/register', [
+            'name' => 'Budi Santoso',
+            'email' => 'bukan-email',
+            'phone' => '081234567892',
+            'password' => 'rahasia123',
+        ])->assertUnprocessable()
+            ->assertJsonValidationErrors('email');
     }
 
     public function test_register_is_rate_limited_after_five_attempts(): void
@@ -49,6 +80,7 @@ class CustomerAuthTest extends TestCase
         foreach (range(1, 5) as $attempt) {
             $this->postJson('/api/v1/auth/register', [
                 'name' => 'Budi '.$attempt,
+                'email' => 'budi'.$attempt.'@example.com',
                 'phone' => '0812000000'.$attempt,
                 'password' => 'rahasia123',
             ])->assertCreated();
@@ -56,6 +88,7 @@ class CustomerAuthTest extends TestCase
 
         $this->postJson('/api/v1/auth/register', [
             'name' => 'Budi Tambahan',
+            'email' => 'budi6@example.com',
             'phone' => '08120000006',
             'password' => 'rahasia123',
         ])->assertTooManyRequests();
@@ -66,6 +99,7 @@ class CustomerAuthTest extends TestCase
         // Array bukan string: tak boleh jadi 500 "Array to string conversion".
         $this->postJson('/api/v1/auth/register', [
             'name' => 'Budi Santoso',
+            'email' => 'budi@example.com',
             'phone' => ['x'],
             'password' => 'rahasia123',
         ])->assertUnprocessable()
@@ -84,7 +118,7 @@ class CustomerAuthTest extends TestCase
         Customer::factory()->create(['phone' => '081234567890']);
 
         try {
-            (new RegisterCustomer)('Orang Lain', '081234567890', 'rahasia123');
+            (new RegisterCustomer)('Orang Lain', 'orang.lain@example.com', '081234567890', 'rahasia123');
 
             $this->fail('ValidationException tidak dilemparkan untuk phone duplikat.');
         } catch (ValidationException $exception) {
@@ -96,6 +130,7 @@ class CustomerAuthTest extends TestCase
     {
         $this->postJson('/api/v1/auth/register', [
             'name' => 'Budi Santoso',
+            'email' => 'budi@example.com',
             'phone' => '081234567890',
             'password' => 'rahasia123',
         ])->assertCreated();
@@ -103,6 +138,7 @@ class CustomerAuthTest extends TestCase
         // Bentuk `62...` dari nomor yang sama tetap duplikat.
         $this->postJson('/api/v1/auth/register', [
             'name' => 'Budi Lain',
+            'email' => 'budi.lain@example.com',
             'phone' => '6281234567890',
             'password' => 'rahasia123',
         ])->assertUnprocessable()
@@ -113,6 +149,7 @@ class CustomerAuthTest extends TestCase
     {
         $this->postJson('/api/v1/auth/register', [
             'name' => 'Budi Santoso',
+            'email' => 'budi@example.com',
             'phone' => '081234567890',
             'password' => 'rahasia',
         ])->assertUnprocessable()
@@ -120,6 +157,7 @@ class CustomerAuthTest extends TestCase
 
         $this->postJson('/api/v1/auth/register', [
             'name' => 'Budi Santoso',
+            'email' => 'budi2@example.com',
             'phone' => '0812',
             'password' => 'rahasia123',
         ])->assertUnprocessable()

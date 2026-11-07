@@ -21,11 +21,16 @@ class RegisterCustomerRequest extends FormRequest
     protected function prepareForValidation(): void
     {
         $phone = $this->input('phone');
+        $email = $this->input('email');
 
         if (is_string($phone)) {
             $this->merge([
                 'phone' => PhoneNumber::normalize($phone),
             ]);
+        }
+
+        if (is_string($email)) {
+            $this->merge(['email' => mb_strtolower(trim($email))]);
         }
     }
 
@@ -36,6 +41,7 @@ class RegisterCustomerRequest extends FormRequest
     {
         return [
             'name' => ['required', 'string', 'max:255'],
+            'email' => ['required', 'string', 'email', 'max:255', 'unique:customers,email'],
             'phone' => ['required', 'string', 'regex:/^08\d{8,12}$/', 'unique:customers,phone'],
             // Eksplisit: jangan Password::default() (prod bisa menambah syarat).
             'password' => ['required', 'string', Password::min(8)],
@@ -48,6 +54,9 @@ class RegisterCustomerRequest extends FormRequest
     public function messages(): array
     {
         return [
+            'email.required' => 'Email wajib diisi.',
+            'email.email' => 'Format email tidak valid.',
+            'email.unique' => 'Email sudah terdaftar.',
             'phone.regex' => 'Format nomor HP tidak valid (contoh: 081234567890).',
             'phone.unique' => 'Nomor HP sudah terdaftar.',
             'password.min' => 'Password minimal 8 karakter.',

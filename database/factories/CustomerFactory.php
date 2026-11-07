@@ -19,6 +19,7 @@ class CustomerFactory extends Factory
     {
         return [
             'name' => fake()->name(),
+            'email' => fake()->unique()->safeEmail(),
             'phone' => '08'.fake()->unique()->numerify('##########'),
             'password' => 'password',
             'is_active' => true,

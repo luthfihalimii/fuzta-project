@@ -19,6 +19,7 @@ class CustomerPayload
             'id' => $customer->id,
             'name' => $customer->name,
             'phone' => $customer->phone,
+            'email' => $customer->email,
             'created_at' => $customer->created_at?->toIso8601String(),
         ];
 

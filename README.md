@@ -81,15 +81,17 @@ Deploy produksi mengikuti checklist di [docs/superpowers/specs/2026-10-29-realti
 
 ## Customer API (`/api/v1`)
 
-API publik untuk customer: katalog, checkout (pickup/delivery), bayar QRIS via DOKU, pengiriman via Biteship. Kontrak lengkap (request/response, aturan `Idempotency-Key`, status) ada di `docs/api.md`.
+API publik untuk customer: katalog, checkout (pickup/delivery), bayar QRIS via DOKU, pengiriman via Biteship. Kontrak lengkap (request/response, aturan `Idempotency-Key`, status) ada di `docs/api.md`; spesifikasi mesin (OpenAPI 3.0) ada di `docs/openapi.yaml`.
 
-Ada juga **akun customer** (bagian "Akun customer" di `docs/api.md`): daftar/login dengan nomor HP + password, token bearer 30 hari, riwayat order, dan alamat tersimpan (maks 10, satu default). Checkout tamu tetap jalan tanpa akun; checkout dengan bearer valid otomatis menghubungan order ke akun (kontak diambil dari profil). Password reset/OTP customer **belum tersedia**.
+Ada juga **akun customer** (bagian "Akun customer" di `docs/api.md`): daftar/login dengan nomor HP + password, token bearer 30 hari, riwayat order, alamat tersimpan (maks 10, satu default), registrasi token FCM lewat `/api/v1/me/devices`, dan reset password via OTP email (Mailketing). Checkout tamu tetap jalan tanpa akun; checkout dengan bearer valid otomatis menghubungkan order ke akun (kontak diambil dari profil). Push FCM untuk status `accepted`/`ready`/`cancelled` aktif bila kredensial Firebase diisi.
 
 Variabel env yang disyaratkan (lihat `.env.example`):
 
 - DOKU: `DOKU_CLIENT_ID`, `DOKU_SECRET_KEY`, `DOKU_BASE_URL`, `DOKU_NOTIFICATION_PATH`, `DOKU_PAYMENT_DUE_MINUTES`.
 - Biteship: `BITESHIP_API_KEY`, `BITESHIP_BASE_URL`, `BITESHIP_COURIERS`, `BITESHIP_SHIPPER_NAME`/`BITESHIP_SHIPPER_PHONE`/`BITESHIP_SHIPPER_EMAIL`, `BITESHIP_WEBHOOK_KEY` (nama custom header), `BITESHIP_WEBHOOK_SECRET` (isi header).
 - `CORS_ALLOWED_ORIGINS`: daftar domain (pisahkan koma) yang boleh memanggil API. **Produksi wajib diisi domain frontend yang asli**; default dev hanya `localhost` (bukan `*`).
+- Mailketing (OTP reset password): `MAILKETING_TOKEN`, `MAILKETING_FROM_EMAIL` (domain harus terverifikasi di dashboard Mailketing), `MAILKETING_FROM_NAME`, `MAILKETING_BASE_URL`.
+- FCM push: `FCM_PROJECT_ID` dan `FCM_CREDENTIALS_PATH` (path service account JSON Firebase). Kosong = push dinonaktifkan.
 
 URL webhook yang daftarkan (HTTPS publik, bukan untuk frontend):
 
@@ -98,7 +100,7 @@ URL webhook yang daftarkan (HTTPS publik, bukan untuk frontend):
 
 Tiga proses yang harus jalan di produksi (di samping web server):
 
-1. `php artisan queue:work` — job shipment Biteship + broadcast realtime.
+1. `php artisan queue:work` — job shipment Biteship, push FCM, dan broadcast realtime.
 2. `php artisan reverb:start` — WebSocket (lihat Realtime).
 3. Scheduler — cron `* * * * * php artisan schedule:run` (atau `schedule:work`); menjalankan `orders:expire-unpaid` tiap 10 menit yang membatalkan order online unpaid lewat jatuh tempo bayar, dan `customers:prune-tokens` harian 03:00 Asia/Jakarta yang menghapus token customer kedaluwarsa.
 

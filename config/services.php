@@ -44,6 +44,19 @@ return [
         'payment_due_minutes' => (int) env('DOKU_PAYMENT_DUE_MINUTES', 30),
     ],
 
+    'fcm' => [
+        'project_id' => env('FCM_PROJECT_ID'),
+        // Path ke service account JSON (Firebase Console → Project settings).
+        'credentials_path' => env('FCM_CREDENTIALS_PATH'),
+    ],
+
+    'mailketing' => [
+        'token' => env('MAILKETING_TOKEN'),
+        'from_email' => env('MAILKETING_FROM_EMAIL'),
+        'from_name' => env('MAILKETING_FROM_NAME', 'Pizza Fruzta'),
+        'base_url' => env('MAILKETING_BASE_URL', 'https://api.mailketing.co.id/api/v2'),
+    ],
+
     'biteship' => [
         'api_key' => env('BITESHIP_API_KEY'),
         'base_url' => env('BITESHIP_BASE_URL', 'https://api.biteship.com'),

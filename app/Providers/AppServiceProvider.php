@@ -3,6 +3,7 @@
 namespace App\Providers;
 
 use App\Modules\Delivery\Listeners\QueueShipmentOnReady;
+use App\Modules\Notifications\Listeners\SendCustomerOrderPush;
 use App\Modules\Ordering\Events\OrderStatusChanged;
 use App\Modules\Shifts\Models\CashierShift;
 use App\Modules\Shifts\Policies\CashierShiftPolicy;
@@ -43,6 +44,9 @@ class AppServiceProvider extends ServiceProvider
 
         // Order delivery paid + ready → antrekan shipment Biteship.
         Event::listen(OrderStatusChanged::class, QueueShipmentOnReady::class);
+
+        // Status penting → push FCM ke device customer (jika terdaftar).
+        Event::listen(OrderStatusChanged::class, SendCustomerOrderPush::class);
     }
 
     protected function configureRateLimiting(): void
@@ -66,6 +70,9 @@ class AppServiceProvider extends ServiceProvider
             ->by($request->ip()));
 
         RateLimiter::for('customer-auth', fn (Request $request): Limit => Limit::perMinute(5)
+            ->by($request->ip()));
+
+        RateLimiter::for('customer-password-reset', fn (Request $request): Limit => Limit::perMinute(10)
             ->by($request->ip()));
 
         RateLimiter::for('customer-me', fn (Request $request): Limit => Limit::perMinute(60)

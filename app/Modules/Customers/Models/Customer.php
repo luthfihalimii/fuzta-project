@@ -10,7 +10,7 @@ use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\HasMany;
 
-#[Fillable(['name', 'phone', 'password', 'is_active', 'last_login_at'])]
+#[Fillable(['name', 'email', 'phone', 'password', 'is_active', 'last_login_at'])]
 #[Hidden(['password'])]
 class Customer extends Model
 {
@@ -35,6 +35,14 @@ class Customer extends Model
     public function addresses(): HasMany
     {
         return $this->hasMany(CustomerAddress::class);
+    }
+
+    /**
+     * @return HasMany<CustomerDevice, $this>
+     */
+    public function devices(): HasMany
+    {
+        return $this->hasMany(CustomerDevice::class);
     }
 
     /**

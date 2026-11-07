@@ -31,11 +31,12 @@ class CustomerProfileTest extends TestCase
 
         $payload = $response->json('customer');
 
-        // Tepat lima kunci: tanpa is_active, password, atau field internal lain.
-        $this->assertSame(['id', 'name', 'phone', 'created_at', 'addresses_count'], array_keys($payload));
+        // Tepat enam kunci: tanpa is_active, password, atau field internal lain.
+        $this->assertSame(['id', 'name', 'phone', 'email', 'created_at', 'addresses_count'], array_keys($payload));
         $this->assertSame($customer->id, $payload['id']);
         $this->assertSame($customer->name, $payload['name']);
         $this->assertSame($customer->phone, $payload['phone']);
+        $this->assertSame($customer->email, $payload['email']);
         $this->assertSame(2, $payload['addresses_count']);
         $this->assertNotNull($payload['created_at']);
     }

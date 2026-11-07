@@ -4,6 +4,7 @@ use App\Modules\Branches\Http\Controllers\Api\BranchApiController;
 use App\Modules\Catalog\Http\Controllers\Api\CatalogProductController;
 use App\Modules\Customers\Http\Controllers\Api\AddressController;
 use App\Modules\Customers\Http\Controllers\Api\AuthController;
+use App\Modules\Customers\Http\Controllers\Api\DeviceController;
 use App\Modules\Customers\Http\Controllers\Api\MeController;
 use App\Modules\Customers\Http\Controllers\Api\OrderHistoryController;
 use App\Modules\Delivery\Http\Controllers\BiteshipWebhookController;
@@ -38,7 +39,13 @@ Route::prefix('v1')->group(function (): void {
     Route::middleware('throttle:customer-auth')->group(function (): void {
         Route::post('/auth/register', [AuthController::class, 'register']);
         Route::post('/auth/login', [AuthController::class, 'login']);
+        Route::post('/auth/forgot-password', [AuthController::class, 'forgotPassword']);
     });
+
+    // Reset password dibatasi terpisah agar percobaan kode tidak
+    // menghabiskan bucket login/register.
+    Route::post('/auth/reset-password', [AuthController::class, 'resetPassword'])
+        ->middleware('throttle:customer-password-reset');
 
     // customer.auth dulu agar limiter customer-me bisa keyed by customer id.
     Route::post('/auth/logout', [AuthController::class, 'logout'])
@@ -53,6 +60,8 @@ Route::prefix('v1')->group(function (): void {
         Route::post('/me/addresses', [AddressController::class, 'store']);
         Route::patch('/me/addresses/{address}', [AddressController::class, 'update'])->whereNumber('address');
         Route::delete('/me/addresses/{address}', [AddressController::class, 'destroy'])->whereNumber('address');
+        Route::post('/me/devices', [DeviceController::class, 'store']);
+        Route::delete('/me/devices/{device}', [DeviceController::class, 'destroy'])->whereNumber('device');
         Route::get('/me/orders', OrderHistoryController::class);
     });
 

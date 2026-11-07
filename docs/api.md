@@ -1,6 +1,6 @@
 # Kontrak API Customer — Pizza Fruzta
 
-Dokumen ini adalah kontrak REST untuk developer frontend (website/aplikasi customer). Route katalog & checkout tamu publik (tanpa autentikasi); endpoint akun customer (`/me*`, `/auth/logout`) menuntut token bearer (lihat **Autentikasi customer** di bawah). Sumber kebenaran perilaku = kode (`routes/api.php` + modul `app/Modules`); bila dokumen ini dan kode berbeda, kode yang benar.
+Dokumen ini adalah kontrak REST untuk developer frontend (website/aplikasi customer). Spesifikasi mesin tersedia di [`openapi.yaml`](openapi.yaml) (OpenAPI 3.0). Route katalog & checkout tamu publik (tanpa autentikasi); endpoint akun customer (`/me*`, `/auth/logout`) menuntut token bearer (lihat **Autentikasi customer** di bawah). Sumber kebenaran perilaku = kode (`routes/api.php` + modul `app/Modules`); bila dokumen ini dan kode berbeda, kode yang benar.
 
 ## Dasar
 
@@ -61,12 +61,13 @@ Semua error memakai format standar Laravel:
 
 ### Rate limit
 
-| Limiter             | Batas                         | Berlaku untuk                                                                                                                          |
-| ------------------- | ----------------------------- | -------------------------------------------------------------------------------------------------------------------------------------- |
-| `customer-public`   | 60 request/menit per IP       | `GET /branches`, `GET /products`, `GET /delivery/areas`, `GET /orders/{token}`                                                         |
-| `customer-checkout` | 10 request/menit per IP       | `POST /checkout/quote`, `POST /orders`                                                                                                 |
-| `customer-auth`     | 5 request/menit per IP        | `POST /auth/register`, `POST /auth/login` (keduanya berbagi satu bucket)                                                               |
-| `customer-me`       | 60 request/menit per customer | `POST /auth/logout`, `GET/PATCH /me`, `GET /me/orders`, `GET/POST /me/addresses`, `PATCH/DELETE /me/addresses/{id}` (fallback: per IP) |
+| Limiter                   | Batas                         | Berlaku untuk                                                                                                                          |
+| ------------------------- | ----------------------------- | -------------------------------------------------------------------------------------------------------------------------------------- |
+| `customer-public`         | 60 request/menit per IP       | `GET /branches`, `GET /products`, `GET /delivery/areas`, `GET /orders/{token}`                                                         |
+| `customer-checkout`       | 10 request/menit per IP       | `POST /checkout/quote`, `POST /orders`                                                                                                 |
+| `customer-auth`           | 5 request/menit per IP        | `POST /auth/register`, `POST /auth/login`, `POST /auth/forgot-password` (berbagi satu bucket)                                          |
+| `customer-password-reset` | 10 request/menit per IP       | `POST /auth/reset-password`                                                                                                            |
+| `customer-me`             | 60 request/menit per customer | `POST /auth/logout`, `GET/PATCH /me`, `GET /me/orders`, `GET/POST /me/addresses`, `PATCH/DELETE /me/addresses/{id}` (fallback: per IP) |
 
 Webhook tidak di-throttle (verifikasi signature adalah gerbangnya).
 
@@ -82,6 +83,8 @@ Webhook tidak di-throttle (verifikasi signature adalah gerbangnya).
 | GET    | `/orders/{token}`        | Cek status order customer via token (tanpa auth).                                                                    |
 | POST   | `/auth/register`         | Daftar akun customer + terbitkan token (bagian `## 9`).                                                              |
 | POST   | `/auth/login`            | Login + terbitkan token (bagian `## 9`).                                                                             |
+| POST   | `/auth/forgot-password`  | Kirim kode OTP reset password ke email (respons generik `202`).                                                      |
+| POST   | `/auth/reset-password`   | Reset password dengan OTP email; mencabut semua token customer.                                                      |
 | POST   | `/auth/logout`           | **Bearer** — cabut token yang dipakai → 204.                                                                         |
 | GET    | `/me`                    | **Bearer** — profil customer.                                                                                        |
 | PATCH  | `/me`                    | **Bearer** — ubah nama profil.                                                                                       |
@@ -90,6 +93,8 @@ Webhook tidak di-throttle (verifikasi signature adalah gerbangnya).
 | POST   | `/me/addresses`          | **Bearer** — tambah alamat tersimpan (maks 10).                                                                      |
 | PATCH  | `/me/addresses/{id}`     | **Bearer** — ubah alamat (semantik PATCH).                                                                           |
 | DELETE | `/me/addresses/{id}`     | **Bearer** — hapus alamat → 204.                                                                                     |
+| POST   | `/me/devices`            | **Bearer** — daftarkan/refresh token FCM (idempoten).                                                                |
+| DELETE | `/me/devices/{id}`       | **Bearer** — hapus device FCM → 204.                                                                                 |
 | POST   | `/webhooks/doku`         | **Internal** — notifikasi pembayaran DOKU. Jangan dipanggil frontend.                                                |
 | POST   | `/webhooks/biteship`     | **Internal** — update status pengiriman Biteship. Jangan dipanggil frontend.                                         |
 
@@ -405,7 +410,7 @@ Payload adalah bentuk **customer-safe**: tidak memuat `placed_by_id`, `shift_id`
 
 ## 9. Akun customer
 
-Customer masuk dengan nomor HP + password. Tanpa OTP/SMS, dan reset password mandiri **belum tersedia** (membutuhkan kanal SMS/email — keputusan terbuka). Aturan token diringkas di **Autentikasi customer** di atas.
+Customer masuk dengan nomor HP + password. Reset password mandiri memakai kode OTP 6 digit yang dikirim ke **email** customer (provider Mailketing). Aturan token diringkas di **Autentikasi customer** di atas.
 
 Semua endpoint ber-bearer mengembalikan `401` `{"message": "Silakan masuk terlebih dahulu."}` bila token hilang/tidak valid/kedaluwarsa/tercabut, atau akun customer tidak aktif.
 
@@ -418,6 +423,7 @@ Request:
 ```json
 {
     "name": "Budi Santoso",
+    "email": "budi@example.com",
     "phone": "081234567890",
     "password": "rahasia123"
 }
@@ -428,10 +434,11 @@ Field:
 | Field      | Aturan                                                                                                                                                        |
 | ---------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------- |
 | `name`     | wajib, string, max 255.                                                                                                                                       |
+| `email`    | wajib, format email valid, max 255, unik; server menormalisasi ke huruf kecil. Dipakai untuk reset password.                                                  |
 | `phone`    | wajib; menerima `08…`, `62…`, `+62…`, spasi/tanda hubung; server menormalisasi ke `08…` **sebelum** validasi (regex `^08\d{8,12}$`). Tersimpan sebagai `08…`. |
 | `password` | wajib, minimal 8 karakter (kurang → `422` `Password minimal 8 karakter.`). Tidak pernah dikembalikan atau di-log.                                             |
 
-Nomor sudah terdaftar → `422` pada `phone`: `Nomor HP sudah terdaftar.`
+Nomor sudah terdaftar → `422` pada `phone`: `Nomor HP sudah terdaftar.` Email sudah terdaftar → `422` pada `email`: `Email sudah terdaftar.`
 
 Respons `201`:
 
@@ -441,6 +448,7 @@ Respons `201`:
         "id": 7,
         "name": "Budi Santoso",
         "phone": "081234567890",
+        "email": "budi@example.com",
         "created_at": "2026-11-01T12:00:00+07:00"
     },
     "token": "vJ8kQ2pXwN4mR6tYzL0cB7dFgH3sA9eK1uWqP5oDx",
@@ -458,6 +466,42 @@ Publik (limiter sama, berbagi bucket dengan register). Request: `{ "phone": "081
 - Password salah **atau** nomor tak dikenal → `422` pada `phone`: `Nomor HP atau password salah.` (pesan sengaja sama untuk keduanya).
 - Password benar tapi akun tidak aktif → `422` pada `phone`: `Akun tidak aktif.`
 
+### `POST /auth/forgot-password`
+
+Publik (limiter `customer-auth`). Request:
+
+```json
+{ "email": "budi@example.com" }
+```
+
+- Selalu `202` dengan pesan sama, baik email terdaftar maupun tidak:
+  `{ "message": "Jika email terdaftar, kode reset sudah dikirim." }`
+  Ini mencegah enumerasi akun.
+- Bila email terdaftar dan akun aktif: kode OTP 6 digit dibuat (berlaku 10 menit) dan dikirim ke email lewat Mailketing.
+- Kirim ulang dalam 60 detik untuk akun yang sama tidak mengirim email baru (tetap `202`).
+- Format email tidak valid → `422` pada `email`.
+
+### `POST /auth/reset-password`
+
+Publik (limiter `customer-password-reset`). Request:
+
+```json
+{
+    "email": "budi@example.com",
+    "code": "123456",
+    "password": "passwordbaru123",
+    "password_confirmation": "passwordbaru123"
+}
+```
+
+Field: `email` wajib; `code` wajib 6 digit; `password` wajib minimal 8 karakter + `password_confirmation` harus sama.
+
+- Sukses → `200` `{ "message": "Password berhasil diubah. Silakan masuk kembali." }`.
+- Password diganti, kode dihapus, dan **semua token bearer customer dicabut** — semua perangkat harus login ulang.
+- Kode salah/kedaluwarsa/tidak ada, atau email tak dikenal → `422` pada `code` dengan pesan sama:
+  `Kode reset tidak valid atau sudah kedaluwarsa.` (tidak membocorkan apakah email terdaftar).
+- Kode hangus setelah 5 percobaan salah.
+
 ### `POST /auth/logout` — bearer
 
 Tanpa body. Mencabut **token yang dipakai request ini saja**; token lain milik customer yang sama tetap valid. Respons `204` (tanpa body). Token yang sudah dicabut → `401`.
@@ -472,6 +516,7 @@ Respons `200`:
         "id": 7,
         "name": "Budi Santoso",
         "phone": "081234567890",
+        "email": "budi@example.com",
         "created_at": "2026-11-01T12:00:00+07:00",
         "addresses_count": 2
     }
@@ -570,6 +615,35 @@ Field:
 
 Catatan frontend: alamat tersimpan **tidak** otomatis terisi ke checkout — `POST /orders` tetap perlu `delivery_address`/`delivery_area_id`/kurir (frontend boleh prefill dari alamat tersimpan).
 
+### Device FCM `/me/devices` — bearer
+
+Endpoint ini menyimpan token registrasi FCM dan dipakai server untuk mengirim push status order (`accepted`, `ready`, `cancelled`) bila kredensial Firebase tersedia. Status order tetap bisa diambil lewat API; push bukan satu-satunya sumber kebenaran.
+
+Field:
+
+| Field      | Aturan                                                     |
+| ---------- | ---------------------------------------------------------- |
+| `token`    | wajib, string max 512; token registrasi FCM dari Firebase. |
+| `platform` | wajib, `android` atau `ios`.                               |
+
+`POST /me/devices` → `200`:
+
+```json
+{
+    "device": {
+        "id": 7,
+        "platform": "android",
+        "last_seen_at": "2026-11-07T12:00:00+07:00"
+    }
+}
+```
+
+- Idempoten: token yang sama memperbarui baris yang ada, bukan menambah duplikat.
+- Token yang sama dipakai akun lain (perangkat berganti akun) dipindahkan ke akun yang sedang login, sehingga notifikasi tidak lintas akun.
+- `token` tidak pernah dikembalikan di respons.
+
+`DELETE /me/devices/{id}` → `204`; id milik customer lain → `404`.
+
 ### Checkout dengan bearer
 
 `POST /checkout/quote` dan `POST /orders` menerima `Authorization: Bearer` opsional:
@@ -585,7 +659,7 @@ Catatan frontend: alamat tersimpan **tidak** otomatis terisi ke checkout — `PO
 
 ### Batasan
 
-- Tanpa reset password mandiri dan tanpa verifikasi nomor HP (P1; membutuhkan kanal SMS/email).
+- Reset password mandiri lewat OTP email; belum ada verifikasi nomor HP/email saat pendaftaran (P1).
 - Order tamu lama tidak pernah dihubungkan ke akun, walau nomor HP sama.
 - Profil hanya bisa mengubah `name`; nomor HP akun tetap seperti saat daftar.
 
